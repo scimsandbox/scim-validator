@@ -1,0 +1,17 @@
+scim:
+  base-url: "${SCIM_BASE_URL:}"
+  api-url: "${SCIM_API_URL:http://localhost:8080}"
+  workspace-id: "${SCIM_WORKSPACE_ID:}"
+  auth-token: "${SCIM_AUTH_TOKEN:}"
+  testcontainers:
+    enabled: "${SCIM_TESTCONTAINERS_ENABLED:true}"
+    postgres-image: "${SCIM_VALIDATOR_POSTGRES_IMAGE:postgres:17-alpine3.23}"
+    init-image: "${SCIM_VALIDATOR_INIT_IMAGE:edipal/scim-flyway-api:latest}"
+    api-image: "${SCIM_VALIDATOR_API_IMAGE:edipal/scim-server-api:latest}"
+    postgres:
+      alias: validator-postgres
+      database-name: scimplayground
+      username: scim_playground
+      password: scim_playground
+    api:
+      port: 8080
