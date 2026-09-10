@@ -242,6 +242,114 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         getResponse.body().asString().contains("EMP-999")
     }
 
+    // ─── PAT_11: Replace complex attribute without path ──────────────────────
+
+    def "PAT_11: PATCH replace without path updates complex name object"() {
+        // RFC 7644 §3.5.2.1 / §3.5.2.3 — Complex attribute replace without path
+        given:
+        // Ensure initial name has known givenName and familyName
+        patchUser(testUserId, [
+            [op: "replace", path: "name.givenName", value: "InitialFirst"],
+            [op: "replace", path: "name.familyName", value: "InitialLast"]
+        ])
+
+        when:
+        def response = patchUser(testUserId, [
+            [op: "replace", value: [
+                name: [
+                    familyName: "UpdatedLast",
+                    formatted : "InitialFirst UpdatedLast"
+                ]
+            ]]
+        ])
+
+        then:
+        response.statusCode() == 200
+
+        and:
+        def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
+        getResponse.jsonPath().getString("name.familyName") == "UpdatedLast"
+        getResponse.jsonPath().getString("name.formatted") == "InitialFirst UpdatedLast"
+        // Unspecified sub-attribute (givenName) must be preserved per RFC 7644 §3.5.2.1/3.5.2.3
+        getResponse.jsonPath().getString("name.givenName") == "InitialFirst"
+    }
+
+    // ─── PAT_12: Replace complex attribute with path ─────────────────────────
+
+    def "PAT_12: PATCH replace with path name updates complex name object"() {
+        // RFC 7644 §3.5.2.3 — Complex attribute replace with path
+        when:
+        def response = patchUser(testUserId, [
+            [op: "replace", path: "name", value: [
+                familyName: "PathLast"
+            ]]
+        ])
+
+        then:
+        response.statusCode() == 200
+
+        and:
+        def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
+        getResponse.jsonPath().getString("name.familyName") == "PathLast"
+        getResponse.jsonPath().getString("name.givenName") == "InitialFirst"
+    }
+
+    // ─── PAT_13: Replace multi-valued attribute without path ─────────────────
+
+    def "PAT_13: PATCH replace without path replaces multi-valued attribute collection"() {
+        // RFC 7644 §3.5.2.3 — Replace multi-valued attribute without filter replaces all values
+        given:
+        String email1 = "rep1_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        String email2 = "rep2_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        def createResponse = createFullUser(
+            emails: [
+                [value: email1, type: "work", primary: true],
+                [value: email2, type: "home", primary: false]
+            ]
+        )
+        String userId = createResponse.jsonPath().getString("id")
+
+        when:
+        String newEmail = "sole_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        def response = patchUser(userId, [
+            [op: "replace", value: [
+                emails: [
+                    [value: newEmail, type: "work", primary: true]
+                ]
+            ]]
+        ])
+
+        then:
+        response.statusCode() == 200
+
+        and:
+        def getResponse = scimRequestQuiet().get("/Users/${userId}")
+        def emails = getResponse.jsonPath().getList("emails")
+        emails.size() == 1
+        emails[0].value == newEmail
+
+        cleanup:
+        if (userId) deleteUser(userId)
+    }
+
+    // ─── PAT_14: Remove complex attribute ────────────────────────────────────
+
+    def "PAT_14: PATCH remove on complex attribute name clears all name sub-attributes"() {
+        // RFC 7644 §3.5.2.2 — Remove on complex attribute removes all sub-attributes
+        when:
+        def response = patchUser(testUserId, [
+            [op: "remove", path: "name"]
+        ])
+
+        then:
+        response.statusCode() == 200
+
+        and:
+        def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
+        def nameObj = getResponse.jsonPath().get("name")
+        nameObj == null || (nameObj.familyName == null && nameObj.givenName == null && nameObj.formatted == null)
+    }
+
     def cleanupSpec() {
         [testUserId, multiEmailUserId].each { id ->
             if (id) deleteUser(id)
