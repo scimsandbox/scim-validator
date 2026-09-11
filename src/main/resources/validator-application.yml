@@ -6,8 +6,8 @@ scim:
   testcontainers:
     enabled: "${SCIM_TESTCONTAINERS_ENABLED:true}"
     postgres-image: "${SCIM_VALIDATOR_POSTGRES_IMAGE:postgres:17-alpine3.23}"
-    init-image: "${SCIM_VALIDATOR_INIT_IMAGE:edipal/scim-flyway-api:latest}"
-    api-image: "${SCIM_VALIDATOR_API_IMAGE:edipal/scim-server-api:latest}"
+    init-image: "${SCIM_VALIDATOR_INIT_IMAGE:edipal/scim-server-db:latest}"
+    api-image: "${SCIM_VALIDATOR_API_IMAGE:edipal/scim-server-impl-go:latest}"
     postgres:
       alias: validator-postgres
       database-name: scimplayground

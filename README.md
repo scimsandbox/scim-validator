@@ -117,8 +117,8 @@ The default values come from `src/main/resources/validator-application.yml`.
 | Bearer token used by the suite | `SCIM_AUTH_TOKEN` | `scim.authToken` | empty |
 | Enable automatic bootstrap | `SCIM_TESTCONTAINERS_ENABLED` | `scim.testcontainers.enabled` | `true` |
 | PostgreSQL image | `SCIM_VALIDATOR_POSTGRES_IMAGE` | `scim.testcontainers.postgresImage` | `postgres:17-alpine3.23` |
-| Init image | `SCIM_VALIDATOR_INIT_IMAGE` | `scim.testcontainers.initImage` | `edipal/scim-flyway-api:latest` |
-| API image | `SCIM_VALIDATOR_API_IMAGE` | `scim.testcontainers.apiImage` | `edipal/scim-server-api:latest` |
+| Init image | `SCIM_VALIDATOR_INIT_IMAGE` | `scim.testcontainers.initImage` | `edipal/scim-server-db:latest` |
+| API image | `SCIM_VALIDATOR_API_IMAGE` | `scim.testcontainers.apiImage` | `edipal/scim-server-impl-go:latest` |
 
 `SCIM_BASE_URL` takes precedence over the derived `SCIM_API_URL` plus
 `SCIM_WORKSPACE_ID` mode. If neither explicit base URL nor workspace/token is
