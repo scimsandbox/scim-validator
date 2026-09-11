@@ -341,7 +341,11 @@ abstract class ScimBaseSpec extends Specification {
             ]
         ]
 
-        if (overrides.title) payload.title = overrides.title
+        overrides.each { k, v ->
+            if (k != 'enterprise' && k != 'schemas') {
+                payload[k] = v
+            }
+        }
 
         Response response = scimRequestQuiet()
             .body(JsonOutput.toJson(payload))
