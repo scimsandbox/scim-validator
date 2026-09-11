@@ -425,13 +425,25 @@ abstract class ScimBaseSpec extends Specification {
 
     /**
      * Assert standard SCIM error response body structure.
+     * RFC 7644 §3.12:
+     * - HTTP status code matches expectedStatus
+     * - schemas MUST contain "urn:ietf:params:scim:api:messages:2.0:Error"
+     * - status attribute MUST match HTTP status code as string
+     * - scimType (optional) matches expectedScimType when provided
      */
-    protected void assertScimError(Response response, int expectedStatus) {
-        assert response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA) ||
-               response.jsonPath().getString("status") != null :
-            "Response should follow SCIM error schema"
-        assert response.jsonPath().getString("status") == String.valueOf(expectedStatus) ||
-               response.statusCode() == expectedStatus
+    protected void assertScimError(Response response, int expectedStatus, String expectedScimType = null) {
+        assert response.statusCode() == expectedStatus :
+            "HTTP status ${response.statusCode()} != expected ${expectedStatus}"
+        def schemas = response.jsonPath().getList("schemas")
+        assert schemas != null && schemas.contains(ERROR_SCHEMA) :
+            "Response schemas ${schemas} must contain ${ERROR_SCHEMA} (RFC 7644 §3.12)"
+        String statusAttr = response.jsonPath().getString("status")
+        assert statusAttr == String.valueOf(expectedStatus) :
+            "SCIM error status attribute '${statusAttr}' must equal '${expectedStatus}' (RFC 7644 §3.12)"
+        if (expectedScimType != null) {
+            String scimType = response.jsonPath().getString("scimType")
+            assert scimType == expectedScimType :
+                "Expected scimType '${expectedScimType}' but got '${scimType}' (RFC 7644 §3.12)"
+        }
     }
-
 }
