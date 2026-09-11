@@ -288,7 +288,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
         given:
         String targetUserName = userData[0].userName
         Map searchBody = [
-            schemas: [LIST_RESPONSE_SCHEMA],
+            schemas: [SEARCH_REQUEST_SCHEMA],
             filter : "userName eq \"${targetUserName}\""
         ]
 
@@ -315,7 +315,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
         String gid = created.jsonPath().getString("id")
 
         Map searchBody = [
-            schemas: [LIST_RESPONSE_SCHEMA],
+            schemas: [SEARCH_REQUEST_SCHEMA],
             filter : "displayName eq \"${groupName}\""
         ]
 
@@ -529,5 +529,176 @@ class A5_FilteringSpec extends A5_BaseSpec {
         response.statusCode() == 200
         response.jsonPath().getInt("totalResults") >= 1
         response.jsonPath().getList("Resources.userName").contains(targetUserName)
+    }
+
+    // ─── FLT_29: ge operator on meta.lastModified ───────────────────────────
+
+    def "FLT_29: Filter with ge on meta.lastModified returns matching users"() {
+        // RFC 7644 §3.4.2.2 — Comparison Operators: ge
+        when:
+        Response response = scimRequest()
+            .queryParam("filter", "meta.lastModified ge \"2000-01-01T00:00:00Z\" and userName sw \"${PREFIX}\"")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 200
+        response.jsonPath().getInt("totalResults") >= 5
+    }
+
+    // ─── FLT_30: lt operator on meta.lastModified ───────────────────────────
+
+    def "FLT_30: Filter with lt on meta.lastModified returns no matching users for ancient timestamp"() {
+        // RFC 7644 §3.4.2.2 — Comparison Operators: lt
+        when:
+        Response response = scimRequest()
+            .queryParam("filter", "meta.lastModified lt \"2000-01-01T00:00:00Z\" and userName sw \"${PREFIX}\"")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 200
+        response.jsonPath().getInt("totalResults") == 0
+        def resources = response.jsonPath().getList("Resources")
+        resources == null || resources.isEmpty()
+    }
+
+    // ─── FLT_31: le operator on meta.lastModified ───────────────────────────
+
+    def "FLT_31: Filter with le on meta.lastModified returns all matching users for future timestamp"() {
+        // RFC 7644 §3.4.2.2 — Comparison Operators: le
+        when:
+        Response response = scimRequest()
+            .queryParam("filter", "meta.lastModified le \"2099-01-01T00:00:00Z\" and userName sw \"${PREFIX}\"")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 200
+        response.jsonPath().getInt("totalResults") >= 5
+    }
+
+    // ─── FLT_32: Compound value path filter ─────────────────────────────────
+
+    def "FLT_32: Value path filter with sub-attribute targeting returns matching users"() {
+        // RFC 7644 §3.4.2.2 — Value Path Filtering with sub-attribute targeting
+        when: "Query with direct complex sub-attribute path (emails.value)"
+        Response directSubAttr = scimRequest()
+            .queryParam("filter", "emails.value co \"@test.com\" and userName sw \"${PREFIX}\"")
+            .get("/Users")
+
+        then: "Direct sub-attribute query returns all matching users"
+        directSubAttr.statusCode() == 200
+        directSubAttr.jsonPath().getInt("totalResults") >= 5
+        directSubAttr.jsonPath().getList("Resources").every { Map r ->
+            def emails = r.emails as List<Map>
+            emails?.any { (it.value as String)?.contains("@test.com") }
+        }
+
+        when: "Query with bracketed value path targeting sub-attribute (emails[type eq \"work\"].value)"
+        Response bracketSubAttr = scimRequest()
+            .queryParam("filter", "emails[type eq \"work\"].value co \"@test.com\" and userName sw \"${PREFIX}\"")
+            .get("/Users")
+
+        then: "Server returns matching users or rejects with 400 invalidFilter"
+        bracketSubAttr.statusCode() in [200, 400]
+        if (bracketSubAttr.statusCode() == 200) {
+            bracketSubAttr.jsonPath().getInt("totalResults") >= 5
+        } else {
+            ScimOutput.println "DEVIATION: Server does not support bracketed value path with dotted sub-attribute targeting 'emails[...].value' (RFC 7644 §3.4.2.2)"
+            assertScimError(bracketSubAttr, 400)
+        }
+    }
+
+    // ─── FLT_33: Root global search POST /.search ───────────────────────────
+
+    def "FLT_33: POST /.search root global search returns 200 or 501 Not Implemented"() {
+        // RFC 7644 §3.4.3: "If a SCIM service provider does not support searching at the root,
+        // the response status MUST be 501 (Not Implemented)."
+        Map searchBody = [
+            schemas: [SEARCH_REQUEST_SCHEMA],
+            filter : "userName sw \"${PREFIX}\""
+        ]
+
+        when:
+        Response response = scimRequest()
+            .body(JsonOutput.toJson(searchBody))
+            .post("/.search")
+
+        then:
+        response.statusCode() in [200, 501]
+        if (response.statusCode() == 501) {
+            assertScimError(response, 501)
+        } else {
+            response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+        }
+    }
+
+    // ─── FLT_34: Filter by enterprise extension attribute ───────────────────
+
+    def "FLT_34: Filter by enterprise extension attribute returns matching user"() {
+        // RFC 7643 §4.3, RFC 7644 §3.4.2.2 — Extension attribute filtering
+        given: "Create a user with distinct enterprise department"
+        String dept = "Quality Assurance ${UUID.randomUUID().toString().substring(0, 6)}"
+        Map userPayload = [
+            schemas   : [USER_SCHEMA, ENTERPRISE_USER_SCHEMA],
+            userName  : "${PREFIX}qa_user_${UUID.randomUUID().toString().substring(0, 6)}@test.com",
+            (ENTERPRISE_USER_SCHEMA): [
+                department    : dept,
+                employeeNumber: "QA-${System.currentTimeMillis()}"
+            ]
+        ]
+        Response created = createUser(userPayload)
+        assert created.statusCode() == 201
+        String uid = created.jsonPath().getString("id")
+
+        when: "Filter by fully-qualified enterprise extension attribute"
+        Response response = scimRequest()
+            .queryParam("filter", "${ENTERPRISE_USER_SCHEMA}:department eq \"${dept}\"")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 200
+        response.jsonPath().getInt("totalResults") >= 1
+        response.jsonPath().getList("Resources.id").contains(uid)
+
+        cleanup:
+        if (uid) deleteUser(uid)
+        createdUserIds.remove(uid)
+    }
+
+    // ─── FLT_35: Mandatory attributes cannot be excluded ────────────────────
+
+    def "FLT_35: Mandatory attributes id and schemas cannot be excluded via excludedAttributes"() {
+        // RFC 7644 §3.9: "The attribute 'schemas' and the attribute 'id' are always returned
+        // and SHALL NOT be excluded."
+        when: "Query with excludedAttributes=id,schemas"
+        Response response = scimRequest()
+            .queryParam("filter", "userName sw \"${PREFIX}\"")
+            .queryParam("excludedAttributes", "id,schemas")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 200
+        def resources = response.jsonPath().getList("Resources")
+        resources.size() >= 5
+        resources.every { Map r ->
+            r.id != null && r.id != "" && r.schemas != null && !((List) r.schemas).isEmpty()
+        }
+    }
+
+    // ─── FLT_36: Non-existent attribute in attributes projection ────────────
+
+    def "FLT_36: Non-existent attribute in attributes query parameter does not error"() {
+        // RFC 7644 §3.9 — Service providers SHOULD ignore invalid/unrecognized attribute names
+        given:
+        String targetId = userData[0].id
+
+        when:
+        Response response = scimRequest()
+            .queryParam("attributes", "nonExistentAttributeXYZ123")
+            .get("/Users/${targetId}")
+
+        then:
+        response.statusCode() == 200
+        response.jsonPath().getString("id") == targetId
+        response.jsonPath().getList("schemas").contains(USER_SCHEMA)
     }
 }

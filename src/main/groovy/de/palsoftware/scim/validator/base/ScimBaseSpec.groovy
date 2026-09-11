@@ -50,6 +50,7 @@ abstract class ScimBaseSpec extends Specification {
     static final String BULK_REQUEST_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:BulkRequest"
     static final String ERROR_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:Error"
     static final String LIST_RESPONSE_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+    static final String SEARCH_REQUEST_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:SearchRequest"
     static final String SPC_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"
 
     // ─── Service Provider Config (loaded once) ───────────────────────────
