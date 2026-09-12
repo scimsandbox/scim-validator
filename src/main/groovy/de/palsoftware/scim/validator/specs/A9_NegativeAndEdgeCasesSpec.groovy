@@ -234,7 +234,8 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         if (response.statusCode() == 400) {
             assertScimError(response, 400, "mutability")
         } else {
-            response.jsonPath().getString("id") == existingUserId
+            assert response.jsonPath().getString("id") == existingUserId :
+                "readOnly id must not change when PATCH is accepted (RFC 7643 §2.2)"
         }
     }
 
@@ -253,8 +254,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         then: "400 Bad Request with SCIM Error schema"
         response.statusCode() == 400
         assertScimError(response, 400)
-        String scimType = response.jsonPath().getString("scimType")
-        scimType in ["invalidPath", "noTarget", "invalidFilter", "invalidValue"]
+        assertScimType(response, "invalidPath", "noTarget", "invalidFilter", "invalidValue")
     }
 
     // ─── NEG_14: Root JSON Array Payload on POST User ───────────────────────
@@ -297,7 +297,8 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         then: "Server processes request safely without 500 Internal Server Error"
         response.statusCode() in [200, 400]
         if (response.statusCode() == 200) {
-            response.jsonPath().getInt("totalResults") == 0
+            assert response.jsonPath().getInt("totalResults") == 0 :
+                "Injection payload must be treated as a literal value and match no users"
         } else {
             assertScimError(response, 400)
         }
@@ -333,8 +334,16 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson([schemas: [GROUP_SCHEMA], displayName: groupName]))
             .post("/Groups")
 
-        then: "Duplicate group returns 409 Conflict with uniqueness"
-        assertScimError(dupRes, 409, "uniqueness")
+        then: "Duplicate group returns 409 uniqueness, or 201 (displayName uniqueness is 'none')"
+        // RFC 7643 §7 declares Group.displayName with "uniqueness": "none", so accepting the
+        // duplicate is compliant; enforcing it must be reported as 409 + scimType uniqueness.
+        dupRes.statusCode() in [201, 409]
+        if (dupRes.statusCode() == 409) {
+            assertScimError(dupRes, 409, "uniqueness")
+        } else {
+            ScimOutput.println "NOTE: Server permits duplicate Group displayName " +
+                "(RFC 7643 §7 declares displayName uniqueness 'none')"
+        }
 
         when: "POST group without displayName"
         Response noName = scimRequest()
@@ -345,6 +354,10 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         assertScimError(noName, 400, "invalidValue")
 
         cleanup:
+        if (dupRes?.statusCode() == 201) {
+            String dupId = dupRes.jsonPath().getString("id")
+            if (dupId) deleteGroup(dupId)
+        }
         if (grpId) deleteGroup(grpId)
     }
 

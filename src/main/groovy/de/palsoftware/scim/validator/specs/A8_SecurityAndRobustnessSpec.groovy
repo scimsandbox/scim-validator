@@ -81,16 +81,16 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
         and: "If 400, error schema should reflect mutability constraint"
         if (response.statusCode() == 400) {
-            response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-            String scimType = response.jsonPath().getString("scimType")
-            assert scimType in ["mutability", "invalidValue", null]
+            assert response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+            assertScimType(response, "mutability", "invalidValue")
         } else if (response.statusCode() == 403) {
             ScimOutput.println "DEVIATION: Server returned 403 Forbidden for readOnly id change instead of 400 mutability or ignoring"
         }
 
         and: "If 200, the id should NOT have changed"
         if (response.statusCode() == 200) {
-            response.jsonPath().getString("id") == testUserId
+            assert response.jsonPath().getString("id") == testUserId :
+                "readOnly id must not change (RFC 7643 §2.2)"
         }
     }
 
@@ -125,8 +125,10 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
         and: "When both present, ETag header should match or reflect meta.version"
         if (etagHeader != null && version != null) {
-            etagHeader.contains(version.replace("W/\"", "").replace("\"", "")) ||
-            version.contains(etagHeader.replace("W/\"", "").replace("\"", ""))
+            String normalizedEtag = etagHeader.replace("W/\"", "").replace("\"", "")
+            String normalizedVersion = version.replace("W/\"", "").replace("\"", "")
+            assert normalizedEtag.contains(normalizedVersion) || normalizedVersion.contains(normalizedEtag) :
+                "ETag header '${etagHeader}' and meta.version '${version}' must agree (RFC 7644 §3.14)"
         }
     }
 
@@ -328,9 +330,8 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
         and: "If 400, verify SCIM error schema"
         if (response.statusCode() == 400) {
-            response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-            String scimType = response.jsonPath().getString("scimType")
-            assert scimType in ["mutability", "invalidValue", "invalidPath", null]
+            assert response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+            assertScimType(response, "mutability", "invalidValue", "invalidPath")
         }
 
         and: "If 200, meta.created was not changed to 1999"
@@ -365,7 +366,8 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
         and: "If 200, original meta.created is preserved and was not overwritten"
         if (response.statusCode() == 200) {
-            response.jsonPath().getString("meta.created") == originalCreated
+            assert response.jsonPath().getString("meta.created") == originalCreated :
+                "meta.created is readOnly and must survive a PUT that tries to overwrite it (RFC 7643 §2.2)"
         }
     }
 
@@ -486,7 +488,12 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
     // ─── SEC_23: Concurrent Update Race Simulation ──────────────────────────
 
     def "SEC_23: Concurrent update collision detects stale ETag and rejects second write with 412"() {
-        // RFC 7644 §3.13 — Concurrency handling
+        // RFC 7644 §3.13 — Concurrency handling.
+        //
+        // Unlike USR_16/PAT_20, the If-Match match path is held strict here: optimistic
+        // concurrency IS the subject of this test, and RFC 7644 §3.13 requires a server to
+        // honour If-Match carrying the version it issued — even though §3.14 recommends weak
+        // ETags and RFC 7232 §3.1 asks for strong comparison in the general HTTP case.
         given: "Create an isolated user for concurrent write testing"
         Response created = createUser()
         assert created.statusCode() == 201
@@ -624,20 +631,38 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
     def "SEC_26: Unsupported HTTP methods on resource instance and collection return 405 Method Not Allowed"() {
         // RFC 7644 §3.12 — HTTP method rejection
+        //
+        // NOTE: this test deliberately never issues DELETE (or any other destructive verb)
+        // against a collection endpoint. The suite runs against live third-party targets,
+        // and a server that honoured "DELETE /Users" would wipe the tenant before the
+        // assertion below could report it. POST and PUT on a collection/instance are the
+        // undefined-but-harmless verbs, so method rejection is probed with those.
+        given: "A uniquely named payload so an unexpectedly accepted write can be cleaned up"
+        String strayUserName = "sec26_stray_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+
         when: "POST to existing resource instance endpoint (invalid)"
         Response postInstance = scimRequestQuiet()
-            .body(JsonOutput.toJson([schemas: [USER_SCHEMA], userName: "invalid@test.com"]))
+            .body(JsonOutput.toJson([schemas: [USER_SCHEMA], userName: strayUserName]))
             .post("/Users/${testUserId}")
 
         then: "Rejected with 405 (or 400/404)"
         postInstance.statusCode() in [400, 404, 405]
 
-        when: "DELETE on entire collection endpoint (invalid without Bulk)"
-        Response delCollection = scimRequestQuiet()
-            .delete("/Users")
+        when: "PUT on entire collection endpoint (invalid — PUT targets an instance)"
+        Response putCollection = scimRequestQuiet()
+            .body(JsonOutput.toJson([schemas: [USER_SCHEMA], userName: strayUserName]))
+            .put("/Users")
 
         then: "Rejected with 405 (or 400/404/501)"
-        delCollection.statusCode() in [400, 404, 405, 501]
+        putCollection.statusCode() in [400, 404, 405, 501]
+
+        cleanup: "Remove any resource a non-compliant server created from the rejected writes"
+        [postInstance, putCollection].each { Response r ->
+            if (r?.statusCode() in [200, 201]) {
+                String strayId = r.jsonPath().getString("id")
+                if (strayId) deleteUser(strayId)
+            }
+        }
     }
 }
 

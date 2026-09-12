@@ -202,7 +202,7 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         then:
         if (response.statusCode() == 400) {
             assert response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-            assert response.jsonPath().getString("scimType") in ["invalidPath", "noTarget", null]
+            assertScimType(response, "invalidPath", "noTarget")
         } else if (response.statusCode() == 404) {
             ScimOutput.println "DEVIATION: Server returned 404 instead of RFC-expected 400 with scimType 'invalidPath'/'noTarget' for invalid PATCH path"
         } else {
@@ -222,7 +222,7 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         then:
         if (response.statusCode() == 400) {
             assert response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-            assert response.jsonPath().getString("scimType") in ["mutability", null]
+            assertScimType(response, "mutability")
         } else if (response.statusCode() == 200) {
             def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
             assert getResponse.statusCode() == 200
@@ -367,9 +367,16 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
     // ─── PAT_15: Multi-operation batch ──────────────────────────────────────
 
     def "PAT_15: PATCH multi-operation sequential batch applies all operations"() {
-        // RFC 7644 §3.5.2 — Operations sequence
+        // RFC 7644 §3.5.2 — Operations sequence.
+        // Uses a dedicated user so the @Stepwise chain is not left with a deactivated
+        // account or an overwritten name for the tests that follow.
+        given: "A user dedicated to this feature"
+        def user = createFullUser()
+        assert user.statusCode() == 201
+        def userId = user.jsonPath().getString("id")
+
         when:
-        def response = patchUser(testUserId, [
+        def response = patchUser(userId, [
             [op: "add", path: "title", value: "Principal Architect"],
             [op: "replace", path: "name.givenName", value: "MultiBatchFirst"],
             [op: "replace", path: "active", value: false]
@@ -379,48 +386,76 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         response.statusCode() == 200
 
         and:
-        def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
+        def getResponse = scimRequestQuiet().get("/Users/${userId}")
         getResponse.statusCode() == 200
         getResponse.jsonPath().getString("title") == "Principal Architect"
         getResponse.jsonPath().getString("name.givenName") == "MultiBatchFirst"
         !getResponse.jsonPath().getBoolean("active")
+
+        cleanup:
+        if (userId) deleteUser(userId)
     }
 
     // ─── PAT_16: Atomic batch rollback on failure ───────────────────────────
 
     def "PAT_16: PATCH failure rolls back earlier operations in the same request"() {
-        // RFC 7644 §3.5.2 — Atomic execution
-        given: "Ensure a known displayName"
-        patchUser(testUserId, [[op: "replace", path: "displayName", value: "StableNameBeforeRollback"]])
-        def initialGet = scimRequestQuiet().get("/Users/${testUserId}")
+        // RFC 7644 §3.5.2 — "the server MUST apply the entire set of operations or none"
+        //
+        // The failing operation must fail at APPLY time, not at parse time: a server that
+        // merely pre-validates paths before touching storage would pass a test built on a
+        // bogus path without ever performing a rollback. A duplicate userName can only be
+        // detected once the write is attempted, so it exercises the real transaction.
+        given: "A target user and a second user whose userName will be collided with"
+        def target = createFullUser(displayName: "StableNameBeforeRollback")
+        assert target.statusCode() == 201
+        def targetId = target.jsonPath().getString("id")
+        def targetUserName = target.jsonPath().getString("userName")
+
+        def other = createUser()
+        assert other.statusCode() == 201
+        def otherId = other.jsonPath().getString("id")
+        def takenUserName = other.jsonPath().getString("userName")
+
+        def initialGet = scimRequestQuiet().get("/Users/${targetId}")
         assert initialGet.jsonPath().getString("displayName") == "StableNameBeforeRollback"
 
-        when: "Execute batch with valid first operation and invalid second operation"
-        def response = patchUser(testUserId, [
+        when: "Batch with a valid first operation and a second that fails when applied"
+        def response = patchUser(targetId, [
             [op: "replace", path: "displayName", value: "ShouldRollBackName"],
-            [op: "replace", path: "invalidTargetLocationAttrXYZ", value: "fail"]
+            [op: "replace", path: "userName", value: takenUserName]
         ])
 
-        then: "Request fails with 400 (or deviation 404)"
-        response.statusCode() in [400, 404]
+        then: "The request is rejected — userName uniqueness is 'server' per RFC 7643 §7"
+        assert response.statusCode() in [400, 409] :
+            "Duplicate userName must be rejected, got ${response.statusCode()}"
 
-        and: "Valid operation from step 1 was not persisted (atomic rollback)"
-        def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
+        and: "Neither operation was persisted (atomic rollback)"
+        def getResponse = scimRequestQuiet().get("/Users/${targetId}")
         getResponse.jsonPath().getString("displayName") == "StableNameBeforeRollback"
+        getResponse.jsonPath().getString("userName") == targetUserName
+
+        cleanup:
+        if (targetId) deleteUser(targetId)
+        if (otherId) deleteUser(otherId)
     }
 
     // ─── PAT_17: Case-insensitive op keywords ───────────────────────────────
 
     def "PAT_17: PATCH accepts case-insensitive op keywords (Add, REPLACE, Remove)"() {
         // RFC 7644 §3.5.2 — op attribute is not case sensitive
+        given: "A user dedicated to this feature"
+        def user = createFullUser()
+        assert user.statusCode() == 201
+        def userId = user.jsonPath().getString("id")
+
         when: "Execute mixed/uppercase op keywords"
-        def addResp = patchUser(testUserId, [
+        def addResp = patchUser(userId, [
             [op: "Add", path: "nickName", value: "CaseNick"]
         ])
-        def repResp = patchUser(testUserId, [
+        def repResp = patchUser(userId, [
             [op: "REPLACE", path: "title", value: "Distinguished Engineer"]
         ])
-        def remResp = patchUser(testUserId, [
+        def remResp = patchUser(userId, [
             [op: "Remove", path: "nickName"]
         ])
 
@@ -430,30 +465,54 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         remResp.statusCode() == 200
 
         and: "Final state matches"
-        def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
+        def getResponse = scimRequestQuiet().get("/Users/${userId}")
         getResponse.jsonPath().getString("title") == "Distinguished Engineer"
         getResponse.jsonPath().getString("nickName") == null
+
+        cleanup:
+        if (userId) deleteUser(userId)
     }
 
     // ─── PAT_18: Dotted syntax in pathless PATCH ─────────────────────────────
 
-    def "PAT_18: PATCH replace without path supports dotted sub-attributes in value map"() {
-        // Microsoft Entra ID (Azure AD) interoperability pattern
+    def "PAT_18: PATCH replace without path handles Entra ID dotted sub-attribute keys"() {
+        // Microsoft Entra ID (Azure AD) interoperability pattern — NOT an RFC requirement.
+        //
+        // RFC 7644 §3.5.2.2 defines the pathless "value" map as attribute names, so a
+        // strictly compliant server may reject or ignore "name.givenName". Supporting the
+        // quirk is reported as interoperable; not supporting it is reported as a note.
+        given: "A user dedicated to this feature"
+        def user = createFullUser()
+        assert user.statusCode() == 201
+        def userId = user.jsonPath().getString("id")
+
         when: "Pathless replace with dotted keys in value"
-        def response = patchUser(testUserId, [
+        def response = patchUser(userId, [
             [op: "replace", value: [
                 "name.givenName" : "EntraFirst",
                 "name.familyName": "EntraLast"
             ]]
         ])
 
-        then: "Status is 200"
-        response.statusCode() == 200
+        then: "The server either applies the dotted keys or rejects them cleanly"
+        response.statusCode() in [200, 400]
 
-        and: "Sub-attributes are updated"
-        def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
-        getResponse.jsonPath().getString("name.givenName") == "EntraFirst"
-        getResponse.jsonPath().getString("name.familyName") == "EntraLast"
+        and: "When accepted, the sub-attributes are actually updated"
+        def getResponse = scimRequestQuiet().get("/Users/${userId}")
+        if (response.statusCode() == 400) {
+            assertScimError(response, 400)
+            ScimOutput.println "NOTE: Server rejects Microsoft Entra ID dotted-key pathless PATCH " +
+                "(compliant with RFC 7644 §3.5.2.2, but not interoperable with Entra ID)"
+        } else if (getResponse.jsonPath().getString("name.givenName") == "EntraFirst") {
+            assert getResponse.jsonPath().getString("name.familyName") == "EntraLast" :
+                "Dotted key 'name.familyName' was accepted but not applied"
+        } else {
+            ScimOutput.println "NOTE: Server returned 200 for Entra ID dotted-key pathless PATCH " +
+                "but did not apply the sub-attributes (silently ignored)"
+        }
+
+        cleanup:
+        if (userId) deleteUser(userId)
     }
 
     // ─── PAT_19: Alternate group member removal ─────────────────────────────
@@ -535,9 +594,18 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
             .patch("/Users/${userId}")
 
         then: "Update succeeds"
+        // RFC 7644 §3.14 recommends weak ETags while RFC 7232 §3.1 mandates strong comparison
+        // for If-Match. Servers that apply strong comparison literally reject their own weak
+        // validator, so a 412 here is reported as a deviation rather than failing the suite.
         if (etag != null) {
-            assert matchResponse.statusCode() == 200
-            assert matchResponse.jsonPath().getString("displayName") == "Stale Patch Name"
+            assert matchResponse.statusCode() in [200, 412] :
+                "If-Match with the current ETag must be honoured or refused, got ${matchResponse.statusCode()}"
+            if (matchResponse.statusCode() == 200) {
+                assert matchResponse.jsonPath().getString("displayName") == "Stale Patch Name"
+            } else {
+                ScimOutput.println "DEVIATION: Server rejected If-Match carrying its own current ETag " +
+                    "'${etag}' with 412 (strong comparison applied to a weak validator, RFC 7232 §3.1)"
+            }
         }
 
         cleanup:

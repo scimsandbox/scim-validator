@@ -383,8 +383,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                         response = scimRequestQuiet().delete(endpoint)
                         break
                 }
-                assert response.statusCode() >= 400 :
-                    "${method} ${endpoint} should return error but got ${response.statusCode()}"
+                assert response.statusCode() >= 400 && response.statusCode() < 500 :
+                    "${method} ${endpoint} must be rejected with a 4xx client error " +
+                    "(405 expected per RFC 7644 §4), got ${response.statusCode()}"
                 if (response.statusCode() == 405) {
                     def allowHeader = response.header("Allow")
                     if (allowHeader != null && !allowHeader.contains("GET")) {
@@ -417,8 +418,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                         response = scimRequestQuiet().delete(endpoint)
                         break
                 }
-                assert response.statusCode() >= 400 :
-                    "${method} ${endpoint} should return error but got ${response.statusCode()}"
+                assert response.statusCode() >= 400 && response.statusCode() < 500 :
+                    "${method} ${endpoint} must be rejected with a 4xx client error " +
+                    "(405 expected per RFC 7644 §4), got ${response.statusCode()}"
                 if (response.statusCode() == 405) {
                     def allowHeader = response.header("Allow")
                     if (allowHeader != null && !allowHeader.contains("GET")) {
@@ -451,8 +453,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                         response = scimRequestQuiet().delete(endpoint)
                         break
                 }
-                assert response.statusCode() >= 400 :
-                    "${method} ${endpoint} should return error but got ${response.statusCode()}"
+                assert response.statusCode() >= 400 && response.statusCode() < 500 :
+                    "${method} ${endpoint} must be rejected with a 4xx client error " +
+                    "(405 expected per RFC 7644 §4), got ${response.statusCode()}"
                 if (response.statusCode() == 405) {
                     def allowHeader = response.header("Allow")
                     if (allowHeader != null && !allowHeader.contains("GET")) {

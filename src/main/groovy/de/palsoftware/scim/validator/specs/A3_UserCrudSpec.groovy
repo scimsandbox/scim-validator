@@ -233,7 +233,7 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         if (putResponse.statusCode() == 400) {
             // RFC 7644 §3.3: Rejected with 400 mutability
             assert putResponse.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-            assert putResponse.jsonPath().getString("scimType") in ["mutability", null]
+            assertScimType(putResponse, "mutability")
         } else if (putResponse.statusCode() == 200) {
             // RFC 7643 §2.2: Server ignored the readOnly attribute modification — id remains unchanged
             assert putResponse.jsonPath().getString("id") == putImmutTestUserId : "id must not change via PUT"
@@ -384,9 +384,9 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         duplicateResponse.statusCode() == 409
 
         and: "Response conforms to SCIM Error schema with scimType 'uniqueness'"
-        duplicateResponse.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        duplicateResponse.jsonPath().getString("status") == "409"
-        duplicateResponse.jsonPath().getString("scimType") == "uniqueness"
+        // userName IS uniqueness "server" per RFC 7643 §7, so 409 is mandatory here; the
+        // scimType keyword itself stays optional per RFC 7644 §3.12.
+        assertScimError(duplicateResponse, 409, "uniqueness")
 
         cleanup:
         if (firstUserId) {
@@ -500,9 +500,18 @@ class A3_UserCrudSpec extends ScimBaseSpec {
             .put("/Users/${userId}")
 
         then: "Update succeeds"
+        // RFC 7644 §3.14 recommends weak ETags while RFC 7232 §3.1 mandates strong comparison
+        // for If-Match. Servers that apply strong comparison literally reject their own weak
+        // validator, so a 412 here is reported as a deviation rather than failing the suite.
         if (etag != null) {
-            assert matchResponse.statusCode() == 200
-            assert matchResponse.jsonPath().getString("displayName") == "Concurrency Test Stale"
+            assert matchResponse.statusCode() in [200, 412] :
+                "If-Match with the current ETag must be honoured or refused, got ${matchResponse.statusCode()}"
+            if (matchResponse.statusCode() == 200) {
+                assert matchResponse.jsonPath().getString("displayName") == "Concurrency Test Stale"
+            } else {
+                ScimOutput.println "DEVIATION: Server rejected If-Match carrying its own current ETag " +
+                    "'${etag}' with 412 (strong comparison applied to a weak validator, RFC 7232 §3.1)"
+            }
         }
 
         cleanup:

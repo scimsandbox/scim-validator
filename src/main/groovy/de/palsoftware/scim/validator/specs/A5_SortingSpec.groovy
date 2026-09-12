@@ -140,7 +140,7 @@ class A5_SortingSpec extends A5_BaseSpec {
         // Either 200 (ignored) or 400 (invalid) is compliant
         response.statusCode() in [200, 400]
         if (response.statusCode() == 200) {
-            response.jsonPath().getInt("totalResults") >= 5
+            assert response.jsonPath().getInt("totalResults") >= 5
         } else {
             assertScimError(response, 400)
         }

@@ -303,7 +303,14 @@ abstract class ScimBaseSpec extends Specification {
                 [value: "user_${uniqueSuffix}@test.com", type: "work", primary: true]
             ]
         ]
-        payload.putAll(overrides)
+
+        // 'enterprise' is only meaningful for createFullUser; copying it verbatim would
+        // emit a bogus top-level "enterprise" member, so it is filtered here as well.
+        overrides.each { k, v ->
+            if (k != 'enterprise') {
+                payload[k] = v
+            }
+        }
 
         Response response = scimRequestQuiet()
             .body(JsonOutput.toJson(payload))
@@ -429,7 +436,8 @@ abstract class ScimBaseSpec extends Specification {
      * - HTTP status code matches expectedStatus
      * - schemas MUST contain "urn:ietf:params:scim:api:messages:2.0:Error"
      * - status attribute MUST match HTTP status code as string
-     * - scimType (optional) matches expectedScimType when provided
+     * - scimType is OPTIONAL; when the server supplies one it MUST match
+     *   expectedScimType, when it omits one a deviation is logged instead
      */
     protected void assertScimError(Response response, int expectedStatus, String expectedScimType = null) {
         assert response.statusCode() == expectedStatus :
@@ -441,9 +449,26 @@ abstract class ScimBaseSpec extends Specification {
         assert statusAttr == String.valueOf(expectedStatus) :
             "SCIM error status attribute '${statusAttr}' must equal '${expectedStatus}' (RFC 7644 §3.12)"
         if (expectedScimType != null) {
-            String scimType = response.jsonPath().getString("scimType")
-            assert scimType == expectedScimType :
-                "Expected scimType '${expectedScimType}' but got '${scimType}' (RFC 7644 §3.12)"
+            assertScimType(response, expectedScimType)
         }
+    }
+
+    /**
+     * Assert the SCIM detail error keyword when the server supplies one.
+     *
+     * RFC 7644 §3.12 marks "scimType" OPTIONAL, so an omitted keyword is reported
+     * as a deviation rather than failing an otherwise compliant server. A keyword
+     * that is present but not among the expected values is a hard failure.
+     */
+    protected void assertScimType(Response response, String... expectedScimTypes) {
+        List<String> expected = expectedScimTypes as List<String>
+        String scimType = response.jsonPath().getString("scimType")
+        if (scimType == null || scimType.isBlank()) {
+            ScimOutput.println "DEVIATION: HTTP ${response.statusCode()} omits optional scimType " +
+                "(expected one of ${expected}) (RFC 7644 §3.12)"
+            return
+        }
+        assert expected.contains(scimType) :
+            "Expected scimType one of ${expected} but got '${scimType}' (RFC 7644 §3.12)"
     }
 }

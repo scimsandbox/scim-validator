@@ -600,7 +600,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
         then: "Server returns matching users or rejects with 400 invalidFilter"
         bracketSubAttr.statusCode() in [200, 400]
         if (bracketSubAttr.statusCode() == 200) {
-            bracketSubAttr.jsonPath().getInt("totalResults") >= 5
+            assert bracketSubAttr.jsonPath().getInt("totalResults") >= 5
         } else {
             ScimOutput.println "DEVIATION: Server does not support bracketed value path with dotted sub-attribute targeting 'emails[...].value' (RFC 7644 §3.4.2.2)"
             assertScimError(bracketSubAttr, 400)
@@ -627,7 +627,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
         if (response.statusCode() == 501) {
             assertScimError(response, 501)
         } else {
-            response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+            assert response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
         }
     }
 

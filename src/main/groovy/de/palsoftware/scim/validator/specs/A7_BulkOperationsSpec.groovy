@@ -71,7 +71,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         and: "Both operations should succeed with status 201"
         def operations = response.jsonPath().getList("Operations")
         operations.size() == 2
-        operations.every { Map op -> (op.status as String) in ["201", "201"] }
+        operations.every { Map op -> (op.status as String) == "201" }
 
         when: "Capture created user IDs for subsequent tests"
         operations.each { Map op ->
@@ -682,7 +682,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         ops[0].response != null
         (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
         (ops[0].response.status as String) == "409"
-        (ops[0].response.scimType as String) == "uniqueness"
+        assertOperationScimType(ops[0] as Map, "uniqueness")
 
         cleanup:
         if (existingId) deleteUser(existingId)
@@ -748,7 +748,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         (ops[0].status as String) == "400"
         ops[0].response != null
         (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
-        (ops[0].response.scimType as String) == "invalidValue"
+        assertOperationScimType(ops[0] as Map, "invalidValue")
     }
 
     // ─── BLK_16: Missing Operations Attribute ───────────────────────────────
@@ -771,5 +771,23 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
         response.jsonPath().getString("status") == "400"
     }
+
+    /**
+     * Assert the scimType carried inside a nested BulkResponse operation error.
+     *
+     * RFC 7644 §3.12 marks "scimType" OPTIONAL, so an omitted keyword is reported as a
+     * deviation rather than failing a server that is otherwise compliant.
+     */
+    private void assertOperationScimType(Map operation, String expectedScimType) {
+        String scimType = operation.response?.scimType as String
+        if (scimType == null || scimType.isBlank()) {
+            ScimOutput.println "DEVIATION: Bulk operation error omits optional scimType " +
+                "(expected '${expectedScimType}') (RFC 7644 §3.12)"
+            return
+        }
+        assert scimType == expectedScimType :
+            "Expected bulk operation scimType '${expectedScimType}' but got '${scimType}' (RFC 7644 §3.12)"
+    }
+
 }
 

@@ -69,15 +69,22 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
         then: "Status is 200"
         response.statusCode() == 200
 
-        and: "id attribute is string, required, readOnly, and returned always"
+        and: "id, when declared, is a readOnly string returned always"
         def attributes = response.jsonPath().getList("attributes")
         def idAttr = attributes.find { it.name == "id" }
-        idAttr != null
-        idAttr.type == "string"
-        idAttr.required == true
-        idAttr.mutability == "readOnly"
-        if (idAttr.returned != null) {
-            assert idAttr.returned == "always" : "id returned should be 'always', got: ${idAttr.returned}"
+        // "id" is a COMMON attribute defined in RFC 7643 §3.1; the normative User schema in
+        // §7 does not repeat it inside "attributes". Servers that omit it are compliant, so
+        // its characteristics are only enforced when the server chooses to publish them.
+        if (idAttr != null) {
+            assert idAttr.type == "string" : "id type should be string (RFC 7643 §3.1)"
+            assert idAttr.mutability == "readOnly" :
+                "id mutability MUST be readOnly per RFC 7643 §3.1, got: ${idAttr.mutability}"
+            if (idAttr.returned != null) {
+                assert idAttr.returned == "always" : "id returned should be 'always', got: ${idAttr.returned}"
+            }
+        } else {
+            ScimOutput.println "NOTE: User schema omits common attribute 'id' from attributes " +
+                "(matches the RFC 7643 §7 schema representation)"
         }
 
         and: "externalId attribute is string and readWrite"
@@ -197,14 +204,20 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
         response.jsonPath().getString("id") == GROUP_SCHEMA
         response.jsonPath().getString("name") == "Group"
 
-        and: "displayName is string, required, and readWrite"
+        and: "displayName is a readWrite string"
         def attributes = response.jsonPath().getList("attributes")
         attributes != null
         def displayNameAttr = attributes.find { it.name == "displayName" }
         displayNameAttr != null
         displayNameAttr.type == "string"
-        displayNameAttr.required == true
         displayNameAttr.mutability == "readWrite"
+        // RFC 7643 §7 declares Group.displayName with "required": false even though the
+        // attribute description says REQUIRED. Both readings are in the RFC, so either
+        // value is accepted here and the stricter one is only reported.
+        if (displayNameAttr.required != true) {
+            ScimOutput.println "NOTE: Group displayName declared required=${displayNameAttr.required} " +
+                "(matches the RFC 7643 §7 schema JSON; its description says REQUIRED)"
+        }
 
         and: "members is complex, multi-valued, and readWrite"
         def membersAttr = attributes.find { it.name == "members" }

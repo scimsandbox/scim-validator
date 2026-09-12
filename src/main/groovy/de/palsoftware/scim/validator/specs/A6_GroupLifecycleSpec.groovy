@@ -218,9 +218,8 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         getResponse.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
         getResponse.jsonPath().getString("status") == "404"
 
-        and: "Remove from cleanup tracking since already deleted"
+        cleanup: "Drop from cleanup tracking since the group is already deleted"
         createdGroupIds.remove(groupId)
-        true
     }
 
     // ─── GRP_08: Repeated DELETE returns 404 ────────────────────────────────
@@ -290,16 +289,17 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             .post("/Groups")
 
         then: "Status is 400 Bad Request with SCIM Error schema"
-        response.statusCode() == 400
-        response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        response.jsonPath().getString("status") == "400"
-        response.jsonPath().getString("scimType") == "invalidValue"
+        assertScimError(response, 400, "invalidValue")
     }
 
     // ─── GRP_12: POST duplicate displayName returns 409 Conflict ────────────
 
-    def "GRP_12: POST /Groups with duplicate displayName returns 409 Conflict"() {
-        // RFC 7644 §3.3, §3.12 — Uniqueness conflict
+    def "GRP_12: POST /Groups with duplicate displayName returns 409 Conflict or is accepted"() {
+        // RFC 7644 §3.3, §3.12 — Uniqueness conflict.
+        //
+        // RFC 7643 §7 declares Group.displayName with "uniqueness": "none", so duplicate
+        // group names are permitted. Servers that DO enforce uniqueness must report it the
+        // RFC way (409 + scimType "uniqueness"); servers that don't are merely noted.
         given: "An existing group"
         String dupDisplayName = "DupGroup_${UUID.randomUUID().toString().substring(0, 8)}"
         Response first = createGroup(dupDisplayName)
@@ -315,13 +315,20 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(payload))
             .post("/Groups")
 
-        then: "Status is 409 Conflict with scimType uniqueness"
-        duplicateResponse.statusCode() == 409
-        duplicateResponse.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        duplicateResponse.jsonPath().getString("status") == "409"
-        duplicateResponse.jsonPath().getString("scimType") == "uniqueness"
+        then: "Either 409 Conflict with scimType uniqueness, or 201 (displayName uniqueness is 'none')"
+        duplicateResponse.statusCode() in [201, 409]
+        if (duplicateResponse.statusCode() == 409) {
+            assertScimError(duplicateResponse, 409, "uniqueness")
+        } else {
+            ScimOutput.println "NOTE: Server permits duplicate Group displayName " +
+                "(RFC 7643 §7 declares displayName uniqueness 'none')"
+        }
 
         cleanup:
+        if (duplicateResponse.statusCode() == 201) {
+            String duplicateId = duplicateResponse.jsonPath().getString("id")
+            if (duplicateId) deleteGroup(duplicateId)
+        }
         if (firstId) {
             deleteGroup(firstId)
         }
