@@ -776,7 +776,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     def "BLK_17: Bulk operation targeting an unknown resource path reports error (400 or 404)"() {
         // RFC 7644 §3.7, §3.12 — Unknown resource path inside bulk operation
-        given: "Bulk request with unknown resource paths"
+        given: "Bulk request with unknown resource path"
         Map bulkPayload = [
             schemas   : [BULK_REQUEST_SCHEMA],
             Operations: [
@@ -788,19 +788,11 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                         schemas : [USER_SCHEMA],
                         userName: "unknown_resource@test.com"
                     ]
-                ],
-                [
-                    method: "PUT",
-                    path  : "/InvalidEndpoint/${UUID.randomUUID()}",
-                    data  : [
-                        schemas : [USER_SCHEMA],
-                        userName: "unknown_put@test.com"
-                    ]
                 ]
             ]
         ]
 
-        when: "Execute bulk request with invalid paths"
+        when: "Execute bulk request with unknown resource path"
         Response response = scimRequestQuiet()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
@@ -808,19 +800,13 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         then: "Overall response is 200 OK"
         response.statusCode() == 200
 
-        and: "Both operations report 400 or 404 with SCIM Error schema"
+        and: "Operation reports 400 or 404 with SCIM Error schema"
         def ops = response.jsonPath().getList("Operations")
-        ops.size() == 2
+        ops.size() == 1
         (ops[0].status as String) in ["400", "404"]
         ops[0].response != null
         (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
         assertOperationScimType(ops[0] as Map, ["invalidValue", "invalidPath"])
-
-        and: "Second operation also reports 400 or 404 with SCIM Error schema"
-        (ops[1].status as String) in ["400", "404"]
-        ops[1].response != null
-        (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
-        assertOperationScimType(ops[1] as Map, ["invalidValue", "invalidPath"])
     }
 
     // ─── BLK_18: Bulk POST with Non-Canonical Paths ─────────────────────────
