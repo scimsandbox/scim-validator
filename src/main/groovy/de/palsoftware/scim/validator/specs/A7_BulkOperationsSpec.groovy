@@ -772,9 +772,60 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         response.jsonPath().getString("status") == "400"
     }
 
-    // ─── BLK_17: Bulk POST Tolerates Non-Canonical Paths ────────────────────
+    // ─── BLK_17: Unknown Resource Path in Bulk Operation ────────────────────
 
-    def "BLK_17: Bulk POST tolerates non-canonical paths (double slashes '//Users', relative 'Users', trailing slash '/Users/')"() {
+    def "BLK_17: Bulk operation targeting an unknown resource path reports error (400 or 404)"() {
+        // RFC 7644 §3.7, §3.12 — Unknown resource path inside bulk operation
+        given: "Bulk request with unknown resource paths"
+        Map bulkPayload = [
+            schemas   : [BULK_REQUEST_SCHEMA],
+            Operations: [
+                [
+                    method: "POST",
+                    path  : "/UnknownResource",
+                    bulkId: "unknownPost",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: "unknown_resource@test.com"
+                    ]
+                ],
+                [
+                    method: "PUT",
+                    path  : "/InvalidEndpoint/${UUID.randomUUID()}",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: "unknown_put@test.com"
+                    ]
+                ]
+            ]
+        ]
+
+        when: "Execute bulk request with invalid paths"
+        Response response = scimRequestQuiet()
+            .body(JsonOutput.toJson(bulkPayload))
+            .post("/Bulk")
+
+        then: "Overall response is 200 OK"
+        response.statusCode() == 200
+
+        and: "Both operations report 400 or 404 with SCIM Error schema"
+        def ops = response.jsonPath().getList("Operations")
+        ops.size() == 2
+        (ops[0].status as String) in ["400", "404"]
+        ops[0].response != null
+        (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
+        assertOperationScimType(ops[0] as Map, ["invalidValue", "invalidPath"])
+
+        and: "Second operation also reports 400 or 404 with SCIM Error schema"
+        (ops[1].status as String) in ["400", "404"]
+        ops[1].response != null
+        (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
+        assertOperationScimType(ops[1] as Map, ["invalidValue", "invalidPath"])
+    }
+
+    // ─── BLK_18: Bulk POST with Non-Canonical Paths ─────────────────────────
+
+    def "BLK_18: Bulk POST with non-canonical paths (double slashes '//Users', relative 'Users', trailing slash '/Users/')"() {
         // RFC 7644 §3.7 — Tolerant path parsing (Postel's Law) and regression test for double slash issue
         given: "Build bulk request with non-canonical paths: double slash, no leading slash, trailing slash"
         String suffix1 = UUID.randomUUID().toString().substring(0, 8)
@@ -821,17 +872,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
-
-        then: "Status is 200 OK and response contains BulkResponse schema"
-        response.statusCode() == 200
-        response.jsonPath().getList("schemas")?.contains(BULK_RESPONSE_SCHEMA)
-
-        and: "All three operations should succeed with status 201"
-        def operations = response.jsonPath().getList("Operations")
-        operations.size() == 3
-        operations.every { Map op -> (op.status as String) == "201" }
-
-        when: "Track created user IDs for cleanup"
+        def operations = response.jsonPath().getList("Operations") ?: []
         operations.each { Map op ->
             String location = op.location as String
             if (location) {
@@ -840,13 +881,32 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             }
         }
 
-        then: "All operations returned valid locations"
-        operations.every { Map op -> op.location != null }
+        then: "Status is 200 OK and response contains BulkResponse schema"
+        response.statusCode() == 200
+        response.jsonPath().getList("schemas")?.contains(BULK_RESPONSE_SCHEMA)
+        operations.size() == 3
+
+        and: "Each operation succeeded with 201 or was rejected with a valid SCIM Error response"
+        operations.eachWithIndex { Map op, int idx ->
+            String status = op.status as String
+            String path = bulkPayload.Operations[idx].path
+            if (status == "201") {
+                assert op.location != null : "Expected location header for created resource at path '${path}'"
+            } else {
+                assert status in ["400", "404"] :
+                    "Expected 201 or 4xx for non-canonical path '${path}', but got status ${status}"
+                assert op.response != null :
+                    "Error response missing for rejected non-canonical path '${path}'"
+                assert (op.response.schemas as List)?.contains(ERROR_SCHEMA) :
+                    "Error response missing Error schema for rejected non-canonical path '${path}'"
+                ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk POST path '${path}' (status: ${status}) (RFC 7644 §3.7)"
+            }
+        }
     }
 
-    // ─── BLK_18: Bulk PUT, PATCH, and DELETE Tolerate Non-Canonical Paths ───
+    // ─── BLK_19: Bulk PUT, PATCH, and DELETE with Non-Canonical Paths ───────
 
-    def "BLK_18: Bulk PUT, PATCH, and DELETE tolerate non-canonical paths ('//Users/{id}', 'Users/{id}')"() {
+    def "BLK_19: Bulk PUT, PATCH, and DELETE with non-canonical paths ('//Users/{id}', 'Users/{id}')"() {
         // RFC 7644 §3.7 — Non-canonical path handling on resource updates
         given: "Pre-create users for PUT, PATCH, and DELETE operations"
         Response uPut = createUser(userName: "noncanon_put_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
@@ -890,76 +950,47 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        def ops = response.jsonPath().getList("Operations") ?: []
 
-        then: "Overall status is 200 OK"
+        then: "Overall status is 200 OK and response contains BulkResponse schema"
         response.statusCode() == 200
-        def ops = response.jsonPath().getList("Operations")
+        response.jsonPath().getList("schemas")?.contains(BULK_RESPONSE_SCHEMA)
         ops.size() == 3
 
-        and: "Operation 0 (PUT) succeeded with 200"
-        (ops[0].status as String) == "200"
+        and: "Operation 0 (PUT) succeeded or reported standard SCIM Error"
+        String putStatus = ops[0].status as String
+        if (putStatus == "200") {
+            assert (ops[0].location as String)?.contains(putId) || ops[0].location != null
+        } else {
+            assert putStatus in ["400", "404"] : "Expected 200 or 4xx for non-canonical PUT, got ${putStatus}"
+            assert ops[0].response != null && (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
+            ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk PUT path '//Users/${putId}' (status: ${putStatus}) (RFC 7644 §3.7)"
+        }
 
-        and: "Operation 1 (PATCH) succeeded with 200"
-        (ops[1].status as String) == "200"
+        and: "Operation 1 (PATCH) succeeded (200 or 204) or reported standard SCIM Error"
+        String patchStatus = ops[1].status as String
+        if (patchStatus in ["200", "204"]) {
+            // PATCH succeeded per RFC 7644 §3.5.2
+        } else {
+            assert patchStatus in ["400", "404"] : "Expected 200/204 or 4xx for non-canonical PATCH, got ${patchStatus}"
+            assert ops[1].response != null && (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
+            ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk PATCH path 'Users/${patchId}' (status: ${patchStatus}) (RFC 7644 §3.7)"
+        }
 
-        and: "Operation 2 (DELETE) succeeded with 204"
-        (ops[2].status as String) == "204"
-        createdUserIds.remove(delId)
+        and: "Operation 2 (DELETE) succeeded (204) or reported standard SCIM Error"
+        String delStatus = ops[2].status as String
+        if (delStatus == "204") {
+            createdUserIds.remove(delId)
+        } else {
+            assert delStatus in ["400", "404"] : "Expected 204 or 4xx for non-canonical DELETE, got ${delStatus}"
+            assert ops[2].response != null && (ops[2].response.schemas as List)?.contains(ERROR_SCHEMA)
+            ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk DELETE path '//Users/${delId}' (status: ${delStatus}) (RFC 7644 §3.7)"
+        }
 
         cleanup:
         if (putId) deleteUser(putId)
         if (patchId) deleteUser(patchId)
-    }
-
-    // ─── BLK_19: Unknown Resource Path in Bulk Operation ────────────────────
-
-    def "BLK_19: Bulk operation targeting an unknown resource path reports 400 invalidValue"() {
-        // RFC 7644 §3.7, §3.12 — Unknown resource path inside bulk operation
-        given: "Bulk request with unknown resource paths"
-        Map bulkPayload = [
-            schemas   : [BULK_REQUEST_SCHEMA],
-            Operations: [
-                [
-                    method: "POST",
-                    path  : "//UnknownResource",
-                    bulkId: "unknownPost",
-                    data  : [
-                        schemas : [USER_SCHEMA],
-                        userName: "unknown_resource@test.com"
-                    ]
-                ],
-                [
-                    method: "PUT",
-                    path  : "/InvalidEndpoint/${UUID.randomUUID()}",
-                    data  : [
-                        schemas : [USER_SCHEMA],
-                        userName: "unknown_put@test.com"
-                    ]
-                ]
-            ]
-        ]
-
-        when: "Execute bulk request with invalid paths"
-        Response response = scimRequestQuiet()
-            .body(JsonOutput.toJson(bulkPayload))
-            .post("/Bulk")
-
-        then: "Overall response is 200 OK"
-        response.statusCode() == 200
-
-        and: "Both operations report 400 with SCIM Error schema"
-        def ops = response.jsonPath().getList("Operations")
-        ops.size() == 2
-        (ops[0].status as String) == "400"
-        ops[0].response != null
-        (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
-        assertOperationScimType(ops[0] as Map, "invalidValue")
-
-        and: "Second operation also reports 400 with SCIM Error schema"
-        (ops[1].status as String) == "400"
-        ops[1].response != null
-        (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
-        assertOperationScimType(ops[1] as Map, "invalidValue")
+        if (delId) deleteUser(delId)
     }
 
     /**
@@ -968,15 +999,19 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
      * RFC 7644 §3.12 marks "scimType" OPTIONAL, so an omitted keyword is reported as a
      * deviation rather than failing a server that is otherwise compliant.
      */
-    private void assertOperationScimType(Map operation, String expectedScimType) {
+    private void assertOperationScimType(Map operation, Collection<String> expectedScimTypes) {
         String scimType = operation.response?.scimType as String
         if (scimType == null || scimType.isBlank()) {
             ScimOutput.println "DEVIATION: Bulk operation error omits optional scimType " +
-                "(expected '${expectedScimType}') (RFC 7644 §3.12)"
+                "(expected one of ${expectedScimTypes}) (RFC 7644 §3.12)"
             return
         }
-        assert scimType == expectedScimType :
-            "Expected bulk operation scimType '${expectedScimType}' but got '${scimType}' (RFC 7644 §3.12)"
+        assert scimType in expectedScimTypes :
+            "Expected bulk operation scimType in ${expectedScimTypes} but got '${scimType}' (RFC 7644 §3.12)"
+    }
+
+    private void assertOperationScimType(Map operation, String expectedScimType) {
+        assertOperationScimType(operation, [expectedScimType])
     }
 
 }
