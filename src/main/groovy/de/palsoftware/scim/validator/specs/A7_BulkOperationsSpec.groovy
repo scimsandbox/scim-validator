@@ -772,6 +772,196 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         response.jsonPath().getString("status") == "400"
     }
 
+    // ─── BLK_17: Bulk POST Tolerates Non-Canonical Paths ────────────────────
+
+    def "BLK_17: Bulk POST tolerates non-canonical paths (double slashes '//Users', relative 'Users', trailing slash '/Users/')"() {
+        // RFC 7644 §3.7 — Tolerant path parsing (Postel's Law) and regression test for double slash issue
+        given: "Build bulk request with non-canonical paths: double slash, no leading slash, trailing slash"
+        String suffix1 = UUID.randomUUID().toString().substring(0, 8)
+        String suffix2 = UUID.randomUUID().toString().substring(0, 8)
+        String suffix3 = UUID.randomUUID().toString().substring(0, 8)
+
+        Map bulkPayload = [
+            schemas   : [BULK_REQUEST_SCHEMA],
+            Operations: [
+                [
+                    method: "POST",
+                    path  : "//Users",
+                    bulkId: "doubleSlashUser",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: "noncanonical_double_${suffix1}@test.com",
+                        emails  : [[value: "noncanonical_double_${suffix1}@test.com", type: "work", primary: true]]
+                    ]
+                ],
+                [
+                    method: "POST",
+                    path  : "Users",
+                    bulkId: "noSlashUser",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: "noncanonical_noslash_${suffix2}@test.com",
+                        emails  : [[value: "noncanonical_noslash_${suffix2}@test.com", type: "work", primary: true]]
+                    ]
+                ],
+                [
+                    method: "POST",
+                    path  : "/Users/",
+                    bulkId: "trailingSlashUser",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: "noncanonical_trailing_${suffix3}@test.com",
+                        emails  : [[value: "noncanonical_trailing_${suffix3}@test.com", type: "work", primary: true]]
+                    ]
+                ]
+            ]
+        ]
+
+        when: "Execute bulk request with non-canonical paths"
+        Response response = scimRequest()
+            .body(JsonOutput.toJson(bulkPayload))
+            .post("/Bulk")
+
+        then: "Status is 200 OK and response contains BulkResponse schema"
+        response.statusCode() == 200
+        response.jsonPath().getList("schemas")?.contains(BULK_RESPONSE_SCHEMA)
+
+        and: "All three operations should succeed with status 201"
+        def operations = response.jsonPath().getList("Operations")
+        operations.size() == 3
+        operations.every { Map op -> (op.status as String) == "201" }
+
+        when: "Track created user IDs for cleanup"
+        operations.each { Map op ->
+            String location = op.location as String
+            if (location) {
+                String id = location.tokenize("/").last()
+                createdUserIds << id
+            }
+        }
+
+        then: "All operations returned valid locations"
+        operations.every { Map op -> op.location != null }
+    }
+
+    // ─── BLK_18: Bulk PUT, PATCH, and DELETE Tolerate Non-Canonical Paths ───
+
+    def "BLK_18: Bulk PUT, PATCH, and DELETE tolerate non-canonical paths ('//Users/{id}', 'Users/{id}')"() {
+        // RFC 7644 §3.7 — Non-canonical path handling on resource updates
+        given: "Pre-create users for PUT, PATCH, and DELETE operations"
+        Response uPut = createUser(userName: "noncanon_put_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
+        Response uPatch = createUser(userName: "noncanon_patch_${UUID.randomUUID().toString().substring(0, 8)}@test.com", active: true)
+        Response uDel = createUser(userName: "noncanon_del_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
+        assert uPut.statusCode() == 201 && uPatch.statusCode() == 201 && uDel.statusCode() == 201
+
+        String putId = uPut.jsonPath().getString("id")
+        String putName = uPut.jsonPath().getString("userName")
+        String patchId = uPatch.jsonPath().getString("id")
+        String delId = uDel.jsonPath().getString("id")
+
+        Map bulkPayload = [
+            schemas   : [BULK_REQUEST_SCHEMA],
+            Operations: [
+                [
+                    method: "PUT",
+                    path  : "//Users/${putId}",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: putName,
+                        title   : "Updated via Double Slash PUT"
+                    ]
+                ],
+                [
+                    method: "PATCH",
+                    path  : "Users/${patchId}",
+                    data  : [
+                        schemas   : [PATCH_OP_SCHEMA],
+                        Operations: [[op: "replace", path: "active", value: false]]
+                    ]
+                ],
+                [
+                    method: "DELETE",
+                    path  : "//Users/${delId}"
+                ]
+            ]
+        ]
+
+        when: "Execute bulk operations with non-canonical paths"
+        Response response = scimRequest()
+            .body(JsonOutput.toJson(bulkPayload))
+            .post("/Bulk")
+
+        then: "Overall status is 200 OK"
+        response.statusCode() == 200
+        def ops = response.jsonPath().getList("Operations")
+        ops.size() == 3
+
+        and: "Operation 0 (PUT) succeeded with 200"
+        (ops[0].status as String) == "200"
+
+        and: "Operation 1 (PATCH) succeeded with 200"
+        (ops[1].status as String) == "200"
+
+        and: "Operation 2 (DELETE) succeeded with 204"
+        (ops[2].status as String) == "204"
+        createdUserIds.remove(delId)
+
+        cleanup:
+        if (putId) deleteUser(putId)
+        if (patchId) deleteUser(patchId)
+    }
+
+    // ─── BLK_19: Unknown Resource Path in Bulk Operation ────────────────────
+
+    def "BLK_19: Bulk operation targeting an unknown resource path reports 400 invalidValue"() {
+        // RFC 7644 §3.7, §3.12 — Unknown resource path inside bulk operation
+        given: "Bulk request with unknown resource paths"
+        Map bulkPayload = [
+            schemas   : [BULK_REQUEST_SCHEMA],
+            Operations: [
+                [
+                    method: "POST",
+                    path  : "//UnknownResource",
+                    bulkId: "unknownPost",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: "unknown_resource@test.com"
+                    ]
+                ],
+                [
+                    method: "PUT",
+                    path  : "/InvalidEndpoint/${UUID.randomUUID()}",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: "unknown_put@test.com"
+                    ]
+                ]
+            ]
+        ]
+
+        when: "Execute bulk request with invalid paths"
+        Response response = scimRequestQuiet()
+            .body(JsonOutput.toJson(bulkPayload))
+            .post("/Bulk")
+
+        then: "Overall response is 200 OK"
+        response.statusCode() == 200
+
+        and: "Both operations report 400 with SCIM Error schema"
+        def ops = response.jsonPath().getList("Operations")
+        ops.size() == 2
+        (ops[0].status as String) == "400"
+        ops[0].response != null
+        (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
+        assertOperationScimType(ops[0] as Map, "invalidValue")
+
+        and: "Second operation also reports 400 with SCIM Error schema"
+        (ops[1].status as String) == "400"
+        ops[1].response != null
+        (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
+        assertOperationScimType(ops[1] as Map, "invalidValue")
+    }
+
     /**
      * Assert the scimType carried inside a nested BulkResponse operation error.
      *
