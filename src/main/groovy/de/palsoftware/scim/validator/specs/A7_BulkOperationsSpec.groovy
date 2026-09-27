@@ -820,15 +820,10 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         assertOperationScimType(ops[0] as Map, ["invalidValue", "invalidPath"])
 
         // PUT /InvalidEndpoint/{id}
-        String putStatus = ops[1].status as String
-        if (putStatus == null) {
-            // Older unpatched server images omit the operation status on unknown PUT endpoints (fixed in scim-server-impl-go#5)
-            ScimOutput.println "DEVIATION: Server omitted status for bulk PUT to unknown endpoint (RFC 7644 §3.7)"
-        } else {
-            assert putStatus in ["400", "404"] : "Expected 400 or 404 for unknown endpoint PUT, got ${putStatus}"
-            assert ops[1].response != null && (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
-            assertOperationScimType(ops[1] as Map, ["invalidValue", "invalidPath"])
-        }
+        (ops[1].status as String) in ["400", "404"]
+        ops[1].response != null
+        (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
+        assertOperationScimType(ops[1] as Map, ["invalidValue", "invalidPath"])
     }
 
     // ─── BLK_18: Bulk POST with Non-Canonical Paths ─────────────────────────
