@@ -777,6 +777,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
     def "BLK_17: Bulk operation targeting an unknown resource path reports error (400 or 404)"() {
         // RFC 7644 §3.7, §3.12 — Unknown resource path inside bulk operation
         given: "Bulk request with unknown resource path"
+        String randomId = UUID.randomUUID().toString()
         Map bulkPayload = [
             schemas   : [BULK_REQUEST_SCHEMA],
             Operations: [
@@ -787,6 +788,14 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     data  : [
                         schemas : [USER_SCHEMA],
                         userName: "unknown_resource@test.com"
+                    ]
+                ],
+                [
+                    method: "PUT",
+                    path  : "/InvalidEndpoint/${randomId}",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: "unknown_put@test.com"
                     ]
                 ]
             ]
@@ -800,19 +809,30 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         then: "Overall response is 200 OK"
         response.statusCode() == 200
 
-        and: "Operation reports 400 or 404 with SCIM Error schema"
+        and: "Operations report 400 or 404 with SCIM Error schema"
         def ops = response.jsonPath().getList("Operations")
-        ops.size() == 1
+        ops.size() == 2
+
+        // POST /UnknownResource
         (ops[0].status as String) in ["400", "404"]
         ops[0].response != null
         (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
         assertOperationScimType(ops[0] as Map, ["invalidValue", "invalidPath"])
+
+        // PUT /InvalidEndpoint/{id}
+        String putStatus = ops[1].status as String
+        if (putStatus in ["400", "404"]) {
+            assert ops[1].response != null && (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
+            assertOperationScimType(ops[1] as Map, ["invalidValue", "invalidPath"])
+        } else {
+            ScimOutput.println "DEVIATION: Server did not return error status for bulk PUT to unknown endpoint (status: ${putStatus}) (RFC 7644 §3.7)"
+        }
     }
 
     // ─── BLK_18: Bulk POST with Non-Canonical Paths ─────────────────────────
 
     def "BLK_18: Bulk POST with non-canonical paths (double slashes '//Users', relative 'Users', trailing slash '/Users/')"() {
-        // RFC 7644 §3.7 — Tolerant path parsing (Postel's Law) and regression test for double slash issue
+        // RFC 7644 §3.7 defines '/Users'; non-canonical forms are optional leniency (regression test for the double-slash issue)
         given: "Build bulk request with non-canonical paths: double slash, no leading slash, trailing slash"
         String suffix1 = UUID.randomUUID().toString().substring(0, 8)
         String suffix2 = UUID.randomUUID().toString().substring(0, 8)
@@ -885,7 +905,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     "Error response missing for rejected non-canonical path '${path}'"
                 assert (op.response.schemas as List)?.contains(ERROR_SCHEMA) :
                     "Error response missing Error schema for rejected non-canonical path '${path}'"
-                ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk POST path '${path}' (status: ${status}) (RFC 7644 §3.7)"
+                ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk POST path '${path}' (status: ${status}) (RFC 7644 §3.7 defines canonical '/Users'; non-canonical acceptance is optional leniency)"
             }
         }
     }
@@ -946,7 +966,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         and: "Operation 0 (PUT) succeeded or reported standard SCIM Error"
         String putStatus = ops[0].status as String
         if (putStatus == "200") {
-            assert (ops[0].location as String)?.contains(putId) || ops[0].location != null
+            assert (ops[0].location as String)?.contains(putId)
         } else {
             assert putStatus in ["400", "404"] : "Expected 200 or 4xx for non-canonical PUT, got ${putStatus}"
             assert ops[0].response != null && (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
