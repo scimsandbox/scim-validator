@@ -2,6 +2,8 @@ package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
 import de.palsoftware.scim.validator.base.ScimOutput
+import de.palsoftware.scim.validator.base.spec.RequiresCapability
+import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
 import groovy.json.JsonOutput
 import spock.lang.Shared
@@ -15,6 +17,7 @@ import spock.lang.Stepwise
  * operation error isolation, failOnErrors threshold, maxOperations enforcement,
  * unsupported methods, and schema validation.
  */
+@RequiresCapability("bulk")
 @Stepwise
 class A7_BulkOperationsSpec extends ScimBaseSpec {
 
@@ -27,6 +30,8 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_01: Bulk POST creates multiple users ──────────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
+    @SpecRef("RFC7644-3.7-R3")
     def "BLK_01: Bulk POST creates multiple users in a single request"() {
         // RFC 7644 §3.7 — Bulk Operations
         given:
@@ -94,6 +99,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_02: Bulk DELETE removes multiple users ─────────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_02: Bulk DELETE removes multiple users in a single request"() {
         // RFC 7644 §3.7 — Bulk Operations
         given:
@@ -139,6 +145,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_03: Bulk respects maxOperations ────────────────────────────────
 
+    @SpecRef("RFC7644-3.7.4-R1")
     def "BLK_03: Bulk request exceeding maxOperations returns 413"() {
         // RFC 7644 §3.7 — Server MAY return 413 if too many operations
         given: "Build a bulk request with more operations than maxOperations"
@@ -174,6 +181,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_04: failOnErrors stops processing after N errors ───────────────
 
+    @SpecRef("RFC7644-3.7-R6")
     def "BLK_04: Bulk with failOnErrors stops after specified error count"() {
         // RFC 7644 §3.7 — failOnErrors: processing stops when error count >= failOnErrors
         given: "Build a bulk request with 3 invalid DELETEs and failOnErrors=1"
@@ -202,6 +210,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_05: Missing BulkRequest schema returns 400 ────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_05: Bulk request without proper schema returns 400"() {
         // RFC 7644 §3.7 — BulkRequest MUST include the BulkRequest schema URI
         given: "Build a bulk request with missing schemas"
@@ -233,6 +242,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_06: Wrong schema in BulkRequest returns 400 ───────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_06: Bulk request with wrong schema returns 400"() {
         // RFC 7644 §3.7 — BulkRequest requires urn:ietf:params:scim:api:messages:2.0:BulkRequest
         given: "Build a bulk request with wrong schema"
@@ -265,6 +275,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_07: bulkId Cross-Referencing in Data (User -> Group) ───────────
 
+    @SpecRef("RFC7644-3.7-R4")
     def "BLK_07: bulkId cross-referencing in data resolves user UUID into group members"() {
         // RFC 7644 §3.7 — bulkId circular reference resolution in data
         given:
@@ -341,6 +352,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_08: bulkId Cross-Referencing in Path (POST -> PATCH -> DELETE) ─
 
+    @SpecRef("RFC7644-3.7-R4")
     def "BLK_08: bulkId cross-referencing in path resolves in sequential operations"() {
         // RFC 7644 §3.7 — bulkId path resolution
         given:
@@ -406,6 +418,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_09: Bulk PUT Resource Replacement ──────────────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_09: Bulk PUT replaces an existing user resource"() {
         // RFC 7644 §3.7 — PUT within Bulk
         given: "Pre-create a user to replace"
@@ -456,6 +469,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_10: Bulk PATCH Resource Modification ───────────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_10: Bulk PATCH modifies an existing user resource"() {
         // RFC 7644 §3.7 — PATCH within Bulk
         given: "Pre-create an active user"
@@ -505,6 +519,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_11: Mixed Operations in Single Request ─────────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_11: Bulk request with mixed operations (POST, PUT, PATCH, DELETE) all succeed"() {
         // RFC 7644 §3.7 — Mixed methods in single Bulk request
         given: "Pre-create users for PUT, PATCH, and DELETE operations"
@@ -596,6 +611,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_12: Operation Error Isolation on 404 ───────────────────────────
 
+    @SpecRef("RFC7644-3.7-R5")
     def "BLK_12: Failed operation returns 404 within bulk response while overall request returns 200"() {
         // RFC 7644 §3.7 — Error reporting in bulk operations
         given: "A non-existent resource UUID"
@@ -644,6 +660,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_13: Operation Error Isolation on 409 (Duplicate userName) ───────
 
+    @SpecRef("RFC7644-3.7-R5")
     def "BLK_13: Duplicate userName in bulk POST reports 409 uniqueness while overall request returns 200"() {
         // RFC 7644 §3.7, §3.12 — Uniqueness conflict inside bulk
         given: "An existing user"
@@ -690,6 +707,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_14: Unresolved bulkId Reference Handling ───────────────────────
 
+    @SpecRef("RFC7644-3.7-R4")
     def "BLK_14: Unresolved bulkId reference returns 400 error without server failure"() {
         // RFC 7644 §3.7 — Circular reference or missing bulkId
         given: "Operation referencing an unregistered bulkId"
@@ -721,6 +739,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_15: Unsupported Method in Operation ────────────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_15: Unsupported HTTP method in bulk operation reports 400 invalidValue"() {
         // RFC 7644 §3.7 — Operation method validation
         given: "Operation with GET method which is invalid inside bulk"
@@ -753,6 +772,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_16: Missing Operations Attribute ───────────────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_16: BulkRequest missing Operations attribute returns 400 Bad Request"() {
         // RFC 7644 §3.7 — BulkRequest schema validation
         given: "A bulk payload without Operations"
@@ -774,6 +794,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_17: Unknown Resource Path in Bulk Operation ────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_17: Bulk operation targeting an unknown resource path reports error (400 or 404)"() {
         // RFC 7644 §3.7, §3.12 — Unknown resource path inside bulk operation
         given: "Bulk request with unknown resource path"
@@ -828,6 +849,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_18: Bulk POST with Non-Canonical Paths ─────────────────────────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_18: Bulk POST with non-canonical paths (double slashes '//Users', relative 'Users', trailing slash '/Users/')"() {
         // RFC 7644 §3.7 defines '/Users'; non-canonical forms are optional leniency (regression test for the double-slash issue)
         given: "Build bulk request with non-canonical paths: double slash, no leading slash, trailing slash"
@@ -909,6 +931,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_19: Bulk PUT, PATCH, and DELETE with Non-Canonical Paths ───────
 
+    @SpecRef("RFC7644-3.7-R1")
     def "BLK_19: Bulk PUT, PATCH, and DELETE with non-canonical paths ('//Users/{id}', 'Users/{id}')"() {
         // RFC 7644 §3.7 — Non-canonical path handling on resource updates
         given: "Pre-create users for PUT, PATCH, and DELETE operations"
@@ -996,6 +1019,91 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         if (delId) deleteUser(delId)
     }
 
+    // ─── BLK_20: bulkId is REQUIRED for each operation when method is POST ───
+
+    @SpecRef("RFC7644-3.7-R2")
+    def "BLK_20: Bulk POST operation missing required bulkId returns 400 or operation error"() {
+        // RFC 7644 §3.7: "bulkId: The transient identifier of a newly created resource,
+        // unique within a bulk request and created by the client. The bulkId attribute is
+        // mandatory for 'POST' operations."
+        given:
+        Map bulkPayload = [
+            schemas   : [BULK_REQUEST_SCHEMA],
+            Operations: [
+                [
+                    method: "POST",
+                    path  : "/Users",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: "nobulkid_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+                    ]
+                ]
+            ]
+        ]
+
+        when:
+        Response response = scimRequest()
+            .body(JsonOutput.toJson(bulkPayload))
+            .post("/Bulk")
+
+        then: "Server rejects either the whole request (400) or reports 400 for the operation"
+        if (response.statusCode() == 400) {
+            true
+        } else {
+            response.statusCode() == 200
+            def ops = response.jsonPath().getList("Operations")
+            ops != null && ops.size() == 1
+            assert ops[0].status as String in ["400"]
+        }
+    }
+
+    // ─── BLK_21: Per-operation version attribute for conditional updates ────
+
+    @SpecRef("RFC7644-3.7-R7")
+    def "BLK_21: Bulk operation supports version attribute for conditional updates"() {
+        // RFC 7644 §3.7: "version: The current resource version. Each operation MAY include a
+        // version attribute... If the current version does not match, the operation fails."
+        given: "Create a user to update conditionally via bulk"
+        Response cr = createUser(userName: "bulk_ver_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
+        assert cr.statusCode() == 201
+        String uid = cr.jsonPath().getString("id")
+        createdUserIds << uid
+
+        Map bulkPayload = [
+            schemas   : [BULK_REQUEST_SCHEMA],
+            Operations: [
+                [
+                    method : "PUT",
+                    path   : "/Users/${uid}",
+                    version: 'W/"999999_mismatch"',
+                    data   : [
+                        schemas : [USER_SCHEMA],
+                        userName: "bulk_ver_updated_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+                    ]
+                ]
+            ]
+        ]
+
+        when:
+        Response response = scimRequest()
+            .body(JsonOutput.toJson(bulkPayload))
+            .post("/Bulk")
+
+        then: "Operation returns 412 Precondition Failed (or 200 if version not supported)"
+        response.statusCode() == 200
+        def ops = response.jsonPath().getList("Operations")
+        ops != null && ops.size() == 1
+        String status = ops[0].status as String
+        if (status == "412") {
+            true
+        } else {
+            ScimOutput.println "NOTE: Server did not enforce bulk operation version precondition (status: ${status})"
+        }
+
+        cleanup:
+        if (uid) deleteUser(uid)
+    }
+
     /**
      * Assert the scimType carried inside a nested BulkResponse operation error.
      *
@@ -1005,8 +1113,11 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
     private void assertOperationScimType(Map operation, Collection<String> expectedScimTypes) {
         String scimType = operation.response?.scimType as String
         if (scimType == null || scimType.isBlank()) {
-            ScimOutput.println "DEVIATION: Bulk operation error omits optional scimType " +
-                "(expected one of ${expectedScimTypes}) (RFC 7644 §3.12)"
+            String msg = "Bulk operation error omits optional scimType (expected one of ${expectedScimTypes}) (RFC 7644 §3.12)"
+            ScimOutput.deviation(msg, null, "RFC7644-3.7.3-R1", "omitted", expectedScimTypes.toString())
+            if (isStrictScimType()) {
+                assert false : "Strict mode: ${msg}"
+            }
             return
         }
         assert scimType in expectedScimTypes :

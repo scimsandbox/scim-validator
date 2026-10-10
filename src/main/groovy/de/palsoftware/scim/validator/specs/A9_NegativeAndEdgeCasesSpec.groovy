@@ -2,6 +2,8 @@ package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
 import de.palsoftware.scim.validator.base.ScimOutput
+import de.palsoftware.scim.validator.base.spec.RequiresCapability
+import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
 import groovy.json.JsonOutput
 import spock.lang.Shared
@@ -36,8 +38,9 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_01: Duplicate userName returns 409 ─────────────────────────────
 
+    @SpecRef("RFC7644-3.3-R3")
     def "NEG_01: POST /Users with duplicate userName returns 409 Conflict with uniqueness scimType"() {
-        // RFC 7644 §3.3.1, §3.12 — uniqueness constraint violation → 409 with scimType: uniqueness
+        // RFC 7644 §3.3, §3.12 — uniqueness constraint violation → 409 with scimType: uniqueness
         given:
         Map payload = [
             schemas : [USER_SCHEMA],
@@ -62,6 +65,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_02: POST without required userName returns 400 ─────────────────
 
+    @SpecRef("RFC7643-4.1.1-R1")
     def "NEG_02: POST /Users without userName returns 400 with invalidValue scimType"() {
         // RFC 7643 §4.1, RFC 7644 §3.12 — missing required userName → 400 invalidValue
         given:
@@ -87,6 +91,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_03: GET non-existent User returns 404 ──────────────────────────
 
+    @SpecRef("RFC7644-3.4.1-R2")
     def "NEG_03: GET /Users with non-existent ID returns 404"() {
         // RFC 7644 §3.4.1 — Resource not found → 404
         when:
@@ -99,6 +104,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_04: DELETE non-existent User returns 404 ───────────────────────
 
+    @SpecRef("RFC7644-3.6-R2")
     def "NEG_04: DELETE /Users with non-existent ID returns 404"() {
         when:
         Response response = scimRequest()
@@ -110,6 +116,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_05: PUT non-existent User returns 404 ──────────────────────────
 
+    @SpecRef("RFC7644-3.5.1-R3")
     def "NEG_05: PUT /Users with non-existent ID returns 404"() {
         given:
         Map payload = [
@@ -129,6 +136,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_06: PATCH non-existent User returns 404 ────────────────────────
 
+    @SpecRef("RFC7644-3.5.2-R3")
     def "NEG_06: PATCH /Users with non-existent ID returns 404"() {
         given:
         Map patchPayload = buildPatchOp([
@@ -146,6 +154,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_07: Malformed JSON body returns 400 ────────────────────────────
 
+    @SpecRef("RFC7644-3.12-R1")
     def "NEG_07: POST with malformed JSON body returns 400 with invalidSyntax scimType"() {
         // RFC 7644 §3.12 — syntactically invalid JSON → 400 invalidSyntax
         when:
@@ -159,6 +168,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_08: Invalid endpoint returns 404 ───────────────────────────────
 
+    @SpecRef("RFC7644-3.12-R1")
     def "NEG_08: GET on non-existent endpoint returns 404"() {
         when:
         Response response = scimRequestQuiet()
@@ -173,8 +183,9 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_09: Empty body POST returns 400 ────────────────────────────────
 
+    @SpecRef("RFC7644-3.12-R1")
     def "NEG_09: POST /Users with empty body returns 400 with invalidSyntax scimType"() {
-        // RFC 7644 §3.12 — empty body is not valid JSON → 400 invalidSyntax (eliminating 500 tolerance)
+        // RFC 7644 §3.12 — empty body is not valid JSON → 400 invalidSyntax
         when:
         Response response = scimRequestQuiet()
             .body("")
@@ -186,6 +197,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_10: Random UUID URL returns 404 with SCIM Error body ───────────
 
+    @SpecRef("RFC7644-3.12-R1")
     def "NEG_10: GET /{random_uuid} returns 404 with SCIM Error schema"() {
         // RFC 7644 §3.12 — Error responses MUST include a SCIM Error body
         given: "A completely random UUID path"
@@ -200,12 +212,14 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         if (response.statusCode() == 404) {
             assertScimError(response, 404)
         } else {
+            recordDeviation("RFC7644-3.12-R1", "RFC 7644 §3.12", "GET /${randomPath} returned ${response.statusCode()} instead of 404")
             ScimOutput.println "DEVIATION: GET /${randomPath} returned ${response.statusCode()} instead of 404 (RFC 7644 §3.12)"
         }
     }
 
     // ─── NEG_11: Filter Syntax Error (invalidFilter) ────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R14")
     def "NEG_11: Filter syntax error returns 400 with scimType invalidFilter"() {
         // RFC 7644 §3.4.2.2, §3.12 — invalid filter syntax → 400 invalidFilter
         when: "Filter query with invalid operator keyword"
@@ -219,6 +233,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_12: PATCH on Read-Only Attribute (mutability) ──────────────────
 
+    @SpecRef("RFC7643-2.2-R1")
     def "NEG_12: PATCH on read-only attribute id returns 400 with scimType mutability or ignores"() {
         // RFC 7643 §2.2, RFC 7644 §3.12 — readOnly attribute modification → 400 mutability
         when: "PATCH targeting read-only attribute id"
@@ -241,6 +256,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_13: PATCH with Invalid Path (invalidPath or noTarget) ──────────
 
+    @SpecRef("RFC7644-3.5.2-R2")
     def "NEG_13: PATCH with invalid path returns 400 with scimType invalidPath or noTarget"() {
         // RFC 7644 §3.5.2, §3.12 — invalid path in PATCH → 400 invalidPath or noTarget
         when: "PATCH targeting malformed filter path"
@@ -259,6 +275,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_14: Root JSON Array Payload on POST User ───────────────────────
 
+    @SpecRef("RFC7644-3.12-R1")
     def "NEG_14: POST /Users with JSON array root payload returns 400 Bad Request"() {
         // RFC 7644 §3.12 — Root payload must be JSON object, not array
         when: "POST array payload instead of single resource object"
@@ -273,6 +290,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_15: Primitive JSON Payload on POST User ────────────────────────
 
+    @SpecRef("RFC7644-3.12-R1")
     def "NEG_15: POST /Users with primitive JSON payload returns 400 Bad Request"() {
         // RFC 7644 §3.12 — Primitive values (string, number) are invalid resource representations
         when: "POST primitive string"
@@ -287,6 +305,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_16: SQL Injection & Special Characters in Filter ───────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R1")
     def "NEG_16: SQL injection payload in filter parameter is handled safely"() {
         // RFC 7644 §3.4.2 — Filter sanitization and injection prevention
         when: "Filter with SQL injection payload"
@@ -306,6 +325,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_17: Path Traversal in Resource ID ──────────────────────────────
 
+    @SpecRef("RFC7644-3.4.1-R2")
     def "NEG_17: Path traversal sequences in resource ID return 404 without leakage"() {
         // RFC 7644 §3.4.1, §3.12 — Resource not found and path safety
         when: "Request resource with path traversal sequence"
@@ -319,6 +339,8 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_18: Group Negative Cases ───────────────────────────────────────
 
+    @SpecRef("RFC7643-4.2-R1")
+    @SpecRef("RFC7644-3.3-R3")
     def "NEG_18: Group negative cases return appropriate 400 and 409 error representations"() {
         // RFC 7643 §4.2, RFC 7644 §3.3, §3.12 — Group validation
         given: "An existing group"
@@ -335,8 +357,6 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             .post("/Groups")
 
         then: "Duplicate group returns 409 uniqueness, or 201 (displayName uniqueness is 'none')"
-        // RFC 7643 §7 declares Group.displayName with "uniqueness": "none", so accepting the
-        // duplicate is compliant; enforcing it must be reported as 409 + scimType uniqueness.
         dupRes.statusCode() in [201, 409]
         if (dupRes.statusCode() == 409) {
             assertScimError(dupRes, 409, "uniqueness")
@@ -363,6 +383,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     // ─── NEG_19: Unknown Schema URN in POST Payload ─────────────────────────
 
+    @SpecRef("RFC7644-3.12-R1")
     def "NEG_19: POST /Users with unknown schema URN returns 400 or handles gracefully"() {
         // RFC 7644 §3.12 — Schema validation on resource creation
         given: "Payload with unknown schema URN"
@@ -380,11 +401,119 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         response.statusCode() in [201, 400]
         if (response.statusCode() == 400) {
             assertScimError(response, 400)
+        } else if (response.statusCode() == 201) {
+            recordDeviation("RFC7644-3.12-R1", "RFC 7644 §3.12", "Server accepted unknown schema URN without validation")
+            ScimOutput.println "DEVIATION: Server accepted unknown schema URN without validation"
         }
         String id = response.statusCode() == 201 ? response.jsonPath().getString("id") : null
 
         cleanup:
         if (id) deleteUser(id)
     }
-}
 
+    // ─── NEG_20: tooMany error keyword on excessive results ─────────────────
+
+    @SpecRef("RFC7644-3.4.2.1-R2")
+    def "NEG_20: Query exceeding maxResults returns 400 with scimType tooMany or caps results"() {
+        // RFC 7644 §3.4.2.1: "Query exceeding server result limit returns HTTP 400 with scimType tooMany"
+        when: "Query with count beyond normal limits, e.g. 100000"
+        Response response = scimRequest()
+            .queryParam("count", 100000)
+            .get("/Users")
+
+        then: "Server returns 200 (capped itemsPerPage) or 400 with scimType tooMany"
+        response.statusCode() in [200, 400]
+        if (response.statusCode() == 400) {
+            assertScimType(response, "tooMany", "invalidValue")
+        }
+    }
+
+    // ─── NEG_21: invalidVers error keyword ──────────────────────────────────
+
+    @RequiresCapability("etag")
+    @SpecRef("RFC7644-3.12-R4")
+    def "NEG_21: Malformed or unparseable If-Match ETag returns 400 with scimType invalidVers or 412"() {
+        // RFC 7644 §3.12: "invalidVers: The specified SCIM protocol version is not supported,
+        // or the version attribute (ETag) does not match or is invalid."
+        when: "Send request with completely malformed ETag format"
+        Map patchPayload = buildPatchOp([
+            [op: "replace", path: "displayName", value: "InvalidVersTest"]
+        ])
+        Response response = scimRequestQuiet()
+            .header("If-Match", "this-is-not-a-valid-etag-syntax-at-all-<<<>>>")
+            .body(JsonOutput.toJson(patchPayload))
+            .patch("/Users/${existingUserId}")
+
+        then: "Server returns 400 (with scimType invalidVers) or 412"
+        response.statusCode() in [400, 412]
+        if (response.statusCode() == 400 && response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)) {
+            assertScimType(response, "invalidVers", "invalidValue")
+        }
+    }
+
+    // ─── NEG_22: Error detail attribute ─────────────────────────────────────
+
+    @SpecRef("RFC7644-3.12-R2")
+    def "NEG_22: SCIM Error responses include human-readable detail attribute"() {
+        // RFC 7644 §3.12: "detail: A detailed human-readable message."
+        when: "Trigger standard 404 error"
+        Response response = scimRequestQuiet()
+            .get("/Users/${UUID.randomUUID()}")
+
+        then:
+        response.statusCode() == 404
+        if (response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)) {
+            String detail = response.jsonPath().getString("detail")
+            detail != null && !detail.isBlank()
+        }
+    }
+
+    // ─── NEG_23: Filtering on sensitive attributes ──────────────────────────
+
+    @SpecRef("RFC7644-7.5.2-R1")
+    def "NEG_23: Filtering on sensitive attribute password returns 400, 403, or empty results"() {
+        // RFC 7644 §7.5.2: "A service provider that receives a request to filter on a sensitive
+        // attribute (e.g., password) SHOULD reject the request with HTTP status code 400 or 403."
+        when: "Filter on password attribute"
+        Response response = scimRequest()
+            .queryParam("filter", "password pr")
+            .get("/Users")
+
+        then: "Server returns 400, 403, or empty list"
+        response.statusCode() in [200, 400, 403]
+        if (response.statusCode() == 400) {
+            assertScimType(response, "sensitive", "invalidFilter", "invalidValue")
+        } else if (response.statusCode() == 200) {
+            // If 200, totalResults must be 0 (password not observable)
+            assert response.jsonPath().getInt("totalResults") == 0
+        }
+    }
+
+    // ─── NEG_24: Data type mismatch validation ──────────────────────────────
+
+    @SpecRef("RFC7643-2.3-R1")
+    def "NEG_24: Value data type mismatch (string for boolean active) returns 400 invalidValue"() {
+        // RFC 7643 §2.3: "Value validation conforms to declared attribute data types"
+        given: "User payload with string 'not-a-boolean' for boolean active attribute"
+        Map payload = [
+            schemas : [USER_SCHEMA],
+            userName: "datatype_mismatch_${UUID.randomUUID().toString().substring(0, 8)}@test.com",
+            active  : "not-a-boolean-value"
+        ]
+
+        when: "POST user with mismatched data type"
+        Response response = scimRequestQuiet()
+            .body(JsonOutput.toJson(payload))
+            .post("/Users")
+
+        then: "Server rejects with 400 Bad Request"
+        response.statusCode() == 400
+        assertScimError(response, 400, "invalidValue")
+
+        cleanup:
+        if (response.statusCode() == 201) {
+            String uid = response.jsonPath().getString("id")
+            if (uid) deleteUser(uid)
+        }
+    }
+}

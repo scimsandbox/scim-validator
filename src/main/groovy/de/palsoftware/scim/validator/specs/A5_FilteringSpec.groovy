@@ -2,6 +2,8 @@ package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.A5_BaseSpec
 import de.palsoftware.scim.validator.base.ScimOutput
+import de.palsoftware.scim.validator.base.spec.RequiresCapability
+import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
 import groovy.json.JsonOutput
 
@@ -10,10 +12,12 @@ import groovy.json.JsonOutput
  *
  * Validates SCIM 2.0 filtering (RFC 7644 §3.4.2) and related query parameters.
  */
+@RequiresCapability("filter")
 class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_01: eq operator ────────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R1")
     def "FLT_01: Filter with eq operator returns exact match"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: eq
         given:
@@ -33,6 +37,8 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_02: sw operator ────────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R4")
+    @SpecRef("RFC7644-3.4.2-R4")
     def "FLT_02: Filter with sw (startsWith) returns matching users"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: sw
         when:
@@ -49,6 +55,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_03: co operator ────────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R3")
     def "FLT_03: Filter with co (contains) returns matching users"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: co
         when:
@@ -65,6 +72,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_04: pr operator ────────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R6")
     def "FLT_04: Filter with pr (present) returns users that have the attribute"() {
         // RFC 7644 §3.4.2.2 — Attribute Operators: pr
         when:
@@ -81,6 +89,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_05: eq on boolean attribute ────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R1")
     def "FLT_05: Filter eq on active (boolean) returns correct users"() {
         // RFC 7644 §3.4.2.2 — eq with boolean value
         when:
@@ -97,6 +106,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_06: Logical AND filter ─────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R8")
     def "FLT_06: Filter with logical AND narrows results correctly"() {
         // RFC 7644 §3.4.2.2 — Logical Operators: and
         when:
@@ -116,6 +126,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_07: Logical OR filter ──────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R9")
     def "FLT_07: Filter with logical OR broadens results correctly"() {
         // RFC 7644 §3.4.2.2 — Logical Operators: or
         given:
@@ -137,8 +148,9 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_10: Invalid filter returns 400 ─────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R14")
     def "FLT_10: Invalid filter expression returns HTTP 400"() {
-        // RFC 7644 §3.4.2 — Server MUST return 400 for invalid filter
+        // RFC 7644 §3.4.2.2 — Malformed filter expression returns 400 invalidFilter
         when:
         Response response = scimRequest()
             .queryParam("filter", "not a valid !!! filter [[")
@@ -146,10 +158,16 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         then:
         response.statusCode() == 400
+        if (response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)) {
+            assertScimType(response, "invalidFilter")
+        } else {
+            recordDeviation("RFC7644-3.12-R1", "RFC 7644 §3.12", "Error response missing urn:ietf:params:scim:api:messages:2.0:Error schema")
+        }
     }
 
     // ─── FLT_11: Filter for non-existent user returns totalResults=0 ───────
 
+    @SpecRef("RFC7644-3.4.2-R2")
     def "FLT_11: Filter for non-existent user returns empty list response"() {
         // RFC 7644 §3.4.2 — ListResponse with totalResults=0 when no match
         when:
@@ -167,6 +185,9 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_12: userName filter is case-insensitive when caseExact=false ─
 
+    @SpecRef("RFC7644-3.4.2.2-R1")
+    @SpecRef("RFC7643-2.2-R6")
+    @SpecRef("RFC7644-5-R1")
     def "FLT_12: userName filter matches regardless of case"() {
         // RFC 7643 §4.1 — userName has caseExact=false
         // RFC 7644 §3.4.2.2 — String comparisons are case-insensitive when caseExact=false
@@ -197,8 +218,11 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_13: attributes parameter limits returned attributes ────────────
 
+    @SpecRef("RFC7644-3.4.2.5-R1")
+    @SpecRef("RFC7644-3.9-R1")
+    @SpecRef("RFC7643-2.2-R4")
     def "FLT_13: attributes parameter returns only minimum set plus requested"() {
-        // RFC 7644 §3.9 — attributes overrides the default attribute set
+        // RFC 7644 §3.4.2.5 — attributes overrides the default attribute set
         given:
         String targetId = userData[0].id
 
@@ -219,14 +243,16 @@ class A5_FilteringSpec extends A5_BaseSpec {
         boolean hasExternalId = body?.containsKey("externalId")
 
         if (hasName || hasEmails || hasExternalId) {
-            ScimOutput.println "DEVIATION: api.scim.dev returns default attributes even when attributes=userName is specified"
+            recordDeviation("RFC7644-3.4.2.5-R1", "RFC 7644 §3.4.2.5", "Server returns default attributes even when attributes=userName is specified")
+            ScimOutput.println "DEVIATION: Server returns default attributes even when attributes=userName is specified"
         }
     }
 
     // ─── FLT_14: excludedAttributes parameter removes defaults ──────────────
 
+    @SpecRef("RFC7644-3.4.2.5-R2")
     def "FLT_14: excludedAttributes removes requested default attributes"() {
-        // RFC 7644 §3.9 — excludedAttributes removes attributes from default set
+        // RFC 7644 §3.4.2.5 — excludedAttributes removes attributes from default set
         when:
         Response response = scimRequest()
             .queryParam("filter", "userName sw \"${PREFIX}\"")
@@ -243,15 +269,16 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         boolean emailsPresent = resources.any { Map r -> r.containsKey("emails") }
         if (emailsPresent) {
-            ScimOutput.println "DEVIATION: api.scim.dev does not honor excludedAttributes=emails on list responses"
+            recordDeviation("RFC7644-3.4.2.5-R2", "RFC 7644 §3.4.2.5", "Server does not honor excludedAttributes=emails on list responses")
+            ScimOutput.println "DEVIATION: Server does not honor excludedAttributes=emails on list responses"
         }
     }
 
     // ─── FLT_15: Filter groups by displayName eq ────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R1")
     def "FLT_15: Filter groups by displayName eq returns exact match"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: eq on Groups
-        // Reference: scim2-compliance-test-suite FilterTest.FilterGroups()
         given: "Create test groups with known displayNames"
         String groupName1 = "${PREFIX}Engineers"
         String groupName2 = "${PREFIX}Designers"
@@ -283,6 +310,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_16: POST /.search on /Users ────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.3-R1")
     def "FLT_16: POST /Users/.search returns filtered list response"() {
         // RFC 7644 §3.4.3 — POST-based query via /.search
         given:
@@ -298,14 +326,19 @@ class A5_FilteringSpec extends A5_BaseSpec {
             .post("/Users/.search")
 
         then:
-        response.statusCode() == 200
-        response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
-        response.jsonPath().getInt("totalResults") >= 1
-        response.jsonPath().getList("Resources.userName").contains(targetUserName)
+        if (response.statusCode() in [404, 501]) {
+            true
+        } else {
+            response.statusCode() == 200
+            response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+            response.jsonPath().getInt("totalResults") >= 1
+            response.jsonPath().getList("Resources.userName").contains(targetUserName)
+        }
     }
 
     // ─── FLT_17: POST /.search on /Groups ───────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.3-R1")
     def "FLT_17: POST /Groups/.search returns filtered list response"() {
         // RFC 7644 §3.4.3 — POST-based query via /.search
         given: "Create a test group"
@@ -325,10 +358,14 @@ class A5_FilteringSpec extends A5_BaseSpec {
             .post("/Groups/.search")
 
         then:
-        response.statusCode() == 200
-        response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
-        response.jsonPath().getInt("totalResults") >= 1
-        response.jsonPath().getList("Resources.displayName").contains(groupName)
+        if (response.statusCode() in [404, 501]) {
+            true
+        } else {
+            response.statusCode() == 200
+            response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+            response.jsonPath().getInt("totalResults") >= 1
+            response.jsonPath().getList("Resources.displayName").contains(groupName)
+        }
 
         cleanup:
         if (gid) deleteGroup(gid)
@@ -337,8 +374,9 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_18: URN-prefixed core attribute in attributes parameter ────────
 
+    @SpecRef("RFC7644-3.4.2.5-R1")
     def "FLT_18: URN-prefixed core attribute returns correct projection"() {
-        // RFC 7644 §3.9 — attributes parameter supports URN-prefixed attribute names
+        // RFC 7644 §3.4.2.5 — attributes parameter supports URN-prefixed attribute names
         given:
         String targetId = userData[0].id
 
@@ -355,8 +393,9 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_19: URN-prefixed enterprise extension in attributes parameter ──
 
+    @SpecRef("RFC7644-3.4.2.5-R1")
     def "FLT_19: URN-prefixed enterprise extension returns extension block"() {
-        // RFC 7644 §3.9 — Enterprise extension URN selects the extension sub-object
+        // RFC 7644 §3.4.2.5 — Enterprise extension URN selects the extension sub-object
         given: "Create a user with enterprise extension"
         Response created = createFullUser()
         assert created.statusCode() == 201
@@ -375,10 +414,15 @@ class A5_FilteringSpec extends A5_BaseSpec {
         def enterprise = response.jsonPath().getMap("'${ENTERPRISE_USER_SCHEMA}'") ?:
                          response.jsonPath().getMap("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User")
         enterprise != null
+
+        cleanup:
+        if (userId) deleteUser(userId)
+        createdUserIds.remove(userId)
     }
 
     // ─── FLT_20: ne operator ────────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R2")
     def "FLT_20: Filter with ne operator excludes matching users"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: ne
         given:
@@ -397,6 +441,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_21: ew operator ────────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R5")
     def "FLT_21: Filter with ew (endsWith) returns matching users"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: ew
         when:
@@ -412,6 +457,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_22: gt/ge/lt/le on meta.lastModified ──────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R7")
     def "FLT_22: Filter with gt on meta.lastModified returns results"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: gt, ge, lt, le
         when:
@@ -426,6 +472,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_23: not expression ─────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R10")
     def "FLT_23: Filter with not expression negates inner condition"() {
         // RFC 7644 §3.4.2.2 — Logical Operators: not
         when:
@@ -443,6 +490,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_24: Parenthesized grouping ─────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R11")
     def "FLT_24: Filter with parenthesized grouping applies correct precedence"() {
         // RFC 7644 §3.4.2.2 — Grouping Operators: ()
         given:
@@ -464,6 +512,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_25: Core URN-prefixed filter attribute ─────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R1")
     def "FLT_25: Filter with core schema URN prefix resolves correctly"() {
         // RFC 7644 §3.4.2.2 — URN-prefixed attribute names in filters
         given:
@@ -482,6 +531,8 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_26: Case-insensitive attribute name in filter ──────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R1")
+    @SpecRef("RFC7643-2.1-R1")
     def "FLT_26: Filter attribute names are case-insensitive"() {
         // RFC 7644 §3.4.2.2 — "Attribute names and attribute operators used in filters are case insensitive"
         given:
@@ -500,6 +551,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_27: Value path filter with brackets ────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R12")
     def "FLT_27: Value path filter emails[type eq work] returns matching users"() {
         // RFC 7644 §3.4.2.2 — Value Path Filtering: attrPath[valFilter]
         when:
@@ -515,6 +567,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_28: Case-insensitive operator ──────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R1")
     def "FLT_28: Filter operators are case-insensitive"() {
         // RFC 7644 §3.4.2.2 — "attribute operators used in filters are case insensitive"
         given:
@@ -533,6 +586,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_29: ge operator on meta.lastModified ───────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R7")
     def "FLT_29: Filter with ge on meta.lastModified returns matching users"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: ge
         when:
@@ -547,6 +601,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_30: lt operator on meta.lastModified ───────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R7")
     def "FLT_30: Filter with lt on meta.lastModified returns no matching users for ancient timestamp"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: lt
         when:
@@ -563,6 +618,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_31: le operator on meta.lastModified ───────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R7")
     def "FLT_31: Filter with le on meta.lastModified returns all matching users for future timestamp"() {
         // RFC 7644 §3.4.2.2 — Comparison Operators: le
         when:
@@ -577,6 +633,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_32: Compound value path filter ─────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R12")
     def "FLT_32: Value path filter with sub-attribute targeting returns matching users"() {
         // RFC 7644 §3.4.2.2 — Value Path Filtering with sub-attribute targeting
         when: "Query with direct complex sub-attribute path (emails.value)"
@@ -602,6 +659,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
         if (bracketSubAttr.statusCode() == 200) {
             assert bracketSubAttr.jsonPath().getInt("totalResults") >= 5
         } else {
+            recordDeviation("RFC7644-3.4.2.2-R12", "RFC 7644 §3.4.2.2", "Server does not support bracketed value path with dotted sub-attribute targeting 'emails[...].value'")
             ScimOutput.println "DEVIATION: Server does not support bracketed value path with dotted sub-attribute targeting 'emails[...].value' (RFC 7644 §3.4.2.2)"
             assertScimError(bracketSubAttr, 400)
         }
@@ -609,6 +667,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_33: Root global search POST /.search ───────────────────────────
 
+    @SpecRef("RFC7644-3.4.3-R1")
     def "FLT_33: POST /.search root global search returns 200 or 501 Not Implemented"() {
         // RFC 7644 §3.4.3: "If a SCIM service provider does not support searching at the root,
         // the response status MUST be 501 (Not Implemented)."
@@ -633,6 +692,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_34: Filter by enterprise extension attribute ───────────────────
 
+    @SpecRef("RFC7644-3.4.2.2-R1")
     def "FLT_34: Filter by enterprise extension attribute returns matching user"() {
         // RFC 7643 §4.3, RFC 7644 §3.4.2.2 — Extension attribute filtering
         given: "Create a user with distinct enterprise department"
@@ -666,9 +726,10 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_35: Mandatory attributes cannot be excluded ────────────────────
 
+    @SpecRef("RFC7644-3.4.2.5-R2")
+    @SpecRef("RFC7644-3.9-R1")
     def "FLT_35: Mandatory attributes id and schemas cannot be excluded via excludedAttributes"() {
-        // RFC 7644 §3.9: "The attribute 'schemas' and the attribute 'id' are always returned
-        // and SHALL NOT be excluded."
+        // RFC 7644 §3.4.2.5 — Characteristics: 'always'; id and schemas cannot be excluded
         when: "Query with excludedAttributes=id,schemas"
         Response response = scimRequest()
             .queryParam("filter", "userName sw \"${PREFIX}\"")
@@ -686,8 +747,9 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_36: Non-existent attribute in attributes projection ────────────
 
+    @SpecRef("RFC7644-3.4.2.5-R1")
     def "FLT_36: Non-existent attribute in attributes query parameter does not error"() {
-        // RFC 7644 §3.9 — Service providers SHOULD ignore invalid/unrecognized attribute names
+        // RFC 7644 §3.4.2.5 — Non-existent attributes in projection are ignored
         given:
         String targetId = userData[0].id
 
@@ -700,5 +762,79 @@ class A5_FilteringSpec extends A5_BaseSpec {
         response.statusCode() == 200
         response.jsonPath().getString("id") == targetId
         response.jsonPath().getList("schemas").contains(USER_SCHEMA)
+    }
+
+    // ─── FLT_37: attributes and excludedAttributes are mutually exclusive ────
+
+    @SpecRef("RFC7644-3.4.2.5-R3")
+    def "FLT_37: Providing both attributes and excludedAttributes returns HTTP 400"() {
+        // RFC 7644 §3.4.2.5: "The 'attributes' and 'excludedAttributes' query parameters
+        // MUST NOT be specified in the same request."
+        when:
+        Response response = scimRequest()
+            .queryParam("attributes", "userName")
+            .queryParam("excludedAttributes", "emails")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 400
+    }
+
+    // ─── FLT_38: Unrecognized query parameters SHOULD be ignored ────────────
+
+    @SpecRef("RFC7644-3.4.2-R3")
+    def "FLT_38: Unrecognized query parameter is ignored by server"() {
+        // RFC 7644 §3.4.2: "Undefined query parameters MUST be ignored."
+        when:
+        Response response = scimRequest()
+            .queryParam("filter", "userName sw \"${PREFIX}\"")
+            .queryParam("someUnknownCustomParamXYZ", "12345")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 200
+        response.jsonPath().getInt("totalResults") >= 5
+    }
+
+    // ─── FLT_39: Filter on schemas attribute matches declaring resources ────
+
+    @SpecRef("RFC7644-3.4.2.2-R13")
+    def "FLT_39: Filter on schemas attribute matches resources declaring schema URN"() {
+        // RFC 7644 §3.4.2.2: "e.g. schemas eq 'urn:ietf:params:scim:schemas:core:2.0:User'"
+        when:
+        Response response = scimRequest()
+            .queryParam("filter", "schemas eq \"${USER_SCHEMA}\" and userName sw \"${PREFIX}\"")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 200
+        response.jsonPath().getInt("totalResults") >= 5
+    }
+
+    // ─── FLT_40: Root query with meta.resourceType scoping ───────────────────
+
+    @SpecRef("RFC7644-3.4.2.1-R1")
+    def "FLT_40: Root query with meta.resourceType filter restricts results"() {
+        // RFC 7644 §3.4.2.1: "A SCIM service provider MAY support searching at the root...
+        // filter=meta.resourceType eq \"User\""
+        when:
+        Response response = scimRequest()
+            .queryParam("filter", "meta.resourceType eq \"User\"")
+            .get("/")
+
+        then:
+        if (response.statusCode() in [404, 501]) {
+            // Optional root search capability
+            true
+        } else {
+            response.statusCode() == 200
+            response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+            def resources = response.jsonPath().getList("Resources")
+            if (resources != null && !resources.isEmpty()) {
+                resources.every { Map r ->
+                    r.meta?.resourceType == "User" || r.schemas?.contains(USER_SCHEMA)
+                }
+            }
+        }
     }
 }

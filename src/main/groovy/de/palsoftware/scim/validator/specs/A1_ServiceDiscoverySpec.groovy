@@ -2,6 +2,7 @@ package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
 import de.palsoftware.scim.validator.base.ScimOutput
+import de.palsoftware.scim.validator.base.spec.SpecRef
 import spock.lang.Stepwise
 
 /**
@@ -17,7 +18,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
 
     // ─── ServiceProviderConfig ──────────────────────────────────────────────
 
-    def "ServiceProviderConfig response is valid and contains required fields"() {
+    @SpecRef("RFC7644-4-R1")
+    @SpecRef("RFC7643-5-R1")
+    def "DSC_01: ServiceProviderConfig response is valid and contains required fields"() {
         // RFC 7643 §5 — ServiceProviderConfig
         when: "GET /ServiceProviderConfig"
         def response = scimRequest()
@@ -85,7 +88,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
 
     // ─── ResourceTypes ──────────────────────────────────────────────────────
 
-    def "ResourceTypes endpoint contains User and Group resource types"() {
+    @SpecRef("RFC7644-4-R1")
+    @SpecRef("RFC7643-6-R1")
+    def "DSC_02: ResourceTypes endpoint contains User and Group resource types"() {
         // RFC 7643 §6 — ResourceType
         when: "GET /ResourceTypes"
         def response = scimRequest()
@@ -116,15 +121,12 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         def userRT = resources.find { it.name == "User" || it.id == "User" }
         assert userRT != null : "User resource type must be present"
         assert userRT.schema == USER_SCHEMA : "User schema URI must be ${USER_SCHEMA}"
-        // TODO DEVIATION: api.scim.dev returns full URL endpoints instead of relative paths per RFC 7643 §6
-        // RFC expects: "/Users", server returns: "https://api.scim.dev/scim/v2/Users"
         userRT.endpoint?.endsWith("/Users")
 
         // Find Group resource type
         def groupRT = resources.find { it.name == "Group" || it.id == "Group" }
         assert groupRT != null : "Group resource type must be present"
         assert groupRT.schema == GROUP_SCHEMA : "Group schema URI must be ${GROUP_SCHEMA}"
-        // DEVIATION: Same as above for Groups
         groupRT.endpoint?.endsWith("/Groups")
 
         // Validate schemaExtensions if present
@@ -143,7 +145,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
 
     // ─── Schemas ────────────────────────────────────────────────────────────
 
-    def "Schemas endpoint returns core User schema with correct attribute properties"() {
+    @SpecRef("RFC7644-4-R1")
+    @SpecRef("RFC7643-7-R1")
+    def "DSC_03: Schemas endpoint returns core User schema with correct attribute properties"() {
         // RFC 7643 §7 — Schemas endpoint
         when: "GET /Schemas"
         def response = scimRequest()
@@ -176,22 +180,18 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         userNameAttr.required == true
 
         and: "id attribute has readOnly mutability (if present in attributes) or is a top-level schema property"
-        // TODO DEVIATION: api.scim.dev does not include 'id' in the User schema attributes array.
-        // Per RFC 7643 §2, 'id' is a common attribute on all resources, may not be in per-schema attributes.
         def idAttr = attributes.find { it.name == "id" }
-        // If id is listed, verify it's readOnly; otherwise this is a known deviation
         if (idAttr != null) {
             assert idAttr.mutability == "readOnly" : "id attribute should be readOnly per RFC 7643"
         }
-        // The schema itself has an 'id' field which is the schema URI — that's expected
         userSchema.id == USER_SCHEMA
     }
 
     // ─── Schemas: Core Schemas Validation ───────────────────────────────────
 
-    def "Schemas endpoint contains mandatory core schemas (ServiceProviderConfig, ResourceType, Schema)"() {
-        // RFC 7644 §4 — Service providers MUST provide Schema definitions for
-        // ServiceProviderConfig, ResourceType, and Schema itself.
+    @SpecRef("RFC7643-7-R1")
+    def "DSC_04: Schemas endpoint contains mandatory core schemas (ServiceProviderConfig, ResourceType, Schema)"() {
+        // RFC 7643 §7 / §8.7.2 — Schema representations for ServiceProviderConfig, ResourceType, and Schema
         when: "GET /Schemas"
         def response = scimRequest()
             .get("/Schemas")
@@ -199,7 +199,7 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         then: "Status is 200"
         response.statusCode() == 200
 
-        and: "Response contains the three mandatory server schemas"
+        and: "Response contains the three core server schemas"
         def body = response.jsonPath()
         def schemas
         if (body.get("Resources") != null) {
@@ -209,7 +209,6 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         }
         schemas != null
 
-        // Check for the three mandatory core schemas by ID URN or name per RFC 7644 §4
         def schemaIds = schemas.collect { it.id ?: "" }
         def schemaNames = schemas.collect { it.name ?: "" }
 
@@ -220,20 +219,20 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         def hasSchema = schemaIds.contains("urn:ietf:params:scim:schemas:core:2.0:Schema") ||
             schemaNames.any { it.toLowerCase() == "schema" }
 
-        if (!hasSPC) ScimOutput.println "DEVIATION: /Schemas missing ServiceProviderConfig schema definition (RFC 7644 §4)"
-        if (!hasRT) ScimOutput.println "DEVIATION: /Schemas missing ResourceType schema definition (RFC 7644 §4)"
-        if (!hasSchema) ScimOutput.println "DEVIATION: /Schemas missing Schema schema definition (RFC 7644 §4)"
+        if (!hasSPC) ScimOutput.deviation("/Schemas missing ServiceProviderConfig schema definition", "DSC_04", "RFC7643-7-R1")
+        if (!hasRT) ScimOutput.deviation("/Schemas missing ResourceType schema definition", "DSC_04", "RFC7643-7-R1")
+        if (!hasSchema) ScimOutput.deviation("/Schemas missing Schema schema definition", "DSC_04", "RFC7643-7-R1")
 
-        // Per RFC 7644 §4: "Service providers MUST provide Schema definitions for ServiceProviderConfig, ResourceType, and Schema itself"
-        assert hasSPC : "Mandatory ServiceProviderConfig schema definition missing from /Schemas (RFC 7644 §4)"
-        assert hasRT : "Mandatory ResourceType schema definition missing from /Schemas (RFC 7644 §4)"
-        assert hasSchema : "Mandatory Schema schema definition missing from /Schemas (RFC 7644 §4)"
+        assert hasSPC : "ServiceProviderConfig schema definition missing from /Schemas (RFC 7643 §7)"
+        assert hasRT : "ResourceType schema definition missing from /Schemas (RFC 7643 §7)"
+        assert hasSchema : "Schema schema definition missing from /Schemas (RFC 7643 §7)"
     }
 
     // ─── Schemas: Individual Schema Retrieval ───────────────────────────────
 
-    def "Each schema can be individually retrieved by its ID via /Schemas/{id}"() {
-        // RFC 7644 §4 — Schemas can be retrived individually by their URI ID
+    @SpecRef("RFC7644-4-R2")
+    def "DSC_05: Each schema can be individually retrieved by its ID via /Schemas/{id}"() {
+        // RFC 7644 §4 — Schemas can be retrieved individually by their URI ID
         when: "GET /Schemas to list all schemas"
         def listResponse = scimRequest()
             .get("/Schemas")
@@ -262,7 +261,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
 
     // ─── Schemas: Invalid Schema ID ─────────────────────────────────────────
 
-    def "GET /Schemas with non-existent schema ID returns 404"() {
+    @SpecRef("RFC7644-3.4.1-R2")
+    @SpecRef("RFC7644-3.12-R1")
+    def "DSC_06: GET /Schemas with non-existent schema ID returns 404"() {
         // RFC 7644 §3.12 — Error responses for non-existent resources
         when: "GET /Schemas/{random_uuid}"
         String invalidId = UUID.randomUUID().toString()
@@ -276,7 +277,8 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
 
     // ─── ResourceTypes: Individual Retrieval ────────────────────────────────
 
-    def "Each ResourceType can be individually retrieved by its ID via /ResourceTypes/{id}"() {
+    @SpecRef("RFC7644-4-R2")
+    def "DSC_07: Each ResourceType can be individually retrieved by its ID via /ResourceTypes/{id}"() {
         // RFC 7644 §4 — ResourceTypes can be retrieved individually by their ID
         when: "GET /ResourceTypes to list all resource types"
         def listResponse = scimRequest()
@@ -307,7 +309,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
 
     // ─── ResourceTypes: Invalid ID ──────────────────────────────────────────
 
-    def "GET /ResourceTypes with non-existent ID returns 404"() {
+    @SpecRef("RFC7644-3.4.1-R2")
+    @SpecRef("RFC7644-3.12-R1")
+    def "DSC_08: GET /ResourceTypes with non-existent ID returns 404"() {
         // RFC 7644 §3.12 — Error responses for non-existent resources
         when: "GET /ResourceTypes/{random_uuid}"
         String invalidId = UUID.randomUUID().toString()
@@ -321,7 +325,8 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
 
     // ─── ResourceTypes: Schema Cross-Reference ──────────────────────────────
 
-    def "ResourceType schema URIs reference schemas accessible via /Schemas/{id}"() {
+    @SpecRef("RFC7643-6-R1")
+    def "DSC_09: ResourceType schema URIs reference schemas accessible via /Schemas/{id}"() {
         // RFC 7643 §6 — Each ResourceType's schema attribute MUST be the id of a Schema resource
         when: "GET /ResourceTypes"
         def rtResponse = scimRequest()
@@ -363,7 +368,8 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
 
     // ─── Discovery Endpoints: HTTP Method Enforcement ───────────────────────
 
-    def "ServiceProviderConfig endpoint rejects POST, PUT, PATCH, DELETE"() {
+    @SpecRef("RFC7644-4-R3")
+    def "DSC_10: ServiceProviderConfig endpoint rejects POST, PUT, PATCH, DELETE"() {
         // RFC 7644 §4 — Discovery endpoints only support GET
         expect: "Non-GET methods return 405 Method Not Allowed"
         ["/ServiceProviderConfig"].each { endpoint ->
@@ -384,21 +390,21 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                         break
                 }
                 assert response.statusCode() >= 400 && response.statusCode() < 500 :
-                    "${method} ${endpoint} must be rejected with a 4xx client error " +
-                    "(405 expected per RFC 7644 §4), got ${response.statusCode()}"
+                    "${method} ${endpoint} must be rejected with a 4xx client error, got ${response.statusCode()}"
                 if (response.statusCode() == 405) {
                     def allowHeader = response.header("Allow")
                     if (allowHeader != null && !allowHeader.contains("GET")) {
                         ScimOutput.println "NOTE: ${method} ${endpoint} returned 405 with Allow header '${allowHeader}' not listing GET"
                     }
                 } else {
-                    ScimOutput.println "DEVIATION: ${method} ${endpoint} returned ${response.statusCode()} instead of 405 (RFC 7644 §4)"
+                    ScimOutput.deviation("${method} ${endpoint} returned ${response.statusCode()} instead of 405 (RFC 7644 §4)", "DSC_10", "RFC7644-4-R3")
                 }
             }
         }
     }
 
-    def "Schemas endpoint and individual schemas reject POST, PUT, PATCH, DELETE"() {
+    @SpecRef("RFC7644-4-R3")
+    def "DSC_11: Schemas endpoint and individual schemas reject POST, PUT, PATCH, DELETE"() {
         // RFC 7644 §4 — Discovery endpoints only support GET
         expect: "Non-GET methods return 405 Method Not Allowed"
         ["/Schemas", "/Schemas/${USER_SCHEMA}"].each { endpoint ->
@@ -419,21 +425,21 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                         break
                 }
                 assert response.statusCode() >= 400 && response.statusCode() < 500 :
-                    "${method} ${endpoint} must be rejected with a 4xx client error " +
-                    "(405 expected per RFC 7644 §4), got ${response.statusCode()}"
+                    "${method} ${endpoint} must be rejected with a 4xx client error, got ${response.statusCode()}"
                 if (response.statusCode() == 405) {
                     def allowHeader = response.header("Allow")
                     if (allowHeader != null && !allowHeader.contains("GET")) {
                         ScimOutput.println "NOTE: ${method} ${endpoint} returned 405 with Allow header '${allowHeader}' not listing GET"
                     }
                 } else {
-                    ScimOutput.println "DEVIATION: ${method} ${endpoint} returned ${response.statusCode()} instead of 405 (RFC 7644 §4)"
+                    ScimOutput.deviation("${method} ${endpoint} returned ${response.statusCode()} instead of 405 (RFC 7644 §4)", "DSC_11", "RFC7644-4-R3")
                 }
             }
         }
     }
 
-    def "ResourceTypes endpoint and individual ResourceTypes reject POST, PUT, PATCH, DELETE"() {
+    @SpecRef("RFC7644-4-R3")
+    def "DSC_12: ResourceTypes endpoint and individual ResourceTypes reject POST, PUT, PATCH, DELETE"() {
         // RFC 7644 §4 — Discovery endpoints only support GET
         expect: "Non-GET methods return 405 Method Not Allowed"
         ["/ResourceTypes", "/ResourceTypes/User"].each { endpoint ->
@@ -454,17 +460,145 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                         break
                 }
                 assert response.statusCode() >= 400 && response.statusCode() < 500 :
-                    "${method} ${endpoint} must be rejected with a 4xx client error " +
-                    "(405 expected per RFC 7644 §4), got ${response.statusCode()}"
+                    "${method} ${endpoint} must be rejected with a 4xx client error, got ${response.statusCode()}"
                 if (response.statusCode() == 405) {
                     def allowHeader = response.header("Allow")
                     if (allowHeader != null && !allowHeader.contains("GET")) {
                         ScimOutput.println "NOTE: ${method} ${endpoint} returned 405 with Allow header '${allowHeader}' not listing GET"
                     }
                 } else {
-                    ScimOutput.println "DEVIATION: ${method} ${endpoint} returned ${response.statusCode()} instead of 405 (RFC 7644 §4)"
+                    ScimOutput.deviation("${method} ${endpoint} returned ${response.statusCode()} instead of 405 (RFC 7644 §4)", "DSC_12", "RFC7644-4-R3")
                 }
             }
         }
+    }
+
+    // ─── Gap Closures: RFC 7644 §3.1, §4, RFC 7643 §5, §6, §7 ─────────────────
+
+    @SpecRef("RFC7644-3.1-R1")
+    def "DSC_13: Message schemas SHALL NOT be discoverable using the /Schemas endpoint"() {
+        // RFC 7644 §3.1 — SCIM message schemas SHALL NOT be discoverable using the '/Schemas' endpoint
+        when: "GET /Schemas"
+        def response = scimRequest().get("/Schemas")
+
+        then: "Status is 200"
+        response.statusCode() == 200
+
+        and: "No message schema URNs appear in the response"
+        def body = response.jsonPath()
+        def schemas = body.get("Resources") != null ? body.getList("Resources") : body.getList("")
+        def schemaIds = schemas.collect { it.id?.toString()?.toLowerCase() }
+
+        def forbiddenMessageSchemas = [
+            "urn:ietf:params:scim:api:messages:2.0:listresponse",
+            "urn:ietf:params:scim:api:messages:2.0:patchop",
+            "urn:ietf:params:scim:api:messages:2.0:bulkrequest",
+            "urn:ietf:params:scim:api:messages:2.0:bulkresponse",
+            "urn:ietf:params:scim:api:messages:2.0:error",
+            "urn:ietf:params:scim:api:messages:2.0:searchrequest"
+        ]
+
+        forbiddenMessageSchemas.each { messageUrn ->
+            assert !schemaIds.contains(messageUrn) :
+                "RFC 7644 §3.1 violation: Message schema '${messageUrn}' is discoverable at /Schemas"
+        }
+    }
+
+    @SpecRef("RFC7644-4-R4")
+    def "DSC_14: Discovery endpoints SHOULD be accessible without authentication"() {
+        // RFC 7644 §4 — Discovery endpoints SHOULD be accessible without authentication
+        when: "Anonymous GET to /ServiceProviderConfig, /ResourceTypes, /Schemas"
+        def spcResp = scimRequestAnonymous().get("/ServiceProviderConfig")
+        def rtResp = scimRequestAnonymous().get("/ResourceTypes")
+        def schemasResp = scimRequestAnonymous().get("/Schemas")
+
+        then: "Discovery endpoints return 200 OK or record deviation if authentication is required"
+        [spcResp, rtResp, schemasResp].each { resp ->
+            if (resp.statusCode() == 401) {
+                ScimOutput.deviation("Discovery endpoint requires authentication contrary to RFC 7644 §4 SHOULD recommendation", "DSC_14", "RFC7644-4-R4")
+            } else {
+                assert resp.statusCode() == 200 : "Expected HTTP 200 or 401 on anonymous discovery access, got ${resp.statusCode()}"
+            }
+        }
+    }
+
+    @SpecRef("RFC7644-4-R2")
+    def "DSC_15: Direct retrieval of /Schemas/{id} and /ResourceTypes/{id} returns single JSON object"() {
+        // RFC 7644 §4 — Request for specific ResourceType or Schema returns single JSON object as per §3.4.1
+        when: "GET specific schema by ID"
+        def schemaResp = scimRequest().get("/Schemas/${USER_SCHEMA}")
+        def rtResp = scimRequest().get("/ResourceTypes/User")
+
+        then: "Responses are 200 and return single JSON objects without ListResponse wrapper"
+        schemaResp.statusCode() == 200
+        assert schemaResp.jsonPath().get("totalResults") == null :
+            "Direct schema retrieval must not return ListResponse wrapper (RFC 7644 §4)"
+        assert schemaResp.jsonPath().getString("id") == USER_SCHEMA
+
+        rtResp.statusCode() == 200
+        assert rtResp.jsonPath().get("totalResults") == null :
+            "Direct ResourceType retrieval must not return ListResponse wrapper (RFC 7644 §4)"
+        assert rtResp.jsonPath().getString("name") == "User" || rtResp.jsonPath().getString("id") == "User"
+    }
+
+    @SpecRef("RFC7643-7-R1")
+    @SpecRef("RFC7643-3-R1")
+    def "DSC_16: Schema representations include schemas and meta per erratum 8417"() {
+        // RFC 7643 erratum 8417 (Verified): Schema representations must include schemas and meta
+        when: "GET /Schemas/${USER_SCHEMA}"
+        def response = scimRequest().get("/Schemas/${USER_SCHEMA}")
+
+        then: "Response is 200 and contains schemas and meta"
+        response.statusCode() == 200
+        def schemas = response.jsonPath().getList("schemas")
+        assert schemas != null && !schemas.isEmpty() :
+            "Schema representation must include schemas attribute (RFC 7643 §7, Erratum 8417)"
+
+        def meta = response.jsonPath().getMap("meta")
+        if (meta == null) {
+            ScimOutput.deviation("Schema representation omits meta object per RFC 7643 erratum 8417", "DSC_16", "RFC7643-7-R1")
+        } else {
+            assert meta.resourceType == "Schema" : "meta.resourceType must be 'Schema'"
+        }
+    }
+
+    @SpecRef("RFC7643-6-R1")
+    def "DSC_17: ResourceType representations have server-unique name and endpoint per erratum 8475"() {
+        // RFC 7643 §6, Erratum 8475 (Verified): ResourceType name and endpoint are server-unique and case-exact
+        when: "GET /ResourceTypes"
+        def response = scimRequest().get("/ResourceTypes")
+
+        then: "Response is 200"
+        response.statusCode() == 200
+
+        and: "All ResourceType names and endpoints are unique across the server"
+        def body = response.jsonPath()
+        def resources = body.get("Resources") != null ? body.getList("Resources") : body.getList("")
+        def names = resources.collect { it.name }.findAll { it != null }
+        def endpoints = resources.collect { it.endpoint }.findAll { it != null }
+
+        assert names.size() == names.unique(false).size() :
+            "ResourceType names must be server-unique per RFC 7643 Erratum 8475"
+        assert endpoints.size() == endpoints.unique(false).size() :
+            "ResourceType endpoints must be server-unique per RFC 7643 Erratum 8475"
+    }
+
+    @SpecRef("RFC7643-5-R1")
+    def "DSC_18: ServiceProviderConfig attributes have mutability readOnly and declare required capability flags"() {
+        // RFC 7643 §5 — all attributes have mutability readOnly and declare capability flags
+        when: "GET /ServiceProviderConfig"
+        def response = scimRequest().get("/ServiceProviderConfig")
+
+        then: "Response is 200"
+        response.statusCode() == 200
+
+        and: "All required capability objects and supported booleans are present"
+        def json = response.jsonPath()
+        assert json.get("patch.supported") != null : "patch.supported is required in SPC (RFC 7643 §5)"
+        assert json.get("bulk.supported") != null : "bulk.supported is required in SPC (RFC 7643 §5)"
+        assert json.get("filter.supported") != null : "filter.supported is required in SPC (RFC 7643 §5)"
+        assert json.get("changePassword.supported") != null : "changePassword.supported is required in SPC (RFC 7643 §5)"
+        assert json.get("sort.supported") != null : "sort.supported is required in SPC (RFC 7643 §5)"
+        assert json.get("etag.supported") != null : "etag.supported is required in SPC (RFC 7643 §5)"
     }
 }

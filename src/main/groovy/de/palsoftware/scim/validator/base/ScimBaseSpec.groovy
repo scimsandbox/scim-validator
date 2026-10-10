@@ -59,12 +59,27 @@ abstract class ScimBaseSpec extends Specification {
         return state().spcLoaded
     }
 
+    static CapabilityState getCapabilityState(String capability) {
+        RuntimeState s = state()
+        switch (capability?.toLowerCase()) {
+            case "patch": return s.patchState ?: CapabilityState.UNKNOWN
+            case "bulk": return s.bulkState ?: CapabilityState.UNKNOWN
+            case "sort": return s.sortState ?: CapabilityState.UNKNOWN
+            case "etag": return s.etagState ?: CapabilityState.UNKNOWN
+            case "filter": return s.filterState ?: CapabilityState.UNKNOWN
+            case "changepassword": return s.changePasswordState ?: CapabilityState.UNKNOWN
+            case "search": return s.searchState ?: CapabilityState.UNKNOWN
+            case "enterprise": return s.enterpriseState ?: CapabilityState.UNKNOWN
+            default: return CapabilityState.UNKNOWN
+        }
+    }
+
     static boolean isPatchSupported() {
-        return state().patchSupported
+        return getCapabilityState("patch") == CapabilityState.SUPPORTED
     }
 
     static boolean isBulkSupported() {
-        return state().bulkSupported
+        return getCapabilityState("bulk") == CapabilityState.SUPPORTED
     }
 
     static int getBulkMaxOperations() {
@@ -75,12 +90,45 @@ abstract class ScimBaseSpec extends Specification {
         return state().filterMaxResults
     }
 
+    static boolean isFilterSupported() {
+        return getCapabilityState("filter") == CapabilityState.SUPPORTED
+    }
+
     static boolean isEtagSupported() {
-        return state().etagSupported
+        return getCapabilityState("etag") == CapabilityState.SUPPORTED
     }
 
     static boolean isSortSupported() {
-        return state().sortSupported
+        return getCapabilityState("sort") == CapabilityState.SUPPORTED
+    }
+
+    /**
+     * Require that the target server advertises support for the given capability.
+     * If the capability is explicitly UNSUPPORTED, the test is skipped via TestAbortedException.
+     * If the capability is UNKNOWN, a note is logged and the probe proceeds.
+     */
+    protected void requireCapability(String capability) {
+        CapabilityState state = getCapabilityState(capability)
+        if (state == CapabilityState.UNSUPPORTED) {
+            String msg = "Skipped: server declares '${capability}' unsupported in /ServiceProviderConfig"
+            ScimOutput.note(msg)
+            throw new org.opentest4j.TestAbortedException(msg)
+        }
+        if (state == CapabilityState.UNKNOWN) {
+            ScimOutput.note("Probe run: server capability '${capability}' is UNKNOWN (/ServiceProviderConfig not loaded or flag omitted)")
+        }
+    }
+
+    static boolean isStrictScimType() {
+        String strictProp = System.getProperty("scim.strictScimType")
+        if (strictProp != null) {
+            return Boolean.parseBoolean(strictProp)
+        }
+        String lenientProp = System.getProperty("scim.lenient")
+        if (lenientProp != null && Boolean.parseBoolean(lenientProp)) {
+            return false
+        }
+        return true // default strict
     }
 
 
@@ -174,22 +222,50 @@ abstract class ScimBaseSpec extends Specification {
         RuntimeState currentState = state()
         if (currentState.spcLoaded) return
         try {
-            Response response = scimRequest()
+            Response response = scimRequestQuiet()
                 .get("/ServiceProviderConfig")
 
             if (response.statusCode() == 200) {
                 def json = response.jsonPath()
-                currentState.patchSupported = asBoolean(json.get("patch.supported"), false)
-                currentState.bulkSupported = asBoolean(json.get("bulk.supported"), false)
+                currentState.patchState = parseCapability(json.get("patch.supported"))
+                currentState.bulkState = parseCapability(json.get("bulk.supported"))
                 currentState.bulkMaxOperations = asInt(json.get("bulk.maxOperations"), 0)
                 currentState.filterMaxResults = asInt(json.get("filter.maxResults"), 0)
-                currentState.etagSupported = asBoolean(json.get("etag.supported"), false)
-                currentState.sortSupported = asBoolean(json.get("sort.supported"), false)
+                currentState.filterState = parseCapability(json.get("filter.supported"))
+                currentState.etagState = parseCapability(json.get("etag.supported"))
+                currentState.sortState = parseCapability(json.get("sort.supported"))
+                currentState.changePasswordState = parseCapability(json.get("changePassword.supported"))
                 currentState.spcLoaded = true
+            } else {
+                System.err.println("WARNING: GET /ServiceProviderConfig returned status ${response.statusCode()}; optional capabilities marked UNKNOWN")
+                setAllCapabilitiesUnknown(currentState)
             }
         } catch (Exception e) {
-            System.err.println("WARNING: Could not load ServiceProviderConfig: ${e.message}")
+            System.err.println("WARNING: Could not load ServiceProviderConfig: ${e.message}; optional capabilities marked UNKNOWN")
+            setAllCapabilitiesUnknown(currentState)
         }
+    }
+
+    private static void setAllCapabilitiesUnknown(RuntimeState state) {
+        state.patchState = CapabilityState.UNKNOWN
+        state.bulkState = CapabilityState.UNKNOWN
+        state.filterState = CapabilityState.UNKNOWN
+        state.etagState = CapabilityState.UNKNOWN
+        state.sortState = CapabilityState.UNKNOWN
+        state.changePasswordState = CapabilityState.UNKNOWN
+        state.searchState = CapabilityState.UNKNOWN
+        state.enterpriseState = CapabilityState.UNKNOWN
+    }
+
+    private static CapabilityState parseCapability(Object val) {
+        if (val == null) return CapabilityState.UNKNOWN
+        if (val instanceof Boolean) return ((Boolean) val) ? CapabilityState.SUPPORTED : CapabilityState.UNSUPPORTED
+        if (val instanceof String) {
+            String s = ((String) val).trim().toLowerCase()
+            if (s == "true") return CapabilityState.SUPPORTED
+            if (s == "false") return CapabilityState.UNSUPPORTED
+        }
+        return CapabilityState.UNKNOWN
     }
 
     protected static boolean asBoolean(Object value, boolean defaultValue = false) {
@@ -283,12 +359,16 @@ abstract class ScimBaseSpec extends Specification {
         String authToken
         String workspaceId
         boolean spcLoaded
-        boolean patchSupported
-        boolean bulkSupported
+        CapabilityState patchState = CapabilityState.UNKNOWN
+        CapabilityState bulkState = CapabilityState.UNKNOWN
         int bulkMaxOperations
         int filterMaxResults
-        boolean etagSupported
-        boolean sortSupported
+        CapabilityState filterState = CapabilityState.UNKNOWN
+        CapabilityState etagState = CapabilityState.UNKNOWN
+        CapabilityState sortState = CapabilityState.UNKNOWN
+        CapabilityState changePasswordState = CapabilityState.UNKNOWN
+        CapabilityState searchState = CapabilityState.UNKNOWN
+        CapabilityState enterpriseState = CapabilityState.UNKNOWN
     }
 
     /**
@@ -456,19 +536,23 @@ abstract class ScimBaseSpec extends Specification {
     /**
      * Assert the SCIM detail error keyword when the server supplies one.
      *
-     * RFC 7644 §3.12 marks "scimType" OPTIONAL, so an omitted keyword is reported
-     * as a deviation rather than failing an otherwise compliant server. A keyword
-     * that is present but not among the expected values is a hard failure.
+     * In strict mode (default for validator runs), an omitted scimType is a failure
+     * when the test expects a specific keyword. In lenient mode (-Dscim.lenient=true),
+     * an omitted keyword is recorded as a structured deviation.
+     * A keyword that is present but not among the expected values is always a failure.
      */
-    protected void assertScimType(Response response, String... expectedScimTypes) {
-        List<String> expected = expectedScimTypes as List<String>
-        String scimType = response.jsonPath().getString("scimType")
-        if (scimType == null || scimType.isBlank()) {
-            ScimOutput.println "DEVIATION: HTTP ${response.statusCode()} omits optional scimType " +
-                "(expected one of ${expected}) (RFC 7644 §3.12)"
-            return
-        }
-        assert expected.contains(scimType) :
-            "Expected scimType one of ${expected} but got '${scimType}' (RFC 7644 §3.12)"
-    }
+     protected void assertScimType(Response response, String... expectedScimTypes) {
+         List<String> expected = expectedScimTypes as List<String>
+         String scimType = response.jsonPath().getString("scimType")
+         if (scimType == null || scimType.isBlank()) {
+             String msg = "HTTP ${response.statusCode()} omits optional scimType (expected one of ${expected}) (RFC 7644 §3.12)"
+             ScimOutput.deviation(msg, null, "RFC7644-3.12-R1", "omitted", expected.toString(), getBASE_URL())
+             if (isStrictScimType()) {
+                 assert false : "Strict mode: ${msg}"
+             }
+             return
+         }
+         assert expected.contains(scimType) :
+             "Expected scimType one of ${expected} but got '${scimType}' (RFC 7644 §3.12)"
+     }
 }

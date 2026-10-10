@@ -1,7 +1,5 @@
 package de.palsoftware.scim.validator.base
 
-import de.palsoftware.scim.validator.base.ScimBaseSpec
-import io.restassured.RestAssured
 import io.restassured.response.Response
 import spock.lang.Shared
 
@@ -10,25 +8,30 @@ import spock.lang.Shared
  */
 abstract class A5_BaseSpec extends ScimBaseSpec {
 
-    // Unique prefix to isolate this spec's users from other test runs
-    static final String PREFIX = "flt_" + UUID.randomUUID().toString().substring(0, 6) + "_"
+    // Per-spec-class prefix to isolate each spec's test data and prevent cross-spec interference
+    @Shared String specPrefix = "a5_" + UUID.randomUUID().toString().substring(0, 6) + "_"
+
+    String getPREFIX() {
+        return specPrefix
+    }
 
     @Shared List<Map> userData = []  // Stores [userName, externalId, active, id] per user
 
     def setupSpec() {
         loadServiceProviderConfig()
+        String p = getPREFIX()
 
         // Create 5 users with distinct, predictable attributes
         def users = [
-            [userName: "${PREFIX}alice@test.com",   externalId: "${PREFIX}EXT-A", active: true,
+            [userName: "${p}alice@test.com",   externalId: "${p}EXT-A", active: true,
              name: [givenName: "Alice", familyName: "Anderson"]],
-            [userName: "${PREFIX}bob@test.com",     externalId: "${PREFIX}EXT-B", active: true,
+            [userName: "${p}bob@test.com",     externalId: "${p}EXT-B", active: true,
              name: [givenName: "Bob", familyName: "Baker"]],
-            [userName: "${PREFIX}charlie@test.com", externalId: "${PREFIX}EXT-C", active: false,
+            [userName: "${p}charlie@test.com", externalId: "${p}EXT-C", active: false,
              name: [givenName: "Charlie", familyName: "Clark"]],
-            [userName: "${PREFIX}diana@test.com",   externalId: "${PREFIX}EXT-D", active: true,
+            [userName: "${p}diana@test.com",   externalId: "${p}EXT-D", active: true,
              name: [givenName: "Diana", familyName: "Davis"]],
-            [userName: "${PREFIX}eve@test.com",     externalId: "${PREFIX}EXT-E", active: false,
+            [userName: "${p}eve@test.com",     externalId: "${p}EXT-E", active: false,
              name: [givenName: "Eve", familyName: "Evans"]],
         ]
 
@@ -38,5 +41,12 @@ abstract class A5_BaseSpec extends ScimBaseSpec {
             String id = response.jsonPath().getString("id")
             userData << [userName: u.userName, externalId: u.externalId, active: u.active, id: id]
         }
+    }
+
+    def cleanupSpec() {
+        userData.each { u ->
+            if (u.id) deleteUser(u.id)
+        }
+        userData.clear()
     }
 }

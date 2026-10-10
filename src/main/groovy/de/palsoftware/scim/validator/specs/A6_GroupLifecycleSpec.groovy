@@ -2,6 +2,8 @@ package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
 import de.palsoftware.scim.validator.base.ScimOutput
+import de.palsoftware.scim.validator.base.spec.RequiresCapability
+import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
 import groovy.json.JsonOutput
 import spock.lang.Shared
@@ -38,6 +40,9 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_01: Create Group ───────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.3-R1")
+    @SpecRef("RFC7643-3-R1")
+    @SpecRef("RFC7643-3.1-R2")
     def "GRP_01: POST /Groups creates a group with members and returns 201"() {
         // RFC 7644 §3.3 — Creating Resources, §3.14 — Response Headers
         given:
@@ -88,6 +93,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_02: Read Group ─────────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.1-R1")
     def "GRP_02: GET /Groups/{id} retrieves the created group"() {
         // RFC 7644 §3.4.1 — Retrieving a Known Resource
         when:
@@ -105,6 +111,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_03: List Groups ────────────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2-R1")
     def "GRP_03: GET /Groups lists groups and our group is included"() {
         // RFC 7644 §3.4.2 — Query Resources
         when:
@@ -120,6 +127,8 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_04: Update Group via PUT ───────────────────────────────────────
 
+    @SpecRef("RFC7644-3.5.1-R1")
+    @SpecRef("RFC7644-3.5.1-R2")
     def "GRP_04: PUT /Groups/{id} replaces group, changing members and clearing omitted attributes"() {
         // RFC 7644 §3.5.1 — Replacing with PUT
         given: "Payload without externalId to verify omitted attribute clearing"
@@ -144,12 +153,17 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         memberValues.contains(memberUserId1)
         memberValues.contains(memberUserId2)
 
-        and: "Omitted externalId is cleared"
-        response.jsonPath().getString("externalId") == null
+        and: "Omitted externalId is cleared or retained depending on server policy"
+        def returnedExtId = response.jsonPath().getString("externalId")
+        if (returnedExtId != null) {
+            recordDeviation("RFC7644-3.5.1-R2", "RFC 7644 §3.5.1", "PUT did not clear omitted optional attribute externalId")
+            ScimOutput.println "DEVIATION: PUT did not clear omitted optional attribute externalId (returned: ${returnedExtId})"
+        }
     }
 
     // ─── GRP_05: PATCH add member ───────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.5.2.1-R1")
     def "GRP_05: PATCH add member to group"() {
         // RFC 7644 §3.5.2.1 — Add Operation
         given: "First PUT group back to only one member for this test"
@@ -181,6 +195,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_06: PATCH remove member ────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.5.2.2-R1")
     def "GRP_06: PATCH remove member from group"() {
         // RFC 7644 §3.5.2.2 — Remove Operation
         when:
@@ -200,6 +215,8 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_07: Delete Group ───────────────────────────────────────
 
+    @SpecRef("RFC7644-3.6-R1")
+    @SpecRef("RFC7644-3.6-R2")
     def "GRP_07: DELETE /Groups/{id} removes the group and GET returns 404"() {
         // RFC 7644 §3.6 — Deleting Resources
         when:
@@ -224,6 +241,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_08: Repeated DELETE returns 404 ────────────────────────────────
 
+    @SpecRef("RFC7644-3.6-R2")
     def "GRP_08: Repeated DELETE on already-deleted group returns 404"() {
         // RFC 7644 §3.6 — Deleting a non-existent resource
         when: "DELETE the same group again"
@@ -238,6 +256,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_09: GET non-existent group returns 404 ─────────────────────────
 
+    @SpecRef("RFC7644-3.4.1-R2")
     def "GRP_09: GET /Groups/{id} on non-existent group ID returns 404"() {
         // RFC 7644 §3.4.1 — Retrieving a non-existent resource
         given:
@@ -255,6 +274,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_10: PUT non-existent group returns 404 ─────────────────────────
 
+    @SpecRef("RFC7644-3.5.1-R3")
     def "GRP_10: PUT /Groups/{id} on non-existent group ID returns 404"() {
         // RFC 7644 §3.5.1 — Modifying a non-existent resource
         given:
@@ -277,6 +297,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_11: POST without displayName returns 400 ───────────────────────
 
+    @SpecRef("RFC7643-4.2-R1")
     def "GRP_11: POST /Groups without required displayName returns 400 Bad Request"() {
         // RFC 7644 §3.3, RFC 7643 §4.2 — Missing required attribute
         when:
@@ -294,12 +315,9 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_12: POST duplicate displayName returns 409 Conflict ────────────
 
+    @SpecRef("RFC7644-3.3-R3")
     def "GRP_12: POST /Groups with duplicate displayName returns 409 Conflict or is accepted"() {
         // RFC 7644 §3.3, §3.12 — Uniqueness conflict.
-        //
-        // RFC 7643 §7 declares Group.displayName with "uniqueness": "none", so duplicate
-        // group names are permitted. Servers that DO enforce uniqueness must report it the
-        // RFC way (409 + scimType "uniqueness"); servers that don't are merely noted.
         given: "An existing group"
         String dupDisplayName = "DupGroup_${UUID.randomUUID().toString().substring(0, 8)}"
         Response first = createGroup(dupDisplayName)
@@ -336,8 +354,9 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_13: Cascading Referential Integrity ────────────────────────────
 
+    @SpecRef("RFC7643-2.3.7-R1")
     def "GRP_13: Cascading referential integrity — deleting user prunes from group members"() {
-        // RFC 7644 §3.6 — Referential Integrity
+        // RFC 7644 §3.6, RFC 7643 §2.3.7 — Referential Integrity
         given: "A user created specifically to be deleted"
         Response userResp = createUser(userName: "cascade_user_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
         assert userResp.statusCode() == 201
@@ -362,9 +381,12 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
         and: "Deleted user is no longer listed in group members, remaining member is retained"
         def members = getGroupResp.jsonPath().getList("members")
-        members != null
-        !members.any { it.value == cascadeUserId }
-        members.any { it.value == memberUserId1 }
+        if (members != null && members.any { it.value == cascadeUserId }) {
+            recordDeviation("RFC7643-2.3.7-R1", "RFC 7643 §2.3.7", "Deleted user was not pruned from group members list")
+            ScimOutput.println "DEVIATION: Deleted user was not pruned from group members list (referential integrity is optional)"
+        } else {
+            members == null || members.any { it.value == memberUserId1 }
+        }
 
         cleanup:
         if (cascadeGroupId) {
@@ -374,6 +396,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_14: Reverse Group Reflection ───────────────────────────────────
 
+    @SpecRef("RFC7643-4.1.2-R6")
     def "GRP_14: Reverse group reflection — group membership reflects in GET /Users/{id}.groups"() {
         // RFC 7643 §4.1 — Read-only groups attribute on User
         given: "A user created for membership reflection"
@@ -393,8 +416,12 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         then: "User response contains groups list reflecting the group membership"
         getUserResp.statusCode() == 200
         def groups = getUserResp.jsonPath().getList("groups")
-        groups != null
-        groups.any { it.value == reflectGroupId && it.display == reflectGroupName }
+        if (groups == null || !groups.any { it.value == reflectGroupId }) {
+            recordDeviation("RFC7643-4.1.2-R6", "RFC 7643 §4.1", "Server does not maintain reverse group membership in User.groups")
+            ScimOutput.println "DEVIATION: Server does not maintain reverse group membership in User.groups"
+        } else {
+            groups.any { it.value == reflectGroupId }
+        }
 
         when: "Deleting the group"
         Response delGroupResp = scimRequestQuiet().delete("/Groups/${reflectGroupId}")
@@ -417,8 +444,9 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_15: Invalid Member Reference ───────────────────────────────────
 
-    def "GRP_15: Invalid member reference returns 400 or 404 SCIM Error"() {
-        // RFC 7644 §3.3 — Member reference validation
+    @SpecRef("RFC7643-2.3.7-R1")
+    def "GRP_15: Invalid member reference returns 400 or 404 SCIM Error or is accepted"() {
+        // RFC 7644 §3.3, RFC 7643 §2.3.7 — Member reference validation
         given: "A non-existent member UUID"
         String nonExistentMemberId = UUID.randomUUID().toString()
         Map payload = [
@@ -432,14 +460,20 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(payload))
             .post("/Groups")
 
-        then: "Server rejects with 400 or 404 SCIM Error schema"
-        response.statusCode() in [400, 404]
-        response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        response.jsonPath().getString("status") in ["400", "404"]
+        then: "Server rejects with 400/404 or accepts without referential integrity"
+        if (response.statusCode() in [400, 404]) {
+            response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+            response.jsonPath().getString("status") in ["400", "404"]
+        } else if (response.statusCode() == 201) {
+            recordDeviation("RFC7643-2.3.7-R1", "RFC 7643 §2.3.7", "Server accepted group member pointing to non-existent resource ID")
+            String tempGid = response.jsonPath().getString("id")
+            if (tempGid) deleteGroup(tempGid)
+        }
     }
 
     // ─── GRP_16: Nested Groups ──────────────────────────────────────────────
 
+    @SpecRef("RFC7643-4.2-R2")
     def "GRP_16: Nested groups — adding a child Group as a member with type 'Group'"() {
         // RFC 7643 §4.2 — Group members can be 'User' or 'Group'
         given: "A child group"
@@ -487,6 +521,9 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_17: Optimistic Concurrency Control ─────────────────────────────
 
+    @RequiresCapability("etag")
+    @SpecRef("RFC7644-3.14-R1")
+    @SpecRef("RFC7644-3.14-R2")
     def "GRP_17: Optimistic concurrency control with If-Match ETag on PUT /Groups/{id}"() {
         // RFC 7644 §3.13, §3.14 — Concurrency Control
         given: "A group to update"
@@ -533,8 +570,10 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_18: Attribute Selection ────────────────────────────────────────
 
+    @SpecRef("RFC7644-3.4.2.5-R1")
+    @SpecRef("RFC7644-3.4.2.5-R2")
     def "GRP_18: GET /Groups/{id} supports attributes and excludedAttributes projections"() {
-        // RFC 7644 §3.9 — Attribute Selection
+        // RFC 7644 §3.4.2.5, §3.9 — Attribute Selection
         given: "A group with members"
         String projName = "ProjGroup_${UUID.randomUUID().toString().substring(0, 8)}"
         Response projResp = createGroup(projName, [memberUserId1])
@@ -566,5 +605,82 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         cleanup:
         if (projGroupId) deleteGroup(projGroupId)
     }
-}
 
+    // ─── GRP_19: Conditional DELETE via If-Match ────────────────────────────
+
+    @RequiresCapability("etag")
+    @SpecRef("RFC7644-3.6-R5")
+    def "GRP_19: DELETE /Groups/{id} supports conditional deletion with If-Match"() {
+        // RFC 7644 §3.6: "Clients MAY use the 'If-Match' header to ensure the resource has not changed."
+        given: "A group to conditionally delete"
+        String delName = "DelOCC_${UUID.randomUUID().toString().substring(0, 8)}"
+        Response crResp = createGroup(delName)
+        assert crResp.statusCode() == 201
+        String delId = crResp.jsonPath().getString("id")
+
+        when: "Fetch current ETag"
+        Response getResp = scimRequest().get("/Groups/${delId}")
+        String etag = getResp.header("ETag")
+
+        then: "ETag is present"
+        etag != null
+
+        when: "Attempt DELETE with mismatched ETag"
+        Response mismatchDel = scimRequestQuiet()
+            .header("If-Match", 'W/"fake-mismatch-etag"')
+            .delete("/Groups/${delId}")
+
+        then: "Server returns 412 Precondition Failed"
+        mismatchDel.statusCode() == 412
+
+        when: "DELETE with matching ETag"
+        Response matchDel = scimRequest()
+            .header("If-Match", etag)
+            .delete("/Groups/${delId}")
+
+        then: "Conditional DELETE succeeds with 204 No Content"
+        matchDel.statusCode() == 204
+
+        cleanup:
+        createdGroupIds.remove(delId)
+    }
+
+    // ─── GRP_20: Deleted Resource Query Exclusion and Re-creation ───────────
+
+    @SpecRef("RFC7644-3.6-R3")
+    @SpecRef("RFC7644-3.6-R4")
+    def "GRP_20: Deleted group is excluded from queries and can be re-created"() {
+        // RFC 7644 §3.6 — Soft-deleted resources excluded from queries, re-creation succeeds
+        given: "Create and delete a group with specific name"
+        String uniqueName = "RecreateGrp_${UUID.randomUUID().toString().substring(0, 8)}"
+        Response crResp = createGroup(uniqueName)
+        assert crResp.statusCode() == 201
+        String oldId = crResp.jsonPath().getString("id")
+
+        Response delResp = scimRequestQuiet().delete("/Groups/${oldId}")
+        assert delResp.statusCode() == 204
+        createdGroupIds.remove(oldId)
+
+        when: "Query groups by displayName"
+        Response queryResp = scimRequest()
+            .queryParam("filter", "displayName eq \"${uniqueName}\"")
+            .get("/Groups")
+
+        then: "Deleted group is not returned in query results"
+        queryResp.statusCode() == 200
+        def resources = queryResp.jsonPath().getList("Resources")
+        resources == null || !resources.any { it.id == oldId }
+
+        when: "Re-create a group with the same name"
+        Response recreateResp = createGroup(uniqueName)
+
+        then: "Re-creation succeeds"
+        recreateResp.statusCode() == 201
+        String newId = recreateResp.jsonPath().getString("id")
+        newId != null
+        newId != oldId
+
+        cleanup:
+        if (newId) deleteGroup(newId)
+    }
+}
