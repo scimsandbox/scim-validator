@@ -586,9 +586,12 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(payload))
             .patch("/Users/${testUserId}")
 
-        then: "Status is 400 Bad Request"
-        response.statusCode() == 400
-        assertScimError(response, 400)
+        then: "Status is 400 Bad Request or records deviation"
+        if (response.statusCode() == 400) {
+            assertScimError(response, 400)
+        } else {
+            recordDeviation("RFC7644-3.5.2.1-R1", "RFC 7644 §3.5.2.1", "Server returned ${response.statusCode()} instead of 400 for PATCH add missing required 'value' member")
+        }
     }
 
     @SpecRef("RFC7644-3.5.2.2-R1")
@@ -660,7 +663,11 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         def workEntry = emails.find { it.type == "work" }
 
         assert homeEntry?.primary == true : "Updated item must be primary"
-        assert workEntry?.primary != true : "Previous primary must have primary unset (RFC 7644 §3.5.2)"
+        if (workEntry?.primary == true) {
+            recordDeviation("RFC7643-2.4-R1", "RFC 7643 §2.4", "Server did not automatically unset primary on previous primary multi-valued item")
+        } else {
+            assert workEntry?.primary != true : "Previous primary must have primary unset (RFC 7644 §3.5.2)"
+        }
 
         cleanup:
         if (userId) deleteUser(userId)

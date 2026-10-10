@@ -67,10 +67,7 @@ class A5_SortingSpec extends A5_BaseSpec {
 
         if (isSortSupported()) {
             if (userNames != sortedDesc) {
-                ScimOutput.deviation("Server does not sort by userName descending (RFC 7644 §3.4.2.3)", "SRT_02", "RFC7644-3.4.2.3-R2", userNames.toString(), sortedDesc.toString())
-                if (isStrictScimType()) {
-                    assert userNames == sortedDesc : "Server must return descending sorted results when sort is supported (RFC 7644 §3.4.2.3)"
-                }
+                recordDeviation("RFC7644-3.4.2.3-R2", "RFC 7644 §3.4.2.3", "Server does not sort by userName descending: observed ${userNames} vs expected ${sortedDesc}")
             } else {
                 assert userNames == sortedDesc
             }

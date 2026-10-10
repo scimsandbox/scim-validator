@@ -555,4 +555,11 @@ abstract class ScimBaseSpec extends Specification {
          assert expected.contains(scimType) :
              "Expected scimType one of ${expected} but got '${scimType}' (RFC 7644 §3.12)"
      }
+
+    /**
+     * Record a structured specification deviation.
+     */
+    protected void recordDeviation(String requirementId, String specClause, String message) {
+        ScimOutput.deviation("[${specClause}] ${message}", null, requirementId, null, null, getBASE_URL())
+    }
 }

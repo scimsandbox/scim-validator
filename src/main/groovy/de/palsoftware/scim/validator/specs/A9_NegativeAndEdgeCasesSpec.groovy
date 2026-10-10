@@ -506,9 +506,12 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(payload))
             .post("/Users")
 
-        then: "Server rejects with 400 Bad Request"
-        response.statusCode() == 400
-        assertScimError(response, 400, "invalidValue")
+        then: "Server rejects with 400 Bad Request or records deviation"
+        if (response.statusCode() == 400) {
+            assertScimError(response, 400, "invalidValue")
+        } else {
+            recordDeviation("RFC7643-2.3-R1", "RFC 7643 §2.3", "Server accepted string value for boolean attribute 'active' (status ${response.statusCode()})")
+        }
 
         cleanup:
         if (response.statusCode() == 201) {

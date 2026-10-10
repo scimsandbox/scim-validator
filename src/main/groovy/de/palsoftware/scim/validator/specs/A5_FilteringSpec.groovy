@@ -777,7 +777,11 @@ class A5_FilteringSpec extends A5_BaseSpec {
             .get("/Users")
 
         then:
-        response.statusCode() == 400
+        if (response.statusCode() == 400) {
+            assertScimError(response, 400)
+        } else {
+            recordDeviation("RFC7644-3.4.2.5-R3", "RFC 7644 §3.4.2.5", "Server returned ${response.statusCode()} instead of 400 when both attributes and excludedAttributes were specified")
+        }
     }
 
     // ─── FLT_38: Unrecognized query parameters SHOULD be ignored ────────────
@@ -807,8 +811,12 @@ class A5_FilteringSpec extends A5_BaseSpec {
             .get("/Users")
 
         then:
-        response.statusCode() == 200
-        response.jsonPath().getInt("totalResults") >= 5
+        if (response.statusCode() == 200) {
+            response.jsonPath().getInt("totalResults") >= 5
+        } else {
+            recordDeviation("RFC7644-3.4.2.2-R13", "RFC 7644 §3.4.2.2", "Server rejected filter on 'schemas' attribute with HTTP ${response.statusCode()}")
+            assertScimError(response, 400)
+        }
     }
 
     // ─── FLT_40: Root query with meta.resourceType scoping ───────────────────

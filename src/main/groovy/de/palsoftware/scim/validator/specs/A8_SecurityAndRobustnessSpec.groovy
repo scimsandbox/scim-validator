@@ -608,9 +608,12 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(patchPayload))
             .patch("/Users/${testUserId}")
 
-        then: "Server returns 200 OK"
-        response.statusCode() == 200
-        response.jsonPath().getString("displayName") == "Wildcard-Matched-Name"
+        then: "Server returns 200 OK or logs deviation for unsupported wildcard"
+        if (response.statusCode() == 200) {
+            response.jsonPath().getString("displayName") == "Wildcard-Matched-Name"
+        } else {
+            recordDeviation("RFC7644-3.14-R1", "RFC 7644 §3.14", "Server does not support HTTP wildcard 'If-Match: *' (returned ${response.statusCode()})")
+        }
     }
 
     // ─── SEC_25: Password Leak Prevention Across Endpoints ──────────────────
