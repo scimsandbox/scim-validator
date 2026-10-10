@@ -5,9 +5,9 @@
 
 ### Coverage Summary
 
-- **Total Requirements Tracked**: 150
-- **Tested / Covered Requirements**: 138
-- **Optional / Capability Gated**: 59
+- **Total Requirements Tracked**: 157
+- **Tested / Covered Requirements**: 147
+- **Optional / Capability Gated**: 57
 - **Non-Observable / NA**: 2
 - **Known Gaps**: 0
 
@@ -157,9 +157,16 @@
 | RFC7643-6-R1 | 7643 | 6 | ResourceType representations declare name, endpoint, schema, and schemaExtensions | MUST | none | Covered | DSC_02, DSC_09, DSC_17 | ResourceType name and endpoint are server-unique and case-exact per erratum 8475 |
 | RFC7643-7-R1 | 7643 | 7 | Schema resources are readOnly and define full attribute characteristics | MUST | none | Covered | DSC_03, DSC_04, DSC_16, SCH_09 | Schema definitions for all resource schemas; representations include schemas and meta per erratum 8417 |
 | RFC7643-9.2-R1 | 7643 | 9.2 | Passwords MUST NOT be stored cleartext (hashed or encrypted per erratum 8450) | MUST | none | N/A | — | Non-observable via API directly; protected by returned=never and secure hashing |
-| RFC9865-2-R1 | 9865 | 2 | Clients MAY request cursor-based pagination using the cursor query parameter | MAY | cursorPagination | Gated (cursorPagination) | CUR_01, CUR_02, CUR_03 | Clients specify cursor parameter on GET or in SearchRequest |
-| RFC9865-2-R2 | 9865 | 2 | Service providers supporting cursor pagination return nextCursor in ListResponse | MUST | cursorPagination | Gated (cursorPagination) | CUR_01 | nextCursor opaque string provided when more results remain |
-| RFC9865-2-R3 | 9865 | 2 | Service providers MAY return previousCursor in ListResponse | MAY | cursorPagination | Optional (cursorPagination) | — | previousCursor returned for reverse pagination where supported |
-| RFC9967-2-R1 | 9967 | 2 | Clients MAY request asynchronous processing using Prefer: respond-async header | MAY | async | Gated (async) | ASY_01 | Client signals willingness to accept asynchronous response |
-| RFC9967-2-R2 | 9967 | 2 | Asynchronous acceptance returns HTTP 202 Accepted with Location header | MUST | async | Gated (async) | ASY_01, ASY_02 | HTTP 202 with Location pointing to task/status resource |
-| RFC9967-2-R3 | 9967 | 2 | Asynchronous responses MAY return Set-Txn header identifying transaction | MAY | async | Optional (async) | — | Set-Txn response header per RFC 9967 §2.5 |
+| RFC9865-2-R1 | 9865 | 2 | Clients request cursor-based pagination with empty or omitted cursor parameter | MAY | cursorPagination | Gated (cursorPagination) | CUR_02 | cursor parameter value MUST be empty or omitted for the first page (RFC 9865 §2 Table 1) |
+| RFC9865-2-R2 | 9865 | 2 | Service providers return nextCursor in ListResponse when more results remain | MUST | cursorPagination | Gated (cursorPagination) | CUR_02 | nextCursor opaque string provided when additional results exist (RFC 9865 §2 Table 2) |
+| RFC9865-2-R3 | 9865 | 2 | previousCursor is omitted or absent on the initial result page | MUST | cursorPagination | Gated (cursorPagination) | CUR_02 | previousCursor is only returned when previous results exist (RFC 9865 §2 Table 2) |
+| RFC9865-2-R4 | 9865 | 2 | Querying with cursor returns subsequent page of distinct resources | MUST | cursorPagination | Gated (cursorPagination) | CUR_02 | Client uses nextCursor value from previous page to obtain subsequent resources (RFC 9865 §2) |
+| RFC9865-2-R5 | 9865 | 2 | nextCursor is omitted on the final page of query results | MUST | cursorPagination | Gated (cursorPagination) | CUR_03 | When no more results remain, nextCursor is omitted from ListResponse (RFC 9865 §2 Table 2) |
+| RFC9865-2.1-R1 | 9865 | 2.1 | Invalid cursor query parameter returns HTTP 400 with scimType invalidCursor | SHOULD | cursorPagination | Gated (cursorPagination) | CUR_04 | Invalid cursor values return HTTP 400 with detail error type invalidCursor (RFC 9865 §2.1 Table 3) |
+| RFC9865-3-R1 | 9865 | 3 | POST /.search SearchRequest supports cursor attribute | MAY | cursorPagination | Gated (cursorPagination) | CUR_05 | cursor parameter may be provided in POST /.search JSON payload (RFC 9865 §3) |
+| RFC9865-4-R1 | 9865 | 4 | ServiceProviderConfig advertises pagination configuration schema | SHOULD | cursorPagination | Gated (cursorPagination) | CUR_06 | pagination complex attribute in ServiceProviderConfig defines cursor and index booleans (RFC 9865 §4) |
+| RFC9967-2.5.1.1-R1 | 9967 | 2.5.1.1 | Clients MAY request asynchronous processing using Prefer: respond-async header | MAY | async | Gated (async) | ASY_01 | Clients initiate async processing on POST, PUT, PATCH, DELETE with Prefer: respond-async (RFC 7240 §4.1, RFC 9967 §2.5.1.1) |
+| RFC9967-2.5.1.1-R2 | 9967 | 2.5.1.1 | Asynchronous response returns HTTP 202 Accepted with no response body | MUST | async | Gated (async) | ASY_01 | When returning HTTP status code 202 (Accepted), the response MUST contain no response body (RFC 9967 §2.5.1.1, §3) |
+| RFC9967-2.5.1.1-R3 | 9967 | 2.5.1.1 | Asynchronous 202 response MUST include Location header | MUST | async | Gated (async) | ASY_01, ASY_02 | Location header value MUST be either a URI where completion SET may be retrieved via GET or normal SCIM resource location (RFC 9967 §2.5.1.1) |
+| RFC9967-3-R1 | 9967 | 3 | Set-Txn HTTP response header MUST be returned on 202 Accepted response | MUST | async | Gated (async) | ASY_01 | Set-Txn header field MUST be used in SCIM responses when HTTP status code 202 is returned (RFC 9967 §3) |
+| RFC9967-4-R1 | 9967 | 4 | ServiceProviderConfig advertises securityEvents discovery schema | OPTIONAL | async | Gated (async) | ASY_03 | securityEvents.asyncRequest specifies 'none', 'long', or 'request' (RFC 9967 §4) |

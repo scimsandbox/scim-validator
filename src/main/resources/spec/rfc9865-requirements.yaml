@@ -5,29 +5,79 @@
 - id: RFC9865-2-R1
   rfc: "9865"
   section: "2"
-  title: "Clients MAY request cursor-based pagination using the cursor query parameter"
+  title: "Clients request cursor-based pagination with empty or omitted cursor parameter"
   level: MAY
   capability: cursorPagination
   observability: response
   disposition: tested
-  note: "Clients specify cursor parameter on GET or in SearchRequest"
+  note: "cursor parameter value MUST be empty or omitted for the first page (RFC 9865 §2 Table 1)"
 
 - id: RFC9865-2-R2
   rfc: "9865"
   section: "2"
-  title: "Service providers supporting cursor pagination return nextCursor in ListResponse"
+  title: "Service providers return nextCursor in ListResponse when more results remain"
   level: MUST
   capability: cursorPagination
   observability: response
   disposition: tested
-  note: "nextCursor opaque string provided when more results remain"
+  note: "nextCursor opaque string provided when additional results exist (RFC 9865 §2 Table 2)"
 
 - id: RFC9865-2-R3
   rfc: "9865"
   section: "2"
-  title: "Service providers MAY return previousCursor in ListResponse"
+  title: "previousCursor is omitted or absent on the initial result page"
+  level: MUST
+  capability: cursorPagination
+  observability: response
+  disposition: tested
+  note: "previousCursor is only returned when previous results exist (RFC 9865 §2 Table 2)"
+
+- id: RFC9865-2-R4
+  rfc: "9865"
+  section: "2"
+  title: "Querying with cursor returns subsequent page of distinct resources"
+  level: MUST
+  capability: cursorPagination
+  observability: response
+  disposition: tested
+  note: "Client uses nextCursor value from previous page to obtain subsequent resources (RFC 9865 §2)"
+
+- id: RFC9865-2-R5
+  rfc: "9865"
+  section: "2"
+  title: "nextCursor is omitted on the final page of query results"
+  level: MUST
+  capability: cursorPagination
+  observability: response
+  disposition: tested
+  note: "When no more results remain, nextCursor is omitted from ListResponse (RFC 9865 §2 Table 2)"
+
+- id: RFC9865-2.1-R1
+  rfc: "9865"
+  section: "2.1"
+  title: "Invalid cursor query parameter returns HTTP 400 with scimType invalidCursor"
+  level: SHOULD
+  capability: cursorPagination
+  observability: response
+  disposition: tested
+  note: "Invalid cursor values return HTTP 400 with detail error type invalidCursor (RFC 9865 §2.1 Table 3)"
+
+- id: RFC9865-3-R1
+  rfc: "9865"
+  section: "3"
+  title: "POST /.search SearchRequest supports cursor attribute"
   level: MAY
   capability: cursorPagination
   observability: response
-  disposition: optional
-  note: "previousCursor returned for reverse pagination where supported"
+  disposition: tested
+  note: "cursor parameter may be provided in POST /.search JSON payload (RFC 9865 §3)"
+
+- id: RFC9865-4-R1
+  rfc: "9865"
+  section: "4"
+  title: "ServiceProviderConfig advertises pagination configuration schema"
+  level: SHOULD
+  capability: cursorPagination
+  observability: response
+  disposition: tested
+  note: "pagination complex attribute in ServiceProviderConfig defines cursor and index booleans (RFC 9865 §4)"
