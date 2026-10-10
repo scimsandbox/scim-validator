@@ -119,7 +119,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
         int count = response.jsonPath().getInt("totalResults")
         // 3 active users among our 5: alice, bob, diana
         count >= 3
-        response.jsonPath().getList("Resources").every { Map r ->
+        assert response.jsonPath().getList("Resources").every { Map r ->
             (r.userName as String).startsWith(PREFIX) && r.active == true
         }
     }
@@ -297,7 +297,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
         then: "Only the matching group is returned"
         response.statusCode() == 200
         response.jsonPath().getInt("totalResults") >= 1
-        response.jsonPath().getList("Resources").every { Map r ->
+        assert response.jsonPath().getList("Resources").every { Map r ->
             (r.displayName as String) == groupName1
         }
 
@@ -327,17 +327,17 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         then:
         if (response.statusCode() in [404, 501]) {
-            true
-        } else {
-            response.statusCode() == 200
-            response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
-            response.jsonPath().getInt("totalResults") >= 1
-            response.jsonPath().getList("Resources.userName").contains(targetUserName)
+            throw new org.opentest4j.TestAbortedException("Server does not support POST /Users/.search (HTTP ${response.statusCode()})")
         }
+        assert response.statusCode() == 200
+        assert response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+        assert response.jsonPath().getInt("totalResults") >= 1
+        assert response.jsonPath().getList("Resources.userName").contains(targetUserName)
     }
 
     // ─── FLT_17: POST /.search on /Groups ───────────────────────────────────
 
+    @RequiresCapability("search")
     @SpecRef("RFC7644-3.4.3-R1")
     def "FLT_17: POST /Groups/.search returns filtered list response"() {
         // RFC 7644 §3.4.3 — POST-based query via /.search
@@ -359,13 +359,12 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         then:
         if (response.statusCode() in [404, 501]) {
-            true
-        } else {
-            response.statusCode() == 200
-            response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
-            response.jsonPath().getInt("totalResults") >= 1
-            response.jsonPath().getList("Resources.displayName").contains(groupName)
+            throw new org.opentest4j.TestAbortedException("Server does not support POST /Groups/.search (HTTP ${response.statusCode()})")
         }
+        assert response.statusCode() == 200
+        assert response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+        assert response.jsonPath().getInt("totalResults") >= 1
+        assert response.jsonPath().getList("Resources.displayName").contains(groupName)
 
         cleanup:
         if (gid) deleteGroup(gid)
@@ -644,7 +643,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
         then: "Direct sub-attribute query returns all matching users"
         directSubAttr.statusCode() == 200
         directSubAttr.jsonPath().getInt("totalResults") >= 5
-        directSubAttr.jsonPath().getList("Resources").every { Map r ->
+        assert directSubAttr.jsonPath().getList("Resources").every { Map r ->
             def emails = r.emails as List<Map>
             emails?.any { (it.value as String)?.contains("@test.com") }
         }
@@ -812,7 +811,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         then:
         if (response.statusCode() == 200) {
-            response.jsonPath().getInt("totalResults") >= 5
+            assert response.jsonPath().getInt("totalResults") >= 5
         } else {
             recordDeviation("RFC7644-3.4.2.2-R13", "RFC 7644 §3.4.2.2", "Server rejected filter on 'schemas' attribute with HTTP ${response.statusCode()}")
             assertScimError(response, 400)
@@ -821,6 +820,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     // ─── FLT_40: Root query with meta.resourceType scoping ───────────────────
 
+    @RequiresCapability("search")
     @SpecRef("RFC7644-3.4.2.1-R1")
     def "FLT_40: Root query with meta.resourceType filter restricts results"() {
         // RFC 7644 §3.4.2.1: "A SCIM service provider MAY support searching at the root...
@@ -832,16 +832,14 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         then:
         if (response.statusCode() in [404, 501]) {
-            // Optional root search capability
-            true
-        } else {
-            response.statusCode() == 200
-            response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
-            def resources = response.jsonPath().getList("Resources")
-            if (resources != null && !resources.isEmpty()) {
-                resources.every { Map r ->
-                    r.meta?.resourceType == "User" || r.schemas?.contains(USER_SCHEMA)
-                }
+            throw new org.opentest4j.TestAbortedException("Server does not support root search (HTTP ${response.statusCode()})")
+        }
+        assert response.statusCode() == 200
+        assert response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+        def resources = response.jsonPath().getList("Resources")
+        if (resources != null && !resources.isEmpty()) {
+            assert resources.every { Map r ->
+                r.meta?.resourceType == "User" || r.schemas?.contains(USER_SCHEMA)
             }
         }
     }

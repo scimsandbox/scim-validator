@@ -461,10 +461,10 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             .get("/Users/${UUID.randomUUID()}")
 
         then:
-        response.statusCode() == 404
+        assert response.statusCode() == 404
         if (response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)) {
             String detail = response.jsonPath().getString("detail")
-            detail != null && !detail.isBlank()
+            assert detail != null && !detail.isBlank() : "RFC 7644 §3.12: detail must be a non-blank human-readable message"
         }
     }
 

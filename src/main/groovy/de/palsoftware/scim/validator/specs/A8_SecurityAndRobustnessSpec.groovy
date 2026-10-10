@@ -551,44 +551,61 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
     @RequiresCapability("etag")
     @SpecRef("RFC7644-3.14-R2")
     def "SEC_23: Concurrent update collision detects stale ETag and rejects second write with 412"() {
-        // RFC 7644 §3.14 — Optimistic Concurrency Collision
-        given: "Client A and Client B both read the user concurrently"
-        Response clientARead = scimRequest().get("/Users/${testUserId}")
-        assert clientARead.statusCode() == 200
-        String etagA = clientARead.header("ETag")
+        // RFC 7644 §3.13, §3.14 — Concurrency handling
+        given: "Create an isolated user for concurrent write testing"
+        Response created = createUser()
+        assert created.statusCode() == 201
+        String raceUserId = created.jsonPath().getString("id")
 
-        Response clientBRead = scimRequest().get("/Users/${testUserId}")
-        assert clientBRead.statusCode() == 200
-        String etagB = clientBRead.header("ETag")
+        and: "Client A and Client B both read the user at initial version V0"
+        Response readA = scimRequest().get("/Users/${raceUserId}")
+        Response readB = scimRequest().get("/Users/${raceUserId}")
+        String etagV0 = readA.header("ETag")
+        assert etagV0 != null : "Server must provide ETag"
+        assert readB.header("ETag") == etagV0
 
-        assert etagA != null && etagB != null : "ETag required for OCC collision test"
-        assert etagA == etagB : "Both clients read same state so ETags must match"
-
-        when: "Client A updates the user successfully"
-        Map patchA = buildPatchOp([
-            [op: "replace", path: "displayName", value: "Updated by Client A"]
-        ])
-        Response respA = scimRequest()
-            .header("If-Match", etagA)
-            .body(JsonOutput.toJson(patchA))
-            .patch("/Users/${testUserId}")
-
-        then: "Client A's write succeeds with 200 OK"
-        respA.statusCode() == 200
-
-        when: "Client B attempts to update with the now-stale ETag"
-        Map patchB = buildPatchOp([
-            [op: "replace", path: "displayName", value: "Updated by Client B (should collide)"]
-        ])
-        Response respB = scimRequestQuiet()
-            .header("If-Match", etagB)
+        when: "Client B successfully commits an update, advancing version to V1"
+        Map patchB = buildPatchOp([[op: "replace", path: "displayName", value: "Client-B-Wins"]])
+        Response commitB = scimRequest()
+            .header("If-Match", etagV0)
             .body(JsonOutput.toJson(patchB))
-            .patch("/Users/${testUserId}")
+            .patch("/Users/${raceUserId}")
 
-        then: "Client B's write is rejected with 412 Precondition Failed"
-        respB.statusCode() == 412
-        respB.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        respB.jsonPath().getString("status") == "412"
+        then: "Client B's update succeeds"
+        commitB.statusCode() == 200
+        String etagV1 = commitB.header("ETag")
+        etagV1 != null
+        etagV1 != etagV0
+
+        when: "Client A attempts to commit its update using stale etagV0"
+        Map patchA = buildPatchOp([[op: "replace", path: "displayName", value: "Client-A-Stale"]])
+        Response commitA = scimRequest()
+            .header("If-Match", etagV0)
+            .body(JsonOutput.toJson(patchA))
+            .patch("/Users/${raceUserId}")
+
+        then: "Client A's update is rejected with 412 Precondition Failed"
+        commitA.statusCode() == 412
+        commitA.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+        commitA.jsonPath().getString("status") == "412"
+
+        when: "Client A re-fetches the latest representation and re-attempts"
+        Response refreshA = scimRequest().get("/Users/${raceUserId}")
+        assert refreshA.statusCode() == 200
+        assert refreshA.jsonPath().getString("displayName") == "Client-B-Wins"
+
+        Map patchARetry = buildPatchOp([[op: "replace", path: "displayName", value: "Client-A-Resolved"]])
+        Response retryA = scimRequest()
+            .header("If-Match", refreshA.header("ETag"))
+            .body(JsonOutput.toJson(patchARetry))
+            .patch("/Users/${raceUserId}")
+
+        then: "Retry with current ETag succeeds"
+        retryA.statusCode() == 200
+        retryA.jsonPath().getString("displayName") == "Client-A-Resolved"
+
+        cleanup:
+        if (raceUserId) deleteUser(raceUserId)
     }
 
     // ─── SEC_24: Wildcard If-Match Header on Existing Resource ──────────────
@@ -610,7 +627,7 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
         then: "Server returns 200 OK or logs deviation for unsupported wildcard"
         if (response.statusCode() == 200) {
-            response.jsonPath().getString("displayName") == "Wildcard-Matched-Name"
+            assert response.jsonPath().getString("displayName") == "Wildcard-Matched-Name"
         } else {
             recordDeviation("RFC7644-3.14-R1", "RFC 7644 §3.14", "Server does not support HTTP wildcard 'If-Match: *' (returned ${response.statusCode()})")
         }
@@ -714,10 +731,10 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
             .get("/Users")
 
         then:
-        response.statusCode() == 401
+        assert response.statusCode() == 401
         if (response.contentType()?.contains("json") && response.body().asString()?.trim()) {
-            response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-            response.jsonPath().getString("status") == "401"
+            assert response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+            assert response.jsonPath().getString("status") == "401"
         } else {
             recordDeviation("RFC7644-3.12-R3", "RFC 7644 §3.12", "HTTP 401 response omits SCIM Error JSON body")
             ScimOutput.println "DEVIATION: HTTP 401 response omits SCIM Error JSON body"
@@ -734,9 +751,9 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
             .get("/v2/Users")
 
         then: "Server returns 200 (if /v2 supported) or 404 (if not prefixed)"
-        response.statusCode() in [200, 404]
+        assert response.statusCode() in [200, 404]
         if (response.statusCode() == 200) {
-            response.jsonPath().getList("schemas")?.contains(LIST_RESPONSE_SCHEMA)
+            assert response.jsonPath().getList("schemas")?.contains(LIST_RESPONSE_SCHEMA)
         }
     }
 

@@ -264,14 +264,14 @@ class SpecMatrixGenerator {
         tests.each { test ->
             String mode = test.capability ? "gated (${test.capability})" : "strict"
             if (test.specRefs.isEmpty()) {
-                sb.append("| ${test.id} | ${escapePipes(test.name)} | [${test.fileName}:${test.lineNumber}](file:///src/main/groovy/de/palsoftware/scim/validator/specs/${test.fileName}#L${test.lineNumber}) | - | - | - | - | ${mode} |\n")
+                sb.append("| ${test.id} | ${escapePipes(test.name)} | [${test.fileName}:${test.lineNumber}](../src/main/groovy/de/palsoftware/scim/validator/specs/${test.fileName}#L${test.lineNumber}) | - | - | - | - | ${mode} |\n")
             } else {
                 test.specRefs.each { refId ->
                     Requirement req = requirements.get(refId)
                     String rfc = req ? req.rfc : "-"
                     String sec = req ? req.section : "-"
                     String reqTitle = req ? escapePipes(req.title) : "-"
-                    sb.append("| ${test.id} | ${escapePipes(test.name)} | [${test.fileName}:${test.lineNumber}](file:///src/main/groovy/de/palsoftware/scim/validator/specs/${test.fileName}#L${test.lineNumber}) | ${rfc} | ${sec} | ${refId} | ${reqTitle} | ${mode} |\n")
+                    sb.append("| ${test.id} | ${escapePipes(test.name)} | [${test.fileName}:${test.lineNumber}](../src/main/groovy/de/palsoftware/scim/validator/specs/${test.fileName}#L${test.lineNumber}) | ${rfc} | ${sec} | ${refId} | ${reqTitle} | ${mode} |\n")
                 }
             }
         }
@@ -326,12 +326,12 @@ class SpecMatrixGenerator {
 
     private static Path findProjectRoot() {
         Path current = Paths.get("").toAbsolutePath()
-        if (Files.exists(current.resolve("pom.xml"))) {
-            return current
-        }
-        Path candidate = Paths.get("/Users/eduardpal/work/scim2/scim-validator")
-        if (Files.exists(candidate.resolve("pom.xml"))) {
-            return candidate
+        Path p = current
+        while (p != null) {
+            if (Files.exists(p.resolve("pom.xml"))) {
+                return p
+            }
+            p = p.getParent()
         }
         return current
     }

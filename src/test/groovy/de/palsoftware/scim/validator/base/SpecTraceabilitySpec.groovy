@@ -39,6 +39,6 @@ class SpecTraceabilitySpec extends Specification {
         SpecMatrixGenerator generator = new SpecMatrixGenerator(projectRoot)
 
         expect: "Generated docs match current specs"
-        generator.run(false)
+        generator.run(true)
     }
 }

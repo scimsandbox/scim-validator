@@ -461,9 +461,10 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             .post("/Groups")
 
         then: "Server rejects with 400/404 or accepts without referential integrity"
+        assert response.statusCode() in [201, 400, 404] : "Expected status 201, 400, or 404, got ${response.statusCode()}"
         if (response.statusCode() in [400, 404]) {
-            response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-            response.jsonPath().getString("status") in ["400", "404"]
+            assert response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+            assert response.jsonPath().getString("status") in ["400", "404"]
         } else if (response.statusCode() == 201) {
             recordDeviation("RFC7643-2.3.7-R1", "RFC 7643 §2.3.7", "Server accepted group member pointing to non-existent resource ID")
             String tempGid = response.jsonPath().getString("id")

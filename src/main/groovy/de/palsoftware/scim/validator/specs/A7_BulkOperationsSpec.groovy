@@ -1051,12 +1051,12 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             .post("/Bulk")
 
         then: "Server rejects either the whole request (400) or reports 400 for the operation, or records deviation"
+        assert response.statusCode() in [200, 400] : "Expected status 200 or 400, got ${response.statusCode()}"
         if (response.statusCode() == 400) {
-            true
+            assertScimError(response, 400)
         } else {
-            response.statusCode() == 200
             def ops = response.jsonPath().getList("Operations")
-            ops != null && ops.size() == 1
+            assert ops != null && ops.size() == 1
             if ((ops[0].status as String) == "400") {
                 assert (ops[0].status as String) == "400"
             } else {

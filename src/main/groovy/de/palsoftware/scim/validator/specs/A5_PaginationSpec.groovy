@@ -239,15 +239,13 @@ class A5_PaginationSpec extends A5_BaseSpec {
             .post("/Users/.search")
 
         then:
-        if (response.statusCode() == 404 || response.statusCode() == 501) {
-            // Optional endpoint; compliant servers may omit it
-            true
-        } else {
-            response.statusCode() == 200
-            response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
-            response.jsonPath().getInt("startIndex") == 1
-            response.jsonPath().getInt("itemsPerPage") <= 2
-            response.jsonPath().getList("Resources").size() == response.jsonPath().getInt("itemsPerPage")
+        if (response.statusCode() in [404, 501]) {
+            throw new org.opentest4j.TestAbortedException("Server does not support POST /Users/.search (HTTP ${response.statusCode()})")
         }
+        assert response.statusCode() == 200
+        assert response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+        assert response.jsonPath().getInt("startIndex") == 1
+        assert response.jsonPath().getInt("itemsPerPage") <= 2
+        assert response.jsonPath().getList("Resources").size() == response.jsonPath().getInt("itemsPerPage")
     }
 }
