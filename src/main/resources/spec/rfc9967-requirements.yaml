@@ -1,0 +1,33 @@
+# RFC 9967 — SCIM 2.0 Asynchronous Operations Normative Requirement Catalog
+# Basis: RFC 9967 (May 2026)
+# Stable IDs follow: RFC9967-<section>-<sequence>
+
+- id: RFC9967-2-R1
+  rfc: "9967"
+  section: "2"
+  title: "Clients MAY request asynchronous processing using Prefer: respond-async header"
+  level: MAY
+  capability: async
+  observability: response
+  disposition: tested
+  note: "Client signals willingness to accept asynchronous response"
+
+- id: RFC9967-2-R2
+  rfc: "9967"
+  section: "2"
+  title: "Asynchronous acceptance returns HTTP 202 Accepted with Location header"
+  level: MUST
+  capability: async
+  observability: response
+  disposition: tested
+  note: "HTTP 202 with Location pointing to task/status resource"
+
+- id: RFC9967-2-R3
+  rfc: "9967"
+  section: "2"
+  title: "Asynchronous responses MAY return Set-Txn header identifying transaction"
+  level: MAY
+  capability: async
+  observability: response
+  disposition: optional
+  note: "Set-Txn response header per RFC 9967 §2.5"

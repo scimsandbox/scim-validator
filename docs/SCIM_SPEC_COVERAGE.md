@@ -5,9 +5,9 @@
 
 ### Coverage Summary
 
-- **Total Requirements Tracked**: 144
-- **Tested / Covered Requirements**: 134
-- **Optional / Capability Gated**: 57
+- **Total Requirements Tracked**: 150
+- **Tested / Covered Requirements**: 138
+- **Optional / Capability Gated**: 59
 - **Non-Observable / NA**: 2
 - **Known Gaps**: 0
 
@@ -157,3 +157,9 @@
 | RFC7643-6-R1 | 7643 | 6 | ResourceType representations declare name, endpoint, schema, and schemaExtensions | MUST | none | Covered | DSC_02, DSC_09, DSC_17 | ResourceType name and endpoint are server-unique and case-exact per erratum 8475 |
 | RFC7643-7-R1 | 7643 | 7 | Schema resources are readOnly and define full attribute characteristics | MUST | none | Covered | DSC_03, DSC_04, DSC_16, SCH_09 | Schema definitions for all resource schemas; representations include schemas and meta per erratum 8417 |
 | RFC7643-9.2-R1 | 7643 | 9.2 | Passwords MUST NOT be stored cleartext (hashed or encrypted per erratum 8450) | MUST | none | N/A | — | Non-observable via API directly; protected by returned=never and secure hashing |
+| RFC9865-2-R1 | 9865 | 2 | Clients MAY request cursor-based pagination using the cursor query parameter | MAY | cursorPagination | Gated (cursorPagination) | CUR_01, CUR_02, CUR_03 | Clients specify cursor parameter on GET or in SearchRequest |
+| RFC9865-2-R2 | 9865 | 2 | Service providers supporting cursor pagination return nextCursor in ListResponse | MUST | cursorPagination | Gated (cursorPagination) | CUR_01 | nextCursor opaque string provided when more results remain |
+| RFC9865-2-R3 | 9865 | 2 | Service providers MAY return previousCursor in ListResponse | MAY | cursorPagination | Optional (cursorPagination) | — | previousCursor returned for reverse pagination where supported |
+| RFC9967-2-R1 | 9967 | 2 | Clients MAY request asynchronous processing using Prefer: respond-async header | MAY | async | Gated (async) | ASY_01 | Client signals willingness to accept asynchronous response |
+| RFC9967-2-R2 | 9967 | 2 | Asynchronous acceptance returns HTTP 202 Accepted with Location header | MUST | async | Gated (async) | ASY_01, ASY_02 | HTTP 202 with Location pointing to task/status resource |
+| RFC9967-2-R3 | 9967 | 2 | Asynchronous responses MAY return Set-Txn header identifying transaction | MAY | async | Optional (async) | — | Set-Txn response header per RFC 9967 §2.5 |
