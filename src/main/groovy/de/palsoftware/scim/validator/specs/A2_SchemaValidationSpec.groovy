@@ -501,7 +501,7 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
     }
 
     @SpecRef("RFC7643-2.2-R1")
-    def "SCH_15: Characteristic applicability rules (canonicalValues only on string, referenceTypes only on reference)"() {
+    def "SCH_15: Characteristic applicability rules (subAttributes only on complex, referenceTypes only on reference)"() {
         // RFC 7643 §2.2 — Characteristic applicability
         when: "GET /Schemas"
         def response = scimRequest().get("/Schemas")
@@ -509,21 +509,25 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
         then: "Status is 200"
         response.statusCode() == 200
 
-        and: "All attributes adhere to characteristic applicability rules"
+        and: "All attributes and sub-attributes adhere to characteristic applicability rules"
         def schemas = extractSchemasList(response)
         schemas.each { schema ->
-            def attrs = schema.attributes
-            attrs?.each { Map attr ->
-                String type = attr.type ?: "string"
-                if (type != "string" && attr.canonicalValues != null) {
-                    assert false : "Schema '${schema.id}' attr '${attr.name}' of type '${type}' must not have canonicalValues (RFC 7643 §2.2)"
-                }
-                if (type != "reference" && attr.referenceTypes != null) {
-                    assert false : "Schema '${schema.id}' attr '${attr.name}' of type '${type}' must not have referenceTypes (RFC 7643 §2.2)"
-                }
-                if (type != "complex" && attr.subAttributes != null) {
-                    assert false : "Schema '${schema.id}' attr '${attr.name}' of type '${type}' must not have subAttributes (RFC 7643 §2.2)"
-                }
+            validateCharacteristicApplicability(schema.id?.toString(), schema.attributes as List<Map>)
+        }
+    }
+
+    private void validateCharacteristicApplicability(String schemaId, List<Map> attributes) {
+        if (!attributes) return
+        attributes.each { Map attr ->
+            String type = attr.type ?: "string"
+            if (type != "reference" && attr.referenceTypes != null) {
+                assert false : "Schema '${schemaId}' attr '${attr.name}' of type '${type}' must not have referenceTypes (RFC 7643 §2.2)"
+            }
+            if (type != "complex" && attr.subAttributes != null) {
+                assert false : "Schema '${schemaId}' attr '${attr.name}' of type '${type}' must not have subAttributes (RFC 7643 §2.2)"
+            }
+            if (attr.subAttributes instanceof List) {
+                validateCharacteristicApplicability(schemaId, attr.subAttributes as List<Map>)
             }
         }
     }

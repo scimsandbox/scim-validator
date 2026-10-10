@@ -1213,12 +1213,35 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
 
-        then: "Server returns 200 or 400"
-        response.statusCode() in [200, 400]
-        if (response.statusCode() == 200) {
+        then: "Server resolves circular references or returns 409 Conflict per §3.7.1"
+        assert response.statusCode() in [200, 409] : "Expected HTTP 200 or 409 per RFC 7644 §3.7.1, but got ${response.statusCode()}"
+        if (response.statusCode() == 409) {
+            assertScimError(response, 409)
+        } else {
             def ops = response.jsonPath().getList("Operations")
+            assert ops != null && ops.size() == 2
+            boolean allCreated = ops.every { (it.status as String) == "201" }
+            if (allCreated) {
+                String id1 = ops[0].location ? (ops[0].location as String).tokenize("/").last() : (ops[0].response?.id as String)
+                String id2 = ops[1].location ? (ops[1].location as String).tokenize("/").last() : (ops[1].response?.id as String)
+                if (id1 && id2) {
+                    Response g1Resp = scimRequestQuiet().get("/Groups/${id1}")
+                    Response g2Resp = scimRequestQuiet().get("/Groups/${id2}")
+                    if (g1Resp.statusCode() == 200 && g2Resp.statusCode() == 200) {
+                        def m1 = g1Resp.jsonPath().getList("members.value")
+                        def m2 = g2Resp.jsonPath().getList("members.value")
+                        assert m1?.contains(id2) : "Group 1 members must contain resolved Group 2 ID (RFC 7644 §3.7.1)"
+                        assert m2?.contains(id1) : "Group 2 members must contain resolved Group 1 ID (RFC 7644 §3.7.1)"
+                    }
+                }
+            } else {
+                boolean has409 = ops.any { (it.status as String) == "409" }
+                if (!has409) {
+                    recordDeviation("RFC7644-3.7-R4", "RFC 7644 §3.7.1", "Server did not resolve circular bulkId references (operations returned ${ops.collect { it.status }})")
+                }
+            }
             ops.each { Map op ->
-                String id = (op.location as String)?.tokenize("/")?.last()
+                String id = (op.location as String)?.tokenize("/")?.last() ?: (op.response?.id as String)
                 if (id) {
                     try { scimRequestQuiet().delete("/Groups/${id}") } catch (Exception ignored) {}
                 }

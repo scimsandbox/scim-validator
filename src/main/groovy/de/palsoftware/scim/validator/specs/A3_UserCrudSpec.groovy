@@ -754,10 +754,10 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         Response getResp = scimRequest().get("/Users/${uid}")
 
         then: "Status is 200"
-        getResp.statusCode() == 200
+        assert getResp.statusCode() == 200
 
         and: "Extension attribute employeeNumber is inside extension object and NOT top level"
-        getResp.jsonPath().get("'${ENTERPRISE_USER_SCHEMA}'.employeeNumber") != null
+        assert getResp.jsonPath().get("'${ENTERPRISE_USER_SCHEMA}'.employeeNumber") != null
         assert getResp.jsonPath().get("employeeNumber") == null :
             "Extension attribute 'employeeNumber' must not leak into top-level JSON structure (RFC 7643 §3)"
 

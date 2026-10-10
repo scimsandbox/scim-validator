@@ -520,41 +520,47 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         }
     }
 
-    // ─── NEG_25: Malformed dateTime format validation ───────────────────────
+    // ─── NEG_25: Payload data type validation for complex attribute ─────────
 
-    @SpecRef("RFC7643-2.3.5-R1")
     @SpecRef("RFC7643-2.3-R1")
-    def "NEG_25: Submitting malformed dateTime format in filter returns 400"() {
-        // RFC 7643 §2.3.5 — dateTime attributes must conform to ISO 8601
-        when: "Filter with malformed dateTime string"
-        Response response = scimRequestQuiet()
-            .queryParam("filter", 'meta.lastModified gt "not-an-iso-8601-date"')
-            .get("/Users")
+    def "NEG_25: Submitting primitive string where complex object is required returns 400 invalidValue"() {
+        // RFC 7643 §2.3: "When attributes of these types are parsed from a SCIM payload,
+        // values that do not conform to these syntax definitions MUST be rejected."
+        given: "A created user"
+        Response cr = createUser()
+        String uid = cr.jsonPath().getString("id")
 
-        then: "Server rejects with 400 (scimType invalidFilter or invalidValue) or records deviation"
-        if (response.statusCode() == 400) {
-            assertScimError(response, 400)
-        } else {
-            recordDeviation("RFC7643-2.3.5-R1", "RFC 7643 §2.3.5", "Server returned ${response.statusCode()} instead of 400 for malformed dateTime in filter")
-        }
+        when: "PATCH user with primitive string for complex 'name' attribute"
+        Map patchPayload = buildPatchOp([
+            [op: "replace", path: "name", value: "InvalidPrimitiveStringValue"]
+        ])
+        Response response = scimRequestQuiet()
+            .body(JsonOutput.toJson(patchPayload))
+            .patch("/Users/${uid}")
+
+        then: "Server rejects with 400 invalidValue"
+        assert response.statusCode() == 400 : "Expected HTTP 400 Bad Request, but got ${response.statusCode()}"
+        assertScimError(response, 400, "invalidValue")
+
+        cleanup:
+        if (uid) deleteUser(uid)
     }
 
-    // ─── NEG_26: Comparison operator on Boolean attribute ───────────────────
+    // ─── NEG_26: Malformed filter syntax rejection ──────────────────────────
 
     @SpecRef("RFC7644-3.4.2.2-R14")
-    def "NEG_26: Comparison operator gt on Boolean attribute returns 400 invalidFilter"() {
-        // RFC 7644 §3.4.2.2 — gt/ge/lt/le are only defined for ordered types (numbers, dates, strings)
-        when: "Filter with active gt true"
+    def "NEG_26: Malformed filter syntax with unterminated value path returns 400 invalidFilter"() {
+        // RFC 7644 §3.4.2.2: "If the target attribute was not compatible with the matching operator,
+        // or for other reasons is considered an invalid filter, the service provider SHOULD respond
+        // with HTTP status code 400 and detail error keyword 'invalidFilter'."
+        when: "Filter with unterminated value path syntax"
         Response response = scimRequestQuiet()
-            .queryParam("filter", 'active gt true')
+            .queryParam("filter", 'emails[value eq "test"')
             .get("/Users")
 
-        then: "Server rejects with 400 invalidFilter or records deviation"
-        if (response.statusCode() == 400) {
-            assertScimError(response, 400, "invalidFilter")
-        } else {
-            recordDeviation("RFC7644-3.4.2.2-R14", "RFC 7644 §3.4.2.2", "Server returned ${response.statusCode()} instead of 400 for comparison operator gt on boolean attribute")
-        }
+        then: "Server rejects with 400 invalidFilter"
+        assert response.statusCode() == 400 : "Expected HTTP 400 Bad Request, but got ${response.statusCode()}"
+        assertScimError(response, 400, "invalidFilter")
     }
 }
 
