@@ -53,23 +53,32 @@ class A11_AsyncOperationsSpec extends ScimBaseSpec {
             .post("/Users")
         asyncLocation = response.header("Location")
 
-        then: "Server returns HTTP 202 Accepted"
-        assert response.statusCode() == 202 :
-            "Expected HTTP 202 Accepted per RFC 9967 §2.5.1.1, but got ${response.statusCode()}"
+        then: "Server returns HTTP 202 Accepted (or normal SCIM response if asyncRequest is 'long')"
+        String mode = getAsyncRequestMode()
+        if (mode == "long") {
+            assert response.statusCode() in [200, 201, 202] :
+                "Expected HTTP 200, 201, or 202 per RFC 9967 §2.5.1.1 for asyncRequest='long', but got ${response.statusCode()}"
+        } else {
+            assert response.statusCode() == 202 :
+                "Expected HTTP 202 Accepted per RFC 9967 §2.5.1.1, but got ${response.statusCode()}"
+        }
 
-        and: "Response MUST contain no response body per RFC 9967 §2.5.1.1 and §3"
-        byte[] bodyBytes = response.body().asByteArray()
-        assert bodyBytes == null || bodyBytes.length == 0 || response.body().asString().trim().isEmpty() :
-            "202 Accepted asynchronous response MUST contain no response body (RFC 9967 §2.5.1.1)"
+        and: "Asynchronous response adheres to RFC 9967 §2.5.1.1 and §3 when 202 is returned"
+        if (response.statusCode() == 202) {
+            byte[] bodyBytes = response.body().asByteArray()
+            assert bodyBytes == null || bodyBytes.length == 0 || response.body().asString().trim().isEmpty() :
+                "202 Accepted asynchronous response MUST contain no response body (RFC 9967 §2.5.1.1)"
 
-        and: "Set-Txn response header MUST be present and non-empty (RFC 9967 §3)"
-        String setTxn = response.header("Set-Txn")
-        assert setTxn != null && !setTxn.trim().isEmpty() :
-            "202 Accepted response MUST include Set-Txn response header (RFC 9967 §3)"
+            String setTxn = response.header("Set-Txn")
+            assert setTxn != null && !setTxn.trim().isEmpty() :
+                "202 Accepted response MUST include Set-Txn response header (RFC 9967 §3)"
 
-        and: "Location response header MUST be present (RFC 9967 §2.5.1.1)"
-        assert asyncLocation != null && !asyncLocation.trim().isEmpty() :
-            "202 Accepted response MUST include Location header (RFC 9967 §2.5.1.1)"
+            assert asyncLocation != null && !asyncLocation.trim().isEmpty() :
+                "202 Accepted response MUST include Location header (RFC 9967 §2.5.1.1)"
+        } else if (response.statusCode() == 201) {
+            String uid = response.jsonPath().getString("id")
+            if (uid) createdUserIds << uid
+        }
 
         and: "Preference-Applied header contains respond-async if returned"
         String prefApplied = response.header("Preference-Applied")

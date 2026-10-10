@@ -26,7 +26,9 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
 
     def setupSpec() {
         ensureServiceProviderConfigLoaded()
-        requireCapability("cursorPagination")
+        if (getCapabilityState("cursorPagination") == CapabilityState.UNSUPPORTED) {
+            return
+        }
         // Ensure at least 3 users exist for cursor navigation
         3.times { i ->
             def resp = createUser(userName: "${testPrefix}_${i}@test.com")
@@ -37,8 +39,7 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
         // Verify that target server actually implements cursor pagination (emits nextCursor)
         Response probe = scimRequestQuiet().queryParam("cursor", "").queryParam("count", 1).get("/Users")
         if (probe.statusCode() != 200 || !probe.jsonPath().getString("nextCursor")) {
-            state().cursorPaginationState = CapabilityState.UNSUPPORTED
-            throw new TestAbortedException("Skipped: target server does not return nextCursor for cursor pagination query (RFC 9865 not implemented)")
+            setCapabilityState("cursorPagination", CapabilityState.UNSUPPORTED)
         }
     }
 
@@ -183,11 +184,14 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
         then: "Status is 200 OK"
         assert response.statusCode() == 200
 
-        and: "pagination complex attribute is present with cursor and index booleans"
+        and: "pagination complex attribute SHOULD be present per RFC 9865 §4"
         def pag = response.jsonPath().get("pagination")
-        assert pag != null : "ServiceProviderConfig must contain 'pagination' attribute per RFC 9865 §4"
-        assert pag.cursor instanceof Boolean : "'pagination.cursor' must be a Boolean"
-        assert pag.index instanceof Boolean : "'pagination.index' must be a Boolean"
+        if (pag == null) {
+            recordDeviation("RFC9865-4-R1", "RFC 9865 §4", "ServiceProviderConfig omits recommended 'pagination' configuration attribute (SHOULD include per §4)")
+        } else {
+            assert pag.cursor instanceof Boolean : "'pagination.cursor' must be a Boolean"
+            assert pag.index instanceof Boolean : "'pagination.index' must be a Boolean"
+        }
     }
 
     def cleanupSpec() {
