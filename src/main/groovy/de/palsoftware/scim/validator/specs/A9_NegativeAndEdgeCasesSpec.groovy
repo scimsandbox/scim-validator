@@ -519,4 +519,36 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             if (uid) deleteUser(uid)
         }
     }
+
+    // ─── NEG_25: Malformed dateTime format validation ───────────────────────
+
+    @SpecRef("RFC7643-2.3.5-R1")
+    @SpecRef("RFC7643-2.3-R1")
+    def "NEG_25: Submitting malformed dateTime format in filter returns 400"() {
+        // RFC 7643 §2.3.5 — dateTime attributes must conform to ISO 8601
+        when: "Filter with malformed dateTime string"
+        Response response = scimRequestQuiet()
+            .queryParam("filter", 'meta.lastModified gt "not-an-iso-8601-date"')
+            .get("/Users")
+
+        then: "Server rejects with 400 (scimType invalidFilter or invalidValue)"
+        response.statusCode() == 400
+        assertScimError(response, 400)
+    }
+
+    // ─── NEG_26: Comparison operator on Boolean attribute ───────────────────
+
+    @SpecRef("RFC7644-3.4.2.2-R14")
+    def "NEG_26: Comparison operator gt on Boolean attribute returns 400 invalidFilter"() {
+        // RFC 7644 §3.4.2.2 — gt/ge/lt/le are only defined for ordered types (numbers, dates, strings)
+        when: "Filter with active gt true"
+        Response response = scimRequestQuiet()
+            .queryParam("filter", 'active gt true')
+            .get("/Users")
+
+        then: "Server rejects with 400 invalidFilter"
+        response.statusCode() == 400
+        assertScimError(response, 400, "invalidFilter")
+    }
 }
+

@@ -111,10 +111,24 @@ class SpecMatrixGenerator {
         Map<String, Requirement> result = new LinkedHashMap<>()
         YamlSlurper slurper = new YamlSlurper()
 
-        List<Path> catalogFiles = [
-            projectRoot.resolve("src/main/resources/spec/rfc7644-requirements.yaml"),
-            projectRoot.resolve("src/main/resources/spec/rfc7643-requirements.yaml")
-        ]
+        Path specDir = projectRoot.resolve("src/main/resources/spec")
+        List<Path> catalogFiles = []
+        if (Files.exists(specDir)) {
+            try (def stream = Files.list(specDir)) {
+                catalogFiles = stream
+                    .filter { it.fileName.toString().endsWith("-requirements.yaml") }
+                    .sorted { Path p1, Path p2 ->
+                        String n1 = p1.fileName.toString()
+                        String n2 = p2.fileName.toString()
+                        if (n1.startsWith("rfc7644")) return -1
+                        if (n2.startsWith("rfc7644")) return 1
+                        if (n1.startsWith("rfc7643")) return -1
+                        if (n2.startsWith("rfc7643")) return 1
+                        return n1.compareTo(n2)
+                    }
+                    .toList()
+            }
+        }
 
         catalogFiles.each { path ->
             if (Files.exists(path)) {

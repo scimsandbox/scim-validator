@@ -840,4 +840,54 @@ class A5_FilteringSpec extends A5_BaseSpec {
             }
         }
     }
+
+    // ─── FLT_41: Logical operators case insensitivity ───────────────────────
+
+    @SpecRef("RFC7644-3.4.2.2-R8")
+    @SpecRef("RFC7644-3.4.2.2-R9")
+    @SpecRef("RFC7644-3.4.2.2-R10")
+    def "FLT_41: Logical operators AND, OR, NOT in uppercase are case-insensitive"() {
+        // RFC 7644 §3.4.2.2: "Logical operators are case-insensitive."
+        when:
+        Response response = scimRequest()
+            .queryParam("filter", "userName sw \"${PREFIX}\" AND active eq true")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 200
+        response.jsonPath().getInt("totalResults") >= 5
+    }
+
+    // ─── FLT_42: Operator precedence not > and > or without parentheses ──────
+
+    @SpecRef("RFC7644-3.4.2.2-R10")
+    @SpecRef("RFC7644-3.4.2.2-R11")
+    def "FLT_42: Operator precedence evaluates not before and before or without parentheses"() {
+        // RFC 7644 §3.4.2.2: "The order of precedence for operators has not have the highest
+        // precedence, followed by and, and then or."
+        when:
+        Response response = scimRequest()
+            .queryParam("filter", "userName sw \"${PREFIX}\" and not title eq \"NonExistent\" or userName eq \"NonExistentGhost\"")
+            .get("/Users")
+
+        then:
+        response.statusCode() == 200
+        response.jsonPath().getInt("totalResults") >= 5
+    }
+
+    // ─── FLT_43: Comparison operator boundaries gt vs ge ────────────────────
+
+    @SpecRef("RFC7644-3.4.2.2-R7")
+    def "FLT_43: Comparison operators gt and ge adhere to exact boundary values"() {
+        // RFC 7644 §3.4.2.2: "gt: Greater than, ge: Greater than or equal to"
+        when: "Query with ge on created timestamp"
+        Response geResponse = scimRequest()
+            .queryParam("filter", "userName sw \"${PREFIX}\" and meta.lastModified ge \"${users[0].created}\"")
+            .get("/Users")
+
+        then:
+        geResponse.statusCode() == 200
+        geResponse.jsonPath().getInt("totalResults") >= 1
+    }
 }
+

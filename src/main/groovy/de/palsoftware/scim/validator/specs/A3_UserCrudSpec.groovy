@@ -673,6 +673,98 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         }
     }
 
+    // ─── USR_22: Multi-valued duplicate (type, value) de-duplication ────────
+
+    @SpecRef("RFC7643-2.4-R3")
+    def "USR_22: Multi-valued attributes with duplicate type and value are de-duplicated"() {
+        // RFC 7643 §2.4: "Service providers SHOULD NOT return duplicate (type, value) entries"
+        given: "User with duplicate email entries"
+        def dupEmail = "dup_val_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        def userName = "dedup_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        Map payload = [
+            schemas : [USER_SCHEMA],
+            userName: userName,
+            emails  : [
+                [value: dupEmail, type: "work"],
+                [value: dupEmail, type: "work"]
+            ]
+        ]
+
+        when: "POST /Users with duplicate entries"
+        Response response = scimRequestQuiet()
+            .body(JsonOutput.toJson(payload))
+            .post("/Users")
+
+        then: "Server returns 201 or 400"
+        response.statusCode() in [201, 400]
+        if (response.statusCode() == 201) {
+            String uid = response.jsonPath().getString("id")
+            if (uid) createdUserIds << uid
+            def emails = response.jsonPath().getList("emails")
+            if (emails != null && emails.size() > 1) {
+                def workDups = emails.findAll { it.value == dupEmail && it.type == "work" }
+                if (workDups.size() > 1) {
+                    ScimOutput.deviation("Server returned duplicate (type, value) entries contrary to RFC 7643 §2.4 SHOULD recommendation", "USR_22", "RFC7643-2.4-R3")
+                }
+            }
+        }
+    }
+
+    // ─── USR_23: Duplicate schema URNs in schemas array ─────────────────────
+
+    @SpecRef("RFC7643-3-R1")
+    def "USR_23: Specifying duplicate schema URNs in schemas array is handled cleanly"() {
+        // RFC 7643 §3: "Each schema URI MUST be unique."
+        given: "User payload with duplicate schema URNs"
+        def userName = "dup_schema_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        Map payload = [
+            schemas : [USER_SCHEMA, USER_SCHEMA],
+            userName: userName
+        ]
+
+        when: "POST /Users with duplicate schemas"
+        Response response = scimRequestQuiet()
+            .body(JsonOutput.toJson(payload))
+            .post("/Users")
+
+        then: "Server returns 201 or 400"
+        response.statusCode() in [201, 400]
+        if (response.statusCode() == 201) {
+            String uid = response.jsonPath().getString("id")
+            if (uid) createdUserIds << uid
+            def respSchemas = response.jsonPath().getList("schemas")
+            assert respSchemas.size() == respSchemas.unique(false).size() :
+                "Response schemas array must not contain duplicate URNs (RFC 7643 §3)"
+        }
+    }
+
+    // ─── USR_24: Extension attributes do not leak to top level ──────────────
+
+    @RequiresCapability("enterprise")
+    @SpecRef("RFC7643-3-R2")
+    def "USR_24: Enterprise extension attributes are scoped to URN and do not leak to top level"() {
+        // RFC 7643 §3: "Extended attributes MUST be in their own JSON sub-structure keyed by schema URI; no top-level leak."
+        given: "Create user with enterprise extension"
+        def userName = "leak_check_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        Response response = createFullUser(userName: userName)
+        assert response.statusCode() == 201
+        String uid = response.jsonPath().getString("id")
+
+        when: "Inspect GET representation"
+        Response getResp = scimRequest().get("/Users/${uid}")
+
+        then: "Status is 200"
+        getResp.statusCode() == 200
+
+        and: "Extension attribute employeeNumber is inside extension object and NOT top level"
+        getResp.jsonPath().get("'${ENTERPRISE_USER_SCHEMA}'.employeeNumber") != null
+        assert getResp.jsonPath().get("employeeNumber") == null :
+            "Extension attribute 'employeeNumber' must not leak into top-level JSON structure (RFC 7643 §3)"
+
+        cleanup:
+        if (uid) deleteUser(uid)
+    }
+
     // ─── Cleanup ────────────────────────────────────────────────────────────
 
     def cleanupSpec() {

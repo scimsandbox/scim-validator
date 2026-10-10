@@ -500,6 +500,34 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
         }
     }
 
+    @SpecRef("RFC7643-2.2-R1")
+    def "SCH_15: Characteristic applicability rules (canonicalValues only on string, referenceTypes only on reference)"() {
+        // RFC 7643 §2.2 — Characteristic applicability
+        when: "GET /Schemas"
+        def response = scimRequest().get("/Schemas")
+
+        then: "Status is 200"
+        response.statusCode() == 200
+
+        and: "All attributes adhere to characteristic applicability rules"
+        def schemas = extractSchemasList(response)
+        schemas.each { schema ->
+            def attrs = schema.attributes
+            attrs?.each { Map attr ->
+                String type = attr.type ?: "string"
+                if (type != "string" && attr.canonicalValues != null) {
+                    assert false : "Schema '${schema.id}' attr '${attr.name}' of type '${type}' must not have canonicalValues (RFC 7643 §2.2)"
+                }
+                if (type != "reference" && attr.referenceTypes != null) {
+                    assert false : "Schema '${schema.id}' attr '${attr.name}' of type '${type}' must not have referenceTypes (RFC 7643 §2.2)"
+                }
+                if (type != "complex" && attr.subAttributes != null) {
+                    assert false : "Schema '${schema.id}' attr '${attr.name}' of type '${type}' must not have subAttributes (RFC 7643 §2.2)"
+                }
+            }
+        }
+    }
+
     // ─── Helper Methods ─────────────────────────────────────────────────────
 
     private static List extractSchemasList(Response response) {
