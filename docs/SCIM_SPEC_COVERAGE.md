@@ -45,7 +45,7 @@
 | RFC7644-3.4.2.2-R11 | 7644 | 3.4.2.2 | Filter parentheses group expressions to alter operator precedence | MUST | filter | Gated (filter) | FLT_24, FLT_42 | Precedence grouping |
 | RFC7644-3.4.2.2-R12 | 7644 | 3.4.2.2 | Value path filter matches items within multi-valued complex attributes | MUST | filter | Gated (filter) | FLT_27, FLT_32 | e.g. emails[type eq "work" and value co "@example.com"] |
 | RFC7644-3.4.2.2-R13 | 7644 | 3.4.2.2 | Filter on schemas attribute matches resources declaring schema URN | MUST | filter | Gated (filter) | FLT_39 | e.g. schemas eq "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User" |
-| RFC7644-3.4.2.2-R14 | 7644 | 3.4.2.2 | Invalid filter syntax returns HTTP 400 with scimType invalidFilter | MUST | filter | Gated (filter) | FLT_10, NEG_11, NEG_26 | Malformed filter expression returns 400 invalidFilter |
+| RFC7644-3.4.2.2-R14 | 7644 | 3.4.2.2 | Invalid filter syntax returns HTTP 400 with scimType invalidFilter | MUST | filter | Gated (filter) | FLT_10, NEG_11, NEG_26, NEG_28 | Malformed filter expression returns 400 invalidFilter |
 | RFC7644-3.4.2.2-R15 | 7644 | 3.4.2.2 | Filter comparison on defaulted attribute uses value returned to creating client | MUST | filter | Optional (filter) | — | Defaulted attribute filter evaluates against initial defaulted value |
 | RFC7644-3.4.2.3-R1 | 7644 | 3.4.2.3 | Sorting ascending orders results in ascending order | MUST | sort | Gated (sort) | SRT_01, SRT_04 | sortOrder=ascending |
 | RFC7644-3.4.2.3-R2 | 7644 | 3.4.2.3 | Sorting descending orders results in descending order | MUST | sort | Gated (sort) | SRT_02 | sortOrder=descending |
@@ -118,7 +118,7 @@
 | RFC7643-2.2-R6 | 7643 | 2.2 | Attribute caseExact definition is honored in filtering and matching | MUST | none | Covered | SCH_08, FLT_12 | caseExact false matches case-insensitively; caseExact true requires exact case match |
 | RFC7643-2.2-R7 | 7643 | 2.2 | Attribute canonicalValues restriction rejects or validates unrecognized values | MAY | none | Optional (none) | — | Server restricts or suggests values from canonical list |
 | RFC7643-2.3-R1 | 7643 | 2.3 | Value validation conforms to declared attribute data types | MUST | none | Covered | SCH_08, NEG_24, NEG_25 | Invalid data types (e.g. string for boolean/integer) return 400 invalidValue |
-| RFC7643-2.3.5-R1 | 7643 | 2.3.5 | dateTime attributes are formatted as XML dateTime according to ISO 8601 | MUST | none | Covered | SCH_09, USR_02 | dateTime values (e.g. meta.created, meta.lastModified) follow ISO 8601 |
+| RFC7643-2.3.5-R1 | 7643 | 2.3.5 | dateTime attributes are formatted as XML dateTime according to ISO 8601 | MUST | none | Covered | SCH_09, USR_02, NEG_27 | dateTime values (e.g. meta.created, meta.lastModified) follow ISO 8601 |
 | RFC7643-2.3.6-R1 | 7643 | 2.3.6 | binary attributes are base64 encoded and case-exact | MUST | none | Covered | SCH_13 | Binary attributes must be base64 strings |
 | RFC7643-2.3.7-R1 | 7643 | 2.3.7 | reference attributes contain valid URI ($ref) and target resource referenceTypes | MUST | none | Covered | SCH_04, GRP_13, GRP_15 | References point to target SCIM resources or external URIs |
 | RFC7643-2.3.7-R2 | 7643 | 2.3.7 | Service providers MAY enforce referential integrity for reference attributes | MAY | none | Optional (none) | — | Referential integrity enforcement is optional per RFC 7643 §2.3.7 |

@@ -562,5 +562,43 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         assert response.statusCode() == 400 : "Expected HTTP 400 Bad Request, but got ${response.statusCode()}"
         assertScimError(response, 400, "invalidFilter")
     }
+
+    // ─── NEG_27: Malformed dateTime format validation ───────────────────────
+
+    @SpecRef("RFC7643-2.3.5-R1")
+    def "NEG_27: Submitting malformed dateTime format in filter returns 400 invalidFilter or records deviation"() {
+        // RFC 7643 §2.3.5 — dateTime attributes must conform to ISO 8601
+        when: "Filter with malformed dateTime string"
+        Response response = scimRequestQuiet()
+            .queryParam("filter", 'meta.lastModified gt "not-an-iso-8601-date"')
+            .get("/Users")
+
+        then: "Server rejects with 400 invalidFilter or records deviation"
+        if (response.statusCode() == 400) {
+            assertScimError(response, 400, "invalidFilter")
+        } else {
+            recordDeviation("RFC7643-2.3.5-R1", "RFC 7643 §2.3.5",
+                "Server returned ${response.statusCode()} instead of 400 for malformed dateTime in filter")
+        }
+    }
+
+    // ─── NEG_28: Comparison operator on Boolean attribute ───────────────────
+
+    @SpecRef("RFC7644-3.4.2.2-R14")
+    def "NEG_28: Comparison operator gt on Boolean attribute returns 400 invalidFilter or records deviation"() {
+        // RFC 7644 §3.4.2.2 — gt/ge/lt/le are only defined for ordered types (numbers, dates, strings)
+        when: "Filter with active gt true"
+        Response response = scimRequestQuiet()
+            .queryParam("filter", "active gt true")
+            .get("/Users")
+
+        then: "Server rejects with 400 invalidFilter or records deviation"
+        if (response.statusCode() == 400) {
+            assertScimError(response, 400, "invalidFilter")
+        } else {
+            recordDeviation("RFC7644-3.4.2.2-R14", "RFC 7644 §3.4.2.2",
+                "Server returned ${response.statusCode()} instead of 400 for comparison operator gt on boolean attribute")
+        }
+    }
 }
 

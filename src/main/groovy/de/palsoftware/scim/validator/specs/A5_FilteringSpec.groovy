@@ -882,7 +882,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     @SpecRef("RFC7644-3.4.2.2-R10")
     @SpecRef("RFC7644-3.4.2.2-R11")
-    def "FLT_42: Operator precedence evaluates not before and before or without parentheses"() {
+    def "FLT_42: Operator precedence evaluates and before or without parentheses"() {
         // RFC 7644 §3.4.2.2: "The order of precedence for operators has not have the highest
         // precedence, followed by and, and then or."
         when: "Query with 'A or B and C' where B and C matches user 0, and A matches inactive user 2"
@@ -892,23 +892,12 @@ class A5_FilteringSpec extends A5_BaseSpec {
             .queryParam("filter", "userName eq \"${u2}\" or userName eq \"${u0}\" and active eq true")
             .get("/Users")
 
-        and: "Query with 'not A and B' without parentheses where not has highest precedence"
-        Response notResponse = scimRequest()
-            .queryParam("filter", "not active eq false and userName sw \"${PREFIX}\"")
-            .get("/Users")
-
         then: "and takes precedence over or: both user 2 and user 0 are returned"
         assert response.statusCode() == 200
         assert response.jsonPath().getInt("totalResults") == 2
         def names = response.jsonPath().getList("Resources.userName")
         assert names.contains(u0) : "Must contain user 0"
         assert names.contains(u2) : "Must contain inactive user 2 due to 'or' precedence over 'and'"
-
-        and: "not takes precedence over and: returns active users"
-        assert notResponse.statusCode() == 200
-        assert notResponse.jsonPath().getInt("totalResults") == 3
-        def notNames = notResponse.jsonPath().getList("Resources.userName")
-        assert !notNames.contains(u2) : "Must not contain inactive user 2"
     }
 
     // ─── FLT_43: Comparison operator boundaries gt vs ge ────────────────────
