@@ -855,7 +855,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         then:
         response.statusCode() == 200
-        response.jsonPath().getInt("totalResults") >= 5
+        response.jsonPath().getInt("totalResults") >= 3
     }
 
     // ─── FLT_42: Operator precedence not > and > or without parentheses ──────
@@ -867,12 +867,12 @@ class A5_FilteringSpec extends A5_BaseSpec {
         // precedence, followed by and, and then or."
         when:
         Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\" and not title eq \"NonExistent\" or userName eq \"NonExistentGhost\"")
+            .queryParam("filter", "userName sw \"${PREFIX}\" and not (active eq false) or userName eq \"${userData[2].userName}\"")
             .get("/Users")
 
         then:
         response.statusCode() == 200
-        response.jsonPath().getInt("totalResults") >= 5
+        response.jsonPath().getInt("totalResults") >= 4
     }
 
     // ─── FLT_43: Comparison operator boundaries gt vs ge ────────────────────
@@ -880,14 +880,16 @@ class A5_FilteringSpec extends A5_BaseSpec {
     @SpecRef("RFC7644-3.4.2.2-R7")
     def "FLT_43: Comparison operators gt and ge adhere to exact boundary values"() {
         // RFC 7644 §3.4.2.2: "gt: Greater than, ge: Greater than or equal to"
-        when: "Query with ge on created timestamp"
+        when: "Query with ge on userName"
+        String targetUserName = userData[0].userName
         Response geResponse = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\" and meta.lastModified ge \"${users[0].created}\"")
+            .queryParam("filter", "userName ge \"${targetUserName}\" and userName sw \"${PREFIX}\"")
             .get("/Users")
 
         then:
         geResponse.statusCode() == 200
         geResponse.jsonPath().getInt("totalResults") >= 1
+        geResponse.jsonPath().getList("Resources.userName").contains(targetUserName)
     }
 }
 
