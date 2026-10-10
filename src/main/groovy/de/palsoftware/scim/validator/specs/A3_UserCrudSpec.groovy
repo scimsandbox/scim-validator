@@ -121,14 +121,21 @@ class A3_UserCrudSpec extends ScimBaseSpec {
             .get("/Users/${minimalUserId}")
 
         then: "Status is 200 OK"
-        response.statusCode() == 200
+        assert response.statusCode() == 200
+
+        and: "Content-Type is application/scim+json"
+        assert response.contentType().contains(SCIM_CONTENT_TYPE)
 
         and: "User representation matches what was created"
         def body = response.jsonPath()
-        body.getString("id") == minimalUserId
-        body.getString("userName") == minimalUserName
-        body.getList("schemas").contains(USER_SCHEMA)
-        body.getMap("meta").resourceType == "User"
+        assert body.getString("id") == minimalUserId
+        assert body.getString("userName") == minimalUserName
+        assert body.getList("schemas").contains(USER_SCHEMA)
+        def meta = body.getMap("meta")
+        assert meta != null
+        assert meta.resourceType == "User"
+        assert meta.created != null
+        assert meta.location != null
     }
 
     // ─── USR_04: GET non-existent user ──────────────────────────────────────

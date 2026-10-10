@@ -3,8 +3,14 @@ package de.palsoftware.scim.validator.base
 class ScimOutput {
 
     static void println(Object msg) {
+        String s = String.valueOf(msg)
+        if (s != null && s.startsWith("DEVIATION:")) {
+            String text = s.substring("DEVIATION:".length()).trim()
+            deviation(text)
+            return
+        }
         if (!ScimRunContext.isCaptureEnabled()) {
-            System.out.println(String.valueOf(msg))
+            System.out.println(s)
         }
     }
 

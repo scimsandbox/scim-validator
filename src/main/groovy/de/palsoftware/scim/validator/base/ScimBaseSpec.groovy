@@ -249,7 +249,7 @@ abstract class ScimBaseSpec extends Specification {
                 if (pag != null) {
                     currentState.cursorPaginationState = parseCapability(json.get("pagination.cursor"))
                 } else {
-                    currentState.cursorPaginationState = CapabilityState.UNSUPPORTED
+                    currentState.cursorPaginationState = CapabilityState.UNKNOWN
                 }
 
                 // RFC 9967 security events / async
@@ -273,11 +273,13 @@ abstract class ScimBaseSpec extends Specification {
                 System.err.println("WARNING: GET /ServiceProviderConfig returned status ${response.statusCode()}; optional capabilities marked UNKNOWN")
                 setAllCapabilitiesUnknown(currentState)
                 detectAdditionalCapabilities(currentState)
+                currentState.spcLoaded = true
             }
         } catch (Exception e) {
             System.err.println("WARNING: Could not load ServiceProviderConfig: ${e.message}; optional capabilities marked UNKNOWN")
             setAllCapabilitiesUnknown(currentState)
             detectAdditionalCapabilities(currentState)
+            currentState.spcLoaded = true
         }
     }
 
@@ -644,6 +646,10 @@ abstract class ScimBaseSpec extends Specification {
      * Record a structured specification deviation.
      */
     protected void recordDeviation(String requirementId, String specClause, String message) {
-        ScimOutput.deviation("[${specClause}] ${message}", null, requirementId, null, null, getBASE_URL())
+        String testId = null
+        try {
+            testId = specificationContext?.currentIteration?.name ?: specificationContext?.currentFeature?.name
+        } catch (Exception ignored) {}
+        ScimOutput.deviation("[${specClause}] ${message}", testId, requirementId, null, null, getBASE_URL())
     }
 }

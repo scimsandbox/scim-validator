@@ -188,12 +188,14 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         ])
 
         then:
-        response.statusCode() == 200
+        assert response.statusCode() == 200
 
         and:
         def getResponse = scimRequestQuiet().get("/Users/${multiEmailUserId}")
         def emails = getResponse.jsonPath().getList("emails")
-        emails.find { it.type == "other" } == null
+        assert emails.find { it.type == "other" } == null
+        assert emails.find { it.type == "work" } != null
+        assert emails.find { it.type == "home" } != null
     }
 
     // ─── PAT_08: Invalid path returns error ──────────────────────────────────
@@ -227,6 +229,10 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         if (response.statusCode() == 400) {
             assertScimError(response, 400)
             assertScimType(response, "mutability", "invalidValue")
+        } else if (response.statusCode() == 200) {
+            def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
+            assert getResponse.statusCode() == 200
+            assert getResponse.jsonPath().getString("id") == testUserId
         }
     }
 

@@ -385,7 +385,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             recordDeviation("RFC7643-2.3.7-R1", "RFC 7643 §2.3.7", "Deleted user was not pruned from group members list")
             ScimOutput.println "DEVIATION: Deleted user was not pruned from group members list (referential integrity is optional)"
         } else {
-            members == null || members.any { it.value == memberUserId1 }
+            assert members == null || members.any { it.value == memberUserId1 }
         }
 
         cleanup:
@@ -420,7 +420,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             recordDeviation("RFC7643-4.1.2-R6", "RFC 7643 §4.1", "Server does not maintain reverse group membership in User.groups")
             ScimOutput.println "DEVIATION: Server does not maintain reverse group membership in User.groups"
         } else {
-            groups.any { it.value == reflectGroupId }
+            assert groups.any { it.value == reflectGroupId }
         }
 
         when: "Deleting the group"
@@ -434,7 +434,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         then: "User response no longer includes the deleted group"
         getUserAfterResp.statusCode() == 200
         def groupsAfter = getUserAfterResp.jsonPath().getList("groups")
-        groupsAfter == null || !groupsAfter.any { it.value == reflectGroupId }
+        assert groupsAfter == null || !groupsAfter.any { it.value == reflectGroupId }
 
         cleanup:
         if (reflectUserId) {
