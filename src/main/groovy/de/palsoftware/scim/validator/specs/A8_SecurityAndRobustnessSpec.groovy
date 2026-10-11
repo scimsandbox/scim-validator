@@ -92,7 +92,6 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
             assertScimType(response, "mutability", "invalidValue")
         } else if (response.statusCode() == 403) {
             recordDeviation("RFC7643-2.2-R1", "RFC 7643 §2.2", "Server returned 403 Forbidden for readOnly id change instead of 400 mutability or ignoring")
-            ScimOutput.println "DEVIATION: Server returned 403 Forbidden for readOnly id change instead of 400 mutability or ignoring"
         }
 
         and: "If 200, the id should NOT have changed"
@@ -472,7 +471,6 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
         if (response.statusCode() == 200) {
             recordDeviation("RFC7644-3.8-R3", "RFC 7644 §3.8", "Server returned 200 instead of 406 Not Acceptable for unsupported Accept: text/xml")
-            ScimOutput.println "DEVIATION: Server returned 200 instead of 406 Not Acceptable for unsupported Accept: text/xml (RFC 7644 §3.8)"
         }
     }
 
@@ -495,7 +493,6 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
         if (response.statusCode() == 400) {
             recordDeviation("RFC7644-3.8-R1", "RFC 7644 §3.8", "Server returned 400 instead of 415 Unsupported Media Type for unsupported Content-Type")
-            ScimOutput.println "DEVIATION: Server returned 400 instead of 415 Unsupported Media Type for unsupported Content-Type (RFC 7644 §3.8)"
         }
     }
 
@@ -737,7 +734,6 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
             assert response.jsonPath().getString("status") == "401"
         } else {
             recordDeviation("RFC7644-3.12-R3", "RFC 7644 §3.12", "HTTP 401 response omits SCIM Error JSON body")
-            ScimOutput.println "DEVIATION: HTTP 401 response omits SCIM Error JSON body"
         }
     }
 

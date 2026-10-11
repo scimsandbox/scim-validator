@@ -244,7 +244,6 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         if (hasName || hasEmails || hasExternalId) {
             recordDeviation("RFC7644-3.4.2.5-R1", "RFC 7644 §3.4.2.5", "Server returns default attributes even when attributes=userName is specified")
-            ScimOutput.println "DEVIATION: Server returns default attributes even when attributes=userName is specified"
         }
     }
 
@@ -270,7 +269,6 @@ class A5_FilteringSpec extends A5_BaseSpec {
         boolean emailsPresent = resources.any { Map r -> r.containsKey("emails") }
         if (emailsPresent) {
             recordDeviation("RFC7644-3.4.2.5-R2", "RFC 7644 §3.4.2.5", "Server does not honor excludedAttributes=emails on list responses")
-            ScimOutput.println "DEVIATION: Server does not honor excludedAttributes=emails on list responses"
         }
     }
 
@@ -659,7 +657,6 @@ class A5_FilteringSpec extends A5_BaseSpec {
             assert bracketSubAttr.jsonPath().getInt("totalResults") >= 5
         } else {
             recordDeviation("RFC7644-3.4.2.2-R12", "RFC 7644 §3.4.2.2", "Server does not support bracketed value path with dotted sub-attribute targeting 'emails[...].value'")
-            ScimOutput.println "DEVIATION: Server does not support bracketed value path with dotted sub-attribute targeting 'emails[...].value' (RFC 7644 §3.4.2.2)"
             assertScimError(bracketSubAttr, 400)
         }
     }

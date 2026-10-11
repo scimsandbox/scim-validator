@@ -157,7 +157,6 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         def returnedExtId = response.jsonPath().getString("externalId")
         if (returnedExtId != null) {
             recordDeviation("RFC7644-3.5.1-R2", "RFC 7644 §3.5.1", "PUT did not clear omitted optional attribute externalId")
-            ScimOutput.println "DEVIATION: PUT did not clear omitted optional attribute externalId (returned: ${returnedExtId})"
         }
     }
 
@@ -383,7 +382,6 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         def members = getGroupResp.jsonPath().getList("members")
         if (members != null && members.any { it.value == cascadeUserId }) {
             recordDeviation("RFC7643-2.3.7-R1", "RFC 7643 §2.3.7", "Deleted user was not pruned from group members list")
-            ScimOutput.println "DEVIATION: Deleted user was not pruned from group members list (referential integrity is optional)"
         } else {
             assert members == null || members.any { it.value == memberUserId1 }
         }
@@ -418,7 +416,6 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         def groups = getUserResp.jsonPath().getList("groups")
         if (groups == null || !groups.any { it.value == reflectGroupId }) {
             recordDeviation("RFC7643-4.1.2-R6", "RFC 7643 §4.1", "Server does not maintain reverse group membership in User.groups")
-            ScimOutput.println "DEVIATION: Server does not maintain reverse group membership in User.groups"
         } else {
             assert groups.any { it.value == reflectGroupId }
         }
