@@ -513,11 +513,15 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         def schemasResp = scimRequestAnonymous().get("/Schemas")
 
         then: "Discovery endpoints return 200 OK or record deviation if authentication is required"
-        [spcResp, rtResp, schemasResp].each { resp ->
+        [
+            ["/ServiceProviderConfig", spcResp],
+            ["/ResourceTypes", rtResp],
+            ["/Schemas", schemasResp]
+        ].each { path, resp ->
             if (resp.statusCode() == 401) {
-                ScimOutput.deviation("Discovery endpoint requires authentication contrary to RFC 7644 §4 SHOULD recommendation", "DSC_14", "RFC7644-4-R4")
+                recordDeviation("RFC7644-4-R4", "RFC 7644 §4", "Discovery endpoint ${path} requires authentication contrary to RFC 7644 §4 SHOULD recommendation")
             } else {
-                assert resp.statusCode() == 200 : "Expected HTTP 200 or 401 on anonymous discovery access, got ${resp.statusCode()}"
+                assert resp.statusCode() == 200 : "Expected HTTP 200 or 401 on anonymous discovery access for ${path}, got ${resp.statusCode()}"
             }
         }
     }

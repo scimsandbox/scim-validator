@@ -520,7 +520,7 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         def getResponse = scimRequestQuiet().get("/Groups/${grpId}")
         def members = getResponse.jsonPath().getList("members")
         if (members == null || members.isEmpty()) {
-            ScimOutput.println "DEVIATION: Server removed all members on path 'members' with value list instead of only specified member"
+            recordDeviation("RFC7644-3.5.2.2-R2", "RFC 7644 §3.5.2.2", "Server removed all members on path 'members' with value list instead of only specified member")
         } else {
             assert members.size() == 1
             assert members[0].value == user2Id
