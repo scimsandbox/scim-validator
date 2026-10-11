@@ -565,10 +565,10 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     @SpecRef("RFC7643-2.3.5-R1")
     def "NEG_27: Submitting malformed dateTime format in filter returns 400 invalidFilter or records deviation"() {
-        // RFC 7643 §2.3.5 — dateTime attributes must conform to ISO 8601 / RFC 3339 (e.g. 2008-01-23T04:56:22Z)
-        when: "Filter with malformed dateTime string (missing required timezone offset per RFC 3339)"
+        // RFC 7643 §2.3.5 — dateTime attributes must conform to ISO 8601 / xsd:dateTime
+        when: "Filter with malformed dateTime string"
         Response response = scimRequestQuiet()
-            .queryParam("filter", 'meta.lastModified gt "2026-01-01T00:00:00"')
+            .queryParam("filter", 'meta.lastModified gt "not-an-iso-8601-date"')
             .get("/Users")
 
         then: "Server rejects with 400 invalidFilter or records deviation (server error 500 is never valid)"
