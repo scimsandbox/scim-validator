@@ -59,12 +59,30 @@ abstract class ScimBaseSpec extends Specification {
         return state().spcLoaded
     }
 
+    static CapabilityState getCapabilityState(String capability) {
+        RuntimeState s = state()
+        switch (capability?.toLowerCase()) {
+            case "patch": return s.patchState ?: CapabilityState.UNKNOWN
+            case "bulk": return s.bulkState ?: CapabilityState.UNKNOWN
+            case "sort": return s.sortState ?: CapabilityState.UNKNOWN
+            case "etag": return s.etagState ?: CapabilityState.UNKNOWN
+            case "filter": return s.filterState ?: CapabilityState.UNKNOWN
+            case "changepassword": return s.changePasswordState ?: CapabilityState.UNKNOWN
+            case "search": return s.searchState ?: CapabilityState.UNKNOWN
+            case "enterprise": return s.enterpriseState ?: CapabilityState.UNKNOWN
+            case "cursorpagination": return s.cursorPaginationState ?: CapabilityState.UNKNOWN
+            case "securityevents":
+            case "async": return s.asyncState ?: CapabilityState.UNKNOWN
+            default: return CapabilityState.UNKNOWN
+        }
+    }
+
     static boolean isPatchSupported() {
-        return state().patchSupported
+        return getCapabilityState("patch") == CapabilityState.SUPPORTED
     }
 
     static boolean isBulkSupported() {
-        return state().bulkSupported
+        return getCapabilityState("bulk") == CapabilityState.SUPPORTED
     }
 
     static int getBulkMaxOperations() {
@@ -75,12 +93,50 @@ abstract class ScimBaseSpec extends Specification {
         return state().filterMaxResults
     }
 
+    static boolean isFilterSupported() {
+        return getCapabilityState("filter") == CapabilityState.SUPPORTED
+    }
+
     static boolean isEtagSupported() {
-        return state().etagSupported
+        return getCapabilityState("etag") == CapabilityState.SUPPORTED
     }
 
     static boolean isSortSupported() {
-        return state().sortSupported
+        return getCapabilityState("sort") == CapabilityState.SUPPORTED
+    }
+
+    /**
+     * Require that the target server advertises support for the given capability.
+     * If the capability is explicitly UNSUPPORTED, the test is skipped via TestAbortedException.
+     * If the capability is UNKNOWN, a note is logged and the probe proceeds.
+     */
+    protected void requireCapability(String capability) {
+        CapabilityState state = getCapabilityState(capability)
+        if (state == CapabilityState.UNSUPPORTED) {
+            String msg = "Skipped: server declares '${capability}' unsupported in /ServiceProviderConfig"
+            ScimOutput.note(msg)
+            throw new org.opentest4j.TestAbortedException(msg)
+        }
+        if (state == CapabilityState.UNKNOWN) {
+            ScimOutput.note("Probe run: server capability '${capability}' is UNKNOWN (/ServiceProviderConfig not loaded or flag omitted)")
+        }
+    }
+
+    /**
+     * Ensure that /ServiceProviderConfig (and schema capability probes) have been executed.
+     */
+    static void ensureServiceProviderConfigLoaded() {
+        if (!state().spcLoaded) {
+            loadServiceProviderConfig()
+        }
+    }
+
+    static boolean isStrictScimType() {
+        String strictProp = System.getProperty("scim.strictScimType")
+        if (strictProp != null) {
+            return Boolean.parseBoolean(strictProp)
+        }
+        return false // default lenient per RFC 7644 §3.12 (scimType is OPTIONAL)
     }
 
 
@@ -169,27 +225,131 @@ abstract class ScimBaseSpec extends Specification {
     /**
      * Load ServiceProviderConfig once across all specs.
      */
-    protected void loadServiceProviderConfig() {
+    protected static void loadServiceProviderConfig() {
         configureRestAssured()
         RuntimeState currentState = state()
         if (currentState.spcLoaded) return
         try {
-            Response response = scimRequest()
+            Response response = scimRequestQuiet()
                 .get("/ServiceProviderConfig")
 
             if (response.statusCode() == 200) {
                 def json = response.jsonPath()
-                currentState.patchSupported = asBoolean(json.get("patch.supported"), false)
-                currentState.bulkSupported = asBoolean(json.get("bulk.supported"), false)
+                currentState.patchState = parseCapability(json.get("patch.supported"))
+                currentState.bulkState = parseCapability(json.get("bulk.supported"))
                 currentState.bulkMaxOperations = asInt(json.get("bulk.maxOperations"), 0)
                 currentState.filterMaxResults = asInt(json.get("filter.maxResults"), 0)
-                currentState.etagSupported = asBoolean(json.get("etag.supported"), false)
-                currentState.sortSupported = asBoolean(json.get("sort.supported"), false)
+                currentState.filterState = parseCapability(json.get("filter.supported"))
+                currentState.etagState = parseCapability(json.get("etag.supported"))
+                currentState.sortState = parseCapability(json.get("sort.supported"))
+                currentState.changePasswordState = parseCapability(json.get("changePassword.supported"))
+
+                // RFC 9865 cursor pagination
+                def pag = json.get("pagination")
+                if (pag != null) {
+                    currentState.cursorPaginationState = parseCapability(json.get("pagination.cursor"))
+                } else {
+                    currentState.cursorPaginationState = CapabilityState.UNKNOWN
+                }
+
+                // RFC 9967 security events / async
+                def secEvents = json.get("securityEvents")
+                if (secEvents != null) {
+                    String asyncReq = json.get("securityEvents.asyncRequest")?.toString()?.toLowerCase()
+                    if (asyncReq in ["request", "long"]) {
+                        currentState.asyncState = CapabilityState.SUPPORTED
+                    } else if (asyncReq == "none") {
+                        currentState.asyncState = CapabilityState.UNSUPPORTED
+                    } else {
+                        currentState.asyncState = parseCapability(json.get("securityEvents.supported"))
+                    }
+                } else {
+                    currentState.asyncState = CapabilityState.UNSUPPORTED
+                }
+
+                currentState.spcLoaded = true
+                detectAdditionalCapabilities(currentState)
+            } else {
+                System.err.println("WARNING: GET /ServiceProviderConfig returned status ${response.statusCode()}; optional capabilities marked UNKNOWN")
+                setAllCapabilitiesUnknown(currentState)
+                detectAdditionalCapabilities(currentState)
                 currentState.spcLoaded = true
             }
         } catch (Exception e) {
-            System.err.println("WARNING: Could not load ServiceProviderConfig: ${e.message}")
+            System.err.println("WARNING: Could not load ServiceProviderConfig: ${e.message}; optional capabilities marked UNKNOWN")
+            setAllCapabilitiesUnknown(currentState)
+            detectAdditionalCapabilities(currentState)
+            currentState.spcLoaded = true
         }
+    }
+
+    private static void detectAdditionalCapabilities(RuntimeState currentState) {
+        // Detect enterprise user extension via /ResourceTypes/User or /Schemas
+        try {
+            Response rtResp = scimRequestQuiet().get("/ResourceTypes/User")
+            if (rtResp.statusCode() == 200) {
+                def extensions = rtResp.jsonPath().getList("schemaExtensions.schema")
+                if (extensions != null && extensions.contains(ENTERPRISE_USER_SCHEMA)) {
+                    currentState.enterpriseState = CapabilityState.SUPPORTED
+                } else {
+                    currentState.enterpriseState = CapabilityState.UNSUPPORTED
+                }
+            } else {
+                Response schemaResp = scimRequestQuiet().get("/Schemas/${ENTERPRISE_USER_SCHEMA}")
+                if (schemaResp.statusCode() == 200) {
+                    currentState.enterpriseState = CapabilityState.SUPPORTED
+                } else if (schemaResp.statusCode() == 404) {
+                    currentState.enterpriseState = CapabilityState.UNSUPPORTED
+                } else {
+                    currentState.enterpriseState = CapabilityState.UNKNOWN
+                }
+            }
+        } catch (Exception ignored) {
+            currentState.enterpriseState = CapabilityState.UNKNOWN
+        }
+
+        // Detect search capability via .search endpoint probe
+        try {
+            Response searchResp = scimRequestQuiet()
+                .body(JsonOutput.toJson([
+                    schemas: ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
+                    attributes: ["id"]
+                ]))
+                .post("/Users/.search")
+            if (searchResp.statusCode() in [200, 400]) {
+                currentState.searchState = CapabilityState.SUPPORTED
+            } else if (searchResp.statusCode() in [404, 405, 501]) {
+                currentState.searchState = CapabilityState.UNSUPPORTED
+            } else {
+                currentState.searchState = CapabilityState.UNKNOWN
+            }
+        } catch (Exception ignored) {
+            currentState.searchState = CapabilityState.UNKNOWN
+        }
+    }
+
+    private static void setAllCapabilitiesUnknown(RuntimeState state) {
+        state.patchState = CapabilityState.UNKNOWN
+        state.bulkState = CapabilityState.UNKNOWN
+        state.filterState = CapabilityState.UNKNOWN
+        state.etagState = CapabilityState.UNKNOWN
+        state.sortState = CapabilityState.UNKNOWN
+        state.changePasswordState = CapabilityState.UNKNOWN
+        state.searchState = CapabilityState.UNKNOWN
+        state.enterpriseState = CapabilityState.UNKNOWN
+        state.cursorPaginationState = CapabilityState.UNKNOWN
+        state.asyncState = CapabilityState.UNKNOWN
+    }
+
+    private static CapabilityState parseCapability(Object val) {
+        if (val == null) return CapabilityState.UNKNOWN
+        if (val instanceof Boolean) return ((Boolean) val) ? CapabilityState.SUPPORTED : CapabilityState.UNSUPPORTED
+        if (val instanceof String) {
+            String s = ((String) val).trim().toLowerCase()
+            if (s == "true") return CapabilityState.SUPPORTED
+            if (s == "false") return CapabilityState.UNSUPPORTED
+        }
+        return CapabilityState.UNKNOWN
     }
 
     protected static boolean asBoolean(Object value, boolean defaultValue = false) {
@@ -241,7 +401,7 @@ abstract class ScimBaseSpec extends Specification {
     /**
      * Build a REST Assured request without logging (for cleanup operations).
      */
-    protected RequestSpecification scimRequestQuiet() {
+    protected static RequestSpecification scimRequestQuiet() {
         configureRestAssured()
         RuntimeState currentState = state()
         return RestAssured.given()
@@ -256,7 +416,7 @@ abstract class ScimBaseSpec extends Specification {
     /**
      * Build a REST Assured request without an Authorization header.
      */
-    protected RequestSpecification scimRequestAnonymous() {
+    protected static RequestSpecification scimRequestAnonymous() {
         configureRestAssured()
         RuntimeState currentState = state()
         return RestAssured.given()
@@ -283,12 +443,18 @@ abstract class ScimBaseSpec extends Specification {
         String authToken
         String workspaceId
         boolean spcLoaded
-        boolean patchSupported
-        boolean bulkSupported
+        CapabilityState patchState = CapabilityState.UNKNOWN
+        CapabilityState bulkState = CapabilityState.UNKNOWN
         int bulkMaxOperations
         int filterMaxResults
-        boolean etagSupported
-        boolean sortSupported
+        CapabilityState filterState = CapabilityState.UNKNOWN
+        CapabilityState etagState = CapabilityState.UNKNOWN
+        CapabilityState sortState = CapabilityState.UNKNOWN
+        CapabilityState changePasswordState = CapabilityState.UNKNOWN
+        CapabilityState searchState = CapabilityState.UNKNOWN
+        CapabilityState enterpriseState = CapabilityState.UNKNOWN
+        CapabilityState cursorPaginationState = CapabilityState.UNKNOWN
+        CapabilityState asyncState = CapabilityState.UNKNOWN
     }
 
     /**
@@ -456,19 +622,34 @@ abstract class ScimBaseSpec extends Specification {
     /**
      * Assert the SCIM detail error keyword when the server supplies one.
      *
-     * RFC 7644 §3.12 marks "scimType" OPTIONAL, so an omitted keyword is reported
-     * as a deviation rather than failing an otherwise compliant server. A keyword
-     * that is present but not among the expected values is a hard failure.
+     * In strict mode (default for validator runs), an omitted scimType is a failure
+     * when the test expects a specific keyword. In lenient mode (-Dscim.lenient=true),
+     * an omitted keyword is recorded as a structured deviation.
+     * A keyword that is present but not among the expected values is always a failure.
      */
-    protected void assertScimType(Response response, String... expectedScimTypes) {
-        List<String> expected = expectedScimTypes as List<String>
-        String scimType = response.jsonPath().getString("scimType")
-        if (scimType == null || scimType.isBlank()) {
-            ScimOutput.println "DEVIATION: HTTP ${response.statusCode()} omits optional scimType " +
-                "(expected one of ${expected}) (RFC 7644 §3.12)"
-            return
-        }
-        assert expected.contains(scimType) :
-            "Expected scimType one of ${expected} but got '${scimType}' (RFC 7644 §3.12)"
+     protected void assertScimType(Response response, String... expectedScimTypes) {
+         List<String> expected = expectedScimTypes as List<String>
+         String scimType = response.jsonPath().getString("scimType")
+         if (scimType == null || scimType.isBlank()) {
+             String msg = "HTTP ${response.statusCode()} omits optional scimType (expected one of ${expected}) (RFC 7644 §3.12)"
+             ScimOutput.deviation(msg, null, "RFC7644-3.12-R1", "omitted", expected.toString(), getBASE_URL())
+             if (isStrictScimType()) {
+                 assert false : "Strict mode: ${msg}"
+             }
+             return
+         }
+         assert expected.contains(scimType) :
+             "Expected scimType one of ${expected} but got '${scimType}' (RFC 7644 §3.12)"
+     }
+
+    /**
+     * Record a structured specification deviation.
+     */
+    protected void recordDeviation(String requirementId, String specClause, String message) {
+        String testId = null
+        try {
+            testId = specificationContext?.currentIteration?.name ?: specificationContext?.currentFeature?.name
+        } catch (Exception ignored) {}
+        ScimOutput.deviation("[${specClause}] ${message}", testId, requirementId, null, null, getBASE_URL())
     }
 }

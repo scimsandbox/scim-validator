@@ -1,0 +1,483 @@
+# RFC 7643: SCIM Core Schema Specification Requirements Catalog
+# Basis: RFC 7643 as published (September 2015) + Verified Errata (5368, 5606, 5990, 5991, 6004, 7522, 8415, 8417, 8435, 8450, 8471, 8472, 8475)
+# Date: 2026-10-10
+
+- id: RFC7643-2.1-R1
+  rfc: "7643"
+  section: "2.1"
+  title: "Attribute names match ABNF ATTRNAME and are case-insensitive"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Attribute names are case-insensitive across queries and schemas"
+
+- id: RFC7643-2.2-R1
+  rfc: "7643"
+  section: "2.2"
+  title: "Schema attribute characteristics use valid enum values when present"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "type, mutability, returned, uniqueness belong to defined sets"
+
+- id: RFC7643-2.2-R2
+  rfc: "7643"
+  section: "2.2"
+  title: "Schema attribute characteristics apply default values when omitted"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "required=false, caseExact=false, mutability=readWrite, returned=default, uniqueness=none, multiValued=false, type=string"
+
+- id: RFC7643-2.2-R3
+  rfc: "7643"
+  section: "2.2"
+  title: "Attribute mutability definitions (readOnly, readWrite, immutable, writeOnly) are enforced"
+  level: MUST
+  capability: none
+  observability: behavior
+  disposition: tested
+  note: "readOnly cannot be modified; immutable cannot be modified once set"
+
+- id: RFC7643-2.2-R4
+  rfc: "7643"
+  section: "2.2"
+  title: "Attribute returned definitions (always, never, default, request) are honored"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "returned=never attributes like password are never returned in responses"
+
+- id: RFC7643-2.2-R5
+  rfc: "7643"
+  section: "2.2"
+  title: "Attribute uniqueness definitions (none, server, global) are enforced"
+  level: MUST
+  capability: none
+  observability: behavior
+  disposition: tested
+  note: "Enforces server-wide uniqueness for unique attributes"
+
+- id: RFC7643-2.2-R6
+  rfc: "7643"
+  section: "2.2"
+  title: "Attribute caseExact definition is honored in filtering and matching"
+  level: MUST
+  capability: none
+  observability: behavior
+  disposition: tested
+  note: "caseExact false matches case-insensitively; caseExact true requires exact case match"
+
+- id: RFC7643-2.2-R7
+  rfc: "7643"
+  section: "2.2"
+  title: "Attribute canonicalValues restriction rejects or validates unrecognized values"
+  level: MAY
+  capability: none
+  observability: behavior
+  disposition: optional
+  note: "Server restricts or suggests values from canonical list"
+
+- id: RFC7643-2.3-R1
+  rfc: "7643"
+  section: "2.3"
+  title: "Value validation conforms to declared attribute data types"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Invalid data types (e.g. string for boolean/integer) return 400 invalidValue"
+
+- id: RFC7643-2.3.5-R1
+  rfc: "7643"
+  section: "2.3.5"
+  title: "dateTime attributes are formatted as XML dateTime according to ISO 8601"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "dateTime values (e.g. meta.created, meta.lastModified) follow ISO 8601"
+
+- id: RFC7643-2.3.6-R1
+  rfc: "7643"
+  section: "2.3.6"
+  title: "binary attributes are base64 encoded and case-exact"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Binary attributes must be base64 strings"
+
+- id: RFC7643-2.3.7-R1
+  rfc: "7643"
+  section: "2.3.7"
+  title: "reference attributes contain valid URI ($ref) and target resource referenceTypes"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "References point to target SCIM resources or external URIs"
+
+- id: RFC7643-2.3.7-R2
+  rfc: "7643"
+  section: "2.3.7"
+  title: "Service providers MAY enforce referential integrity for reference attributes"
+  level: MAY
+  capability: none
+  observability: behavior
+  disposition: optional
+  note: "Referential integrity enforcement is optional per RFC 7643 §2.3.7"
+
+- id: RFC7643-2.3.8-R1
+  rfc: "7643"
+  section: "2.3.8"
+  title: "Complex attributes MUST NOT contain nested complex attributes (except Schema resource)"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Complex attributes cannot nest complex sub-attributes"
+
+- id: RFC7643-2.4-R1
+  rfc: "7643"
+  section: "2.4"
+  title: "Multi-valued complex attribute primary sub-attribute is boolean with at most one true"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "At most one value in a multi-valued set has primary set to true; default is false"
+
+- id: RFC7643-2.4-R2
+  rfc: "7643"
+  section: "2.4"
+  title: "Multi-valued complex attribute display sub-attribute is human-readable and readOnly"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "display sub-attribute describes the item and is not intended for client modification"
+
+- id: RFC7643-2.4-R3
+  rfc: "7643"
+  section: "2.4"
+  title: "Service providers SHOULD NOT return duplicate (type, value) entries"
+  level: SHOULD
+  capability: none
+  observability: response
+  disposition: tested
+  note: "De-duplication of multi-valued items"
+
+- id: RFC7643-2.5-R1
+  rfc: "7643"
+  section: "2.5"
+  title: "Unassigned attributes are treated as null or empty array and MAY be omitted"
+  level: MAY
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Unassigned attributes omitted or returned as null"
+
+- id: RFC7643-3-R1
+  rfc: "7643"
+  section: "3"
+  title: "Resource representations MUST include non-empty schemas array of unique schema URIs"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Every resource carries valid schemas array with no duplicate URIs"
+
+- id: RFC7643-3-R2
+  rfc: "7643"
+  section: "3"
+  title: "Extended attributes MUST be in sub-structure keyed by schema URI without top-level leak"
+  level: MUST
+  capability: enterprise
+  observability: response
+  disposition: optional
+  note: "Enterprise extension attributes isolated under extension URN"
+
+- id: RFC7643-3.1-R1
+  rfc: "7643"
+  section: "3.1"
+  title: "id attribute is server-issued, unique, case-exact, readOnly, returned always; client MUST NOT specify"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "bulkId is a reserved keyword; client cannot supply id on POST"
+
+- id: RFC7643-3.1-R2
+  rfc: "7643"
+  section: "3.1"
+  title: "externalId attribute is readWrite, case-exact, scoped to provisioning domain"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "externalId round-trips and preserves client case"
+
+- id: RFC7643-3.1-R3
+  rfc: "7643"
+  section: "3.1"
+  title: "meta.location MUST match Content-Location HTTP response header"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "meta.location URI matches response Content-Location header"
+
+- id: RFC7643-3.1-R4
+  rfc: "7643"
+  section: "3.1"
+  title: "meta.version matches ETag HTTP response header and uses weak entity-tag format"
+  level: MUST
+  capability: etag
+  observability: response
+  disposition: optional
+  note: "meta.version mirrors ETag header"
+
+- id: RFC7643-3.1-R5
+  rfc: "7643"
+  section: "3.1"
+  title: "meta.created and meta.lastModified are assigned by service provider and readOnly"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Timestamps assigned by server; client values ignored"
+
+- id: RFC7643-4.1.1-R1
+  rfc: "7643"
+  section: "4.1.1"
+  title: "User userName is required, unique across server/global, and case-insensitive"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Core identifier for User resource"
+
+- id: RFC7643-4.1.1-R2
+  rfc: "7643"
+  section: "4.1.1"
+  title: "User password has mutability writeOnly and returned never"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Password cannot be read via API or leaked in query/error responses"
+
+- id: RFC7643-4.1.1-R3
+  rfc: "7643"
+  section: "4.1.1"
+  title: "User name complex attribute contains familyName, givenName, middleName, honorifics"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Name sub-attributes follow SCIM specification"
+
+- id: RFC7643-4.1.1-R4
+  rfc: "7643"
+  section: "4.1.1"
+  title: "User displayName, nickName, profileUrl, title, userType adhere to schema definitions"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Standard singular User attributes"
+
+- id: RFC7643-4.1.1-R5
+  rfc: "7643"
+  section: "4.1.1"
+  title: "User preferredLanguage, locale, timezone conform to standard formats"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "RFC 5646 language tags, IANA time zones"
+
+- id: RFC7643-4.1.1-R6
+  rfc: "7643"
+  section: "4.1.1"
+  title: "User active is a boolean indicating account administrative status"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Active status boolean true/false"
+
+- id: RFC7643-4.1.2-R1
+  rfc: "7643"
+  section: "4.1.2"
+  title: "User emails is multi-valued with canonical types (work, home, other) and primary"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Email addresses multi-valued complex attribute"
+
+- id: RFC7643-4.1.2-R2
+  rfc: "7643"
+  section: "4.1.2"
+  title: "User phoneNumbers is multi-valued with canonical types (work, home, mobile, fax, pager, other)"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Phone numbers multi-valued complex attribute"
+
+- id: RFC7643-4.1.2-R3
+  rfc: "7643"
+  section: "4.1.2"
+  title: "User ims is multi-valued instant messaging addresses"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Instant messaging addresses"
+
+- id: RFC7643-4.1.2-R4
+  rfc: "7643"
+  section: "4.1.2"
+  title: "User photos is multi-valued and values MUST specify image file URIs"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Image file URIs with canonical types photo and thumbnail"
+
+- id: RFC7643-4.1.2-R5
+  rfc: "7643"
+  section: "4.1.2"
+  title: "User addresses country MUST be in two-letter ISO 3166-1 alpha-2 format"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Country code validation per errata 5990/5991"
+
+- id: RFC7643-4.1.2-R6
+  rfc: "7643"
+  section: "4.1.2"
+  title: "User groups attribute is readOnly; membership changes MUST occur via Group resource"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Direct write to User groups attribute is rejected or ignored"
+
+- id: RFC7643-4.1.2-R7
+  rfc: "7643"
+  section: "4.1.2"
+  title: "User roles and entitlements multi-valued attributes adhere to schema definitions"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "User roles and entitlements collections"
+
+- id: RFC7643-4.1.2-R8
+  rfc: "7643"
+  section: "4.1.2"
+  title: "User x509Certificates values contain exactly one DER-encoded certificate in base64"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Single DER certificate per element; sequence of certificates forbidden"
+
+- id: RFC7643-4.2-R1
+  rfc: "7643"
+  section: "4.2"
+  title: "Group displayName is REQUIRED"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Erratum 5368 confirms Group displayName required=true"
+
+- id: RFC7643-4.2-R2
+  rfc: "7643"
+  section: "4.2"
+  title: "Group members sub-attributes (value, $ref, type) are immutable"
+  level: MUST
+  capability: none
+  observability: behavior
+  disposition: tested
+  note: "Members can be added/removed, but individual member sub-attributes cannot be modified"
+
+- id: RFC7643-4.2-R3
+  rfc: "7643"
+  section: "4.2"
+  title: "Group supports nested groups as members"
+  level: MAY
+  capability: none
+  observability: behavior
+  disposition: optional
+  note: "Member type Group references another Group resource"
+
+- id: RFC7643-4.3-R1
+  rfc: "7643"
+  section: "4.3"
+  title: "Enterprise User extension attributes (employeeNumber, department, etc.) adhere to schema"
+  level: MUST
+  capability: enterprise
+  observability: response
+  disposition: optional
+  note: "Standard Enterprise User extension schema definitions"
+
+- id: RFC7643-4.3-R2
+  rfc: "7643"
+  section: "4.3"
+  title: "Enterprise User manager complex attribute includes value ($ref) and readOnly displayName"
+  level: MUST
+  capability: enterprise
+  observability: response
+  disposition: optional
+  note: "Manager reference to another User"
+
+- id: RFC7643-5-R1
+  rfc: "7643"
+  section: "5"
+  title: "ServiceProviderConfig attributes are all readOnly and include required capability flags"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "patch, bulk, filter, changePassword, sort, etag, authenticationSchemes"
+
+- id: RFC7643-6-R1
+  rfc: "7643"
+  section: "6"
+  title: "ResourceType representations declare name, endpoint, schema, and schemaExtensions"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "ResourceType name and endpoint are server-unique and case-exact per erratum 8475"
+
+- id: RFC7643-7-R1
+  rfc: "7643"
+  section: "7"
+  title: "Schema resources are readOnly and define full attribute characteristics"
+  level: MUST
+  capability: none
+  observability: response
+  disposition: tested
+  note: "Schema definitions for all resource schemas; representations include schemas and meta per erratum 8417"
+
+- id: RFC7643-9.2-R1
+  rfc: "7643"
+  section: "9.2"
+  title: "Passwords MUST NOT be stored cleartext (hashed or encrypted per erratum 8450)"
+  level: MUST
+  capability: none
+  observability: internal
+  disposition: na
+  note: "Non-observable via API directly; protected by returned=never and secure hashing"
