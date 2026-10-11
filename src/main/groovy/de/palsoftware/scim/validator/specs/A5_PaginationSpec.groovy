@@ -229,13 +229,13 @@ class A5_PaginationSpec extends A5_BaseSpec {
         // RFC 7644 §3.4.3: POST /.search (or /Users/.search) with SearchRequest
         when: "POST search request with pagination"
         Map searchReq = [
-            schemas: ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
-            filter: "userName sw \"${PREFIX}\"",
+            schemas   : ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
+            filter    : "userName sw \"${PREFIX}\"".toString(),
             startIndex: 1,
-            count: 2
+            count     : 2
         ]
         Response response = scimRequest()
-            .body(searchReq)
+            .body(groovy.json.JsonOutput.toJson(searchReq))
             .post("/Users/.search")
 
         then:
