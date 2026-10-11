@@ -840,4 +840,92 @@ class A5_FilteringSpec extends A5_BaseSpec {
             }
         }
     }
+
+    // ─── FLT_41: Logical operators case insensitivity ───────────────────────
+
+    @SpecRef("RFC7644-3.4.2.2-R8")
+    @SpecRef("RFC7644-3.4.2.2-R9")
+    @SpecRef("RFC7644-3.4.2.2-R10")
+    def "FLT_41: Logical operators AND, OR, NOT in uppercase are case-insensitive"() {
+        // RFC 7644 §3.4.2.2: "Logical operators are case-insensitive."
+        when: "Query with uppercase AND"
+        Response andResp = scimRequest()
+            .queryParam("filter", "userName sw \"${PREFIX}\" AND active eq true")
+            .get("/Users")
+
+        and: "Query with uppercase OR"
+        String u1 = userData[0].userName
+        String u2 = userData[1].userName
+        Response orResp = scimRequest()
+            .queryParam("filter", "userName eq \"${u1}\" OR userName eq \"${u2}\"")
+            .get("/Users")
+
+        and: "Query with uppercase NOT"
+        Response notResp = scimRequest()
+            .queryParam("filter", "userName sw \"${PREFIX}\" AND NOT (active eq false)")
+            .get("/Users")
+
+        then: "All queries succeed with 200 OK and match expected results"
+        assert andResp.statusCode() == 200
+        assert andResp.jsonPath().getInt("totalResults") >= 3
+
+        assert orResp.statusCode() == 200
+        assert orResp.jsonPath().getInt("totalResults") == 2
+        def orNames = orResp.jsonPath().getList("Resources.userName")
+        assert orNames.contains(u1) && orNames.contains(u2)
+
+        assert notResp.statusCode() == 200
+        assert notResp.jsonPath().getInt("totalResults") >= 3
+    }
+
+    // ─── FLT_42: Operator precedence not > and > or without parentheses ──────
+
+    @SpecRef("RFC7644-3.4.2.2-R10")
+    @SpecRef("RFC7644-3.4.2.2-R11")
+    def "FLT_42: Operator precedence evaluates and before or without parentheses"() {
+        // RFC 7644 §3.4.2.2: "The order of precedence for operators has not have the highest
+        // precedence, followed by and, and then or."
+        when: "Query with 'A or B and C' where B and C matches user 0, and A matches inactive user 2"
+        String u0 = userData[0].userName // active
+        String u2 = userData[2].userName // inactive
+        Response response = scimRequest()
+            .queryParam("filter", "userName eq \"${u2}\" or userName eq \"${u0}\" and active eq true")
+            .get("/Users")
+
+        then: "and takes precedence over or: both user 2 and user 0 are returned"
+        assert response.statusCode() == 200
+        assert response.jsonPath().getInt("totalResults") == 2
+        def names = response.jsonPath().getList("Resources.userName")
+        assert names.contains(u0) : "Must contain user 0"
+        assert names.contains(u2) : "Must contain inactive user 2 due to 'or' precedence over 'and'"
+    }
+
+    // ─── FLT_43: Comparison operator boundaries gt vs ge ────────────────────
+
+    @SpecRef("RFC7644-3.4.2.2-R7")
+    def "FLT_43: Comparison operators gt and ge adhere to exact boundary values"() {
+        // RFC 7644 §3.4.2.2: "gt: Greater than, ge: Greater than or equal to"
+        when: "Query with ge on userName"
+        String targetUserName = userData[0].userName
+        Response geResponse = scimRequest()
+            .queryParam("filter", "userName ge \"${targetUserName}\" and userName sw \"${PREFIX}\"")
+            .get("/Users")
+
+        and: "Query with gt on the same boundary userName"
+        Response gtResponse = scimRequest()
+            .queryParam("filter", "userName gt \"${targetUserName}\" and userName sw \"${PREFIX}\"")
+            .get("/Users")
+
+        then: "ge includes the boundary item, gt strictly excludes it"
+        assert geResponse.statusCode() == 200
+        assert gtResponse.statusCode() == 200
+
+        List<String> geNames = geResponse.jsonPath().getList("Resources.userName") ?: []
+        List<String> gtNames = gtResponse.jsonPath().getList("Resources.userName") ?: []
+
+        assert geNames.contains(targetUserName) : "ge must include boundary value ${targetUserName}"
+        assert !gtNames.contains(targetUserName) : "gt must strictly exclude boundary value ${targetUserName}"
+        assert geNames.size() == gtNames.size() + 1 : "ge count must be exactly gt count + 1"
+    }
 }
+

@@ -1112,6 +1112,143 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         if (uid) deleteUser(uid)
     }
 
+    // ─── BLK_22: Continue after partial failure ─────────────────────────────
+
+    @SpecRef("RFC7644-3.7-R5")
+    def "BLK_22: Bulk operations continue and execute subsequent operations after partial failure"() {
+        // RFC 7644 §3.7: "The service provider MUST continue performing as many changes as
+        // possible and disregard partial failures."
+        given: "Bulk request with Success -> Failure -> Success operations"
+        String u1 = "bulk_cont_1_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        String u3 = "bulk_cont_3_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        String fakeId = UUID.randomUUID().toString()
+
+        Map bulkPayload = [
+            schemas   : [BULK_REQUEST_SCHEMA],
+            Operations: [
+                [
+                    method: "POST",
+                    path  : "/Users",
+                    bulkId: "contUser1",
+                    data  : [schemas: [USER_SCHEMA], userName: u1]
+                ],
+                [
+                    method: "DELETE",
+                    path  : "/Users/${fakeId}"
+                ],
+                [
+                    method: "POST",
+                    path  : "/Users",
+                    bulkId: "contUser3",
+                    data  : [schemas: [USER_SCHEMA], userName: u3]
+                ]
+            ]
+        ]
+
+        when: "POST to /Bulk"
+        Response response = scimRequest()
+            .body(JsonOutput.toJson(bulkPayload))
+            .post("/Bulk")
+
+        then: "Overall status is 200 OK"
+        response.statusCode() == 200
+        def ops = response.jsonPath().getList("Operations")
+        ops.size() == 3
+
+        and: "First operation succeeded with 201"
+        (ops[0].status as String) == "201"
+        String id1 = (ops[0].location as String)?.tokenize("/")?.last()
+        if (id1) createdUserIds << id1
+
+        and: "Second operation failed with 404"
+        (ops[1].status as String) == "404"
+
+        and: "Third operation succeeded with 201 despite prior failure"
+        (ops[2].status as String) == "201"
+        String id3 = (ops[2].location as String)?.tokenize("/")?.last()
+        if (id3) createdUserIds << id3
+
+        cleanup:
+        if (id1) deleteUser(id1)
+        if (id3) deleteUser(id3)
+    }
+
+    // ─── BLK_23: Circular bulkId cross-references ───────────────────────────
+
+    @SpecRef("RFC7644-3.7-R4")
+    def "BLK_23: Circular bulkId cross-reference between resources is handled gracefully"() {
+        // RFC 7644 §3.7 — Circular bulkId reference handling
+        given: "Two groups referencing each other via bulkId"
+        String g1 = "grp_circ_1_${UUID.randomUUID().toString().substring(0, 8)}"
+        String g2 = "grp_circ_2_${UUID.randomUUID().toString().substring(0, 8)}"
+
+        Map bulkPayload = [
+            schemas   : [BULK_REQUEST_SCHEMA],
+            Operations: [
+                [
+                    method: "POST",
+                    path  : "/Groups",
+                    bulkId: "circG1",
+                    data  : [
+                        schemas    : [GROUP_SCHEMA],
+                        displayName: g1,
+                        members    : [[value: "bulkId:circG2"]]
+                    ]
+                ],
+                [
+                    method: "POST",
+                    path  : "/Groups",
+                    bulkId: "circG2",
+                    data  : [
+                        schemas    : [GROUP_SCHEMA],
+                        displayName: g2,
+                        members    : [[value: "bulkId:circG1"]]
+                    ]
+                ]
+            ]
+        ]
+
+        when: "POST circular bulk request"
+        Response response = scimRequest()
+            .body(JsonOutput.toJson(bulkPayload))
+            .post("/Bulk")
+
+        then: "Server resolves circular references or returns 409 Conflict per §3.7.1"
+        assert response.statusCode() in [200, 409] : "Expected HTTP 200 or 409 per RFC 7644 §3.7.1, but got ${response.statusCode()}"
+        if (response.statusCode() == 409) {
+            assertScimError(response, 409)
+        } else {
+            def ops = response.jsonPath().getList("Operations")
+            assert ops != null && ops.size() == 2
+            boolean allCreated = ops.every { (it.status as String) == "201" }
+            if (allCreated) {
+                String id1 = ops[0].location ? (ops[0].location as String).tokenize("/").last() : (ops[0].response?.id as String)
+                String id2 = ops[1].location ? (ops[1].location as String).tokenize("/").last() : (ops[1].response?.id as String)
+                if (id1 && id2) {
+                    Response g1Resp = scimRequestQuiet().get("/Groups/${id1}")
+                    Response g2Resp = scimRequestQuiet().get("/Groups/${id2}")
+                    if (g1Resp.statusCode() == 200 && g2Resp.statusCode() == 200) {
+                        def m1 = g1Resp.jsonPath().getList("members.value")
+                        def m2 = g2Resp.jsonPath().getList("members.value")
+                        assert m1?.contains(id2) : "Group 1 members must contain resolved Group 2 ID (RFC 7644 §3.7.1)"
+                        assert m2?.contains(id1) : "Group 2 members must contain resolved Group 1 ID (RFC 7644 §3.7.1)"
+                    }
+                }
+            } else {
+                boolean has409 = ops.any { (it.status as String) == "409" }
+                if (!has409) {
+                    recordDeviation("RFC7644-3.7-R4", "RFC 7644 §3.7.1", "Server did not resolve circular bulkId references (operations returned ${ops.collect { it.status }})")
+                }
+            }
+            ops.each { Map op ->
+                String id = (op.location as String)?.tokenize("/")?.last() ?: (op.response?.id as String)
+                if (id) {
+                    try { scimRequestQuiet().delete("/Groups/${id}") } catch (Exception ignored) {}
+                }
+            }
+        }
+    }
+
     /**
      * Assert the scimType carried inside a nested BulkResponse operation error.
      *

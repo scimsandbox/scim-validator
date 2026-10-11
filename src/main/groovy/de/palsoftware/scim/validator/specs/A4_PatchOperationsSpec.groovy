@@ -772,6 +772,79 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         assert response.jsonPath().getString("title") == "Architect"
     }
 
+    // ─── PAT_29: Sub-attribute removal on complex attribute ──────────────────
+
+    @SpecRef("RFC7644-3.5.2.2-R2")
+    def "PAT_29: PATCH remove targeting name.givenName clears only the sub-attribute"() {
+        // RFC 7644 §3.5.2.2 — Removing sub-attribute of complex attribute
+        given: "User with full name"
+        def user = createFullUser(name: [givenName: "SubRemoveFirst", familyName: "KeepFamily"])
+        def uid = user.jsonPath().getString("id")
+
+        when: "PATCH remove with path name.givenName"
+        def patchResp = patchUser(uid, [
+            [op: "remove", path: "name.givenName"]
+        ])
+
+        then: "Status is 200"
+        patchResp.statusCode() == 200
+
+        and: "givenName is removed while familyName remains"
+        def getResp = scimRequestQuiet().get("/Users/${uid}")
+        getResp.jsonPath().getString("name.familyName") == "KeepFamily"
+        getResp.jsonPath().get("name.givenName") == null
+
+        cleanup:
+        if (uid) deleteUser(uid)
+    }
+
+    // ─── PAT_30: Value-path replacement on multi-valued item ────────────────
+
+    @SpecRef("RFC7644-3.5.2.3-R1")
+    def "PAT_30: PATCH replace targeting sub-attribute via value-path filter"() {
+        // RFC 7644 §3.5.2.3 — Value path filter replacement
+        given: "User with work email"
+        def user = createFullUser(emails: [[value: "orig_valpath@test.com", type: "work", primary: true]])
+        def uid = user.jsonPath().getString("id")
+
+        when: "PATCH replace emails[type eq \"work\"].value"
+        def response = patchUser(uid, [
+            [op: "replace", path: 'emails[type eq "work"].value', value: "updated_valpath@test.com"]
+        ])
+
+        then: "Status is 200 and email value is updated"
+        response.statusCode() == 200
+        def getResp = scimRequestQuiet().get("/Users/${uid}")
+        def emails = getResp.jsonPath().getList("emails")
+        emails.find { it.value == "updated_valpath@test.com" } != null
+
+        cleanup:
+        if (uid) deleteUser(uid)
+    }
+
+    // ─── PAT_31: Pathless add merges attributes ─────────────────────────────
+
+    @SpecRef("RFC7644-3.5.2.1-R2")
+    def "PAT_31: PATCH add operation without path merges attributes into resource"() {
+        // RFC 7644 §3.5.2.1 — Pathless add operation merges attributes into resource
+        when: "PATCH add without path specifying title and nickName"
+        def payload = [
+            schemas   : [PATCH_OP_SCHEMA],
+            Operations: [
+                [op: "add", value: [title: "PathlessTitle", nickName: "PathlessNick"]]
+            ]
+        ]
+        def response = scimRequestQuiet()
+            .body(JsonOutput.toJson(payload))
+            .patch("/Users/${testUserId}")
+
+        then: "Status is 200 and attributes are added"
+        response.statusCode() == 200
+        def getResp = scimRequestQuiet().get("/Users/${testUserId}")
+        getResp.jsonPath().getString("title") == "PathlessTitle"
+        getResp.jsonPath().getString("nickName") == "PathlessNick"
+    }
+
     // ─── Cleanup ────────────────────────────────────────────────────────────
 
     def cleanupSpec() {
