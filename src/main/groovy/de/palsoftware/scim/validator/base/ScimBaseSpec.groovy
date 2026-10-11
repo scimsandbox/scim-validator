@@ -60,6 +60,10 @@ abstract class ScimBaseSpec extends Specification {
     }
 
     static CapabilityState getCapabilityState(String capability) {
+        String override = System.getProperty("scim.capability." + capability?.toLowerCase())
+        if (override != null) {
+            return Boolean.parseBoolean(override) ? CapabilityState.SUPPORTED : CapabilityState.UNSUPPORTED
+        }
         RuntimeState s = state()
         switch (capability?.toLowerCase()) {
             case "patch": return s.patchState ?: CapabilityState.UNKNOWN
@@ -74,6 +78,27 @@ abstract class ScimBaseSpec extends Specification {
             case "securityevents":
             case "async": return s.asyncState ?: CapabilityState.UNKNOWN
             default: return CapabilityState.UNKNOWN
+        }
+    }
+
+    static String getAsyncRequestMode() {
+        return state().asyncRequestMode
+    }
+
+    protected static void setCapabilityState(String capability, CapabilityState newState) {
+        RuntimeState s = state()
+        switch (capability?.toLowerCase()) {
+            case "patch": s.patchState = newState; break
+            case "bulk": s.bulkState = newState; break
+            case "sort": s.sortState = newState; break
+            case "etag": s.etagState = newState; break
+            case "filter": s.filterState = newState; break
+            case "changepassword": s.changePasswordState = newState; break
+            case "search": s.searchState = newState; break
+            case "enterprise": s.enterpriseState = newState; break
+            case "cursorpagination": s.cursorPaginationState = newState; break
+            case "securityevents":
+            case "async": s.asyncState = newState; break
         }
     }
 
@@ -256,6 +281,7 @@ abstract class ScimBaseSpec extends Specification {
                 def secEvents = json.get("securityEvents")
                 if (secEvents != null) {
                     String asyncReq = json.get("securityEvents.asyncRequest")?.toString()?.toLowerCase()
+                    currentState.asyncRequestMode = asyncReq
                     if (asyncReq in ["request", "long"]) {
                         currentState.asyncState = CapabilityState.SUPPORTED
                     } else if (asyncReq == "none") {
@@ -265,6 +291,7 @@ abstract class ScimBaseSpec extends Specification {
                     }
                 } else {
                     currentState.asyncState = CapabilityState.UNSUPPORTED
+                    currentState.asyncRequestMode = null
                 }
 
                 currentState.spcLoaded = true
@@ -339,6 +366,7 @@ abstract class ScimBaseSpec extends Specification {
         state.enterpriseState = CapabilityState.UNKNOWN
         state.cursorPaginationState = CapabilityState.UNKNOWN
         state.asyncState = CapabilityState.UNKNOWN
+        state.asyncRequestMode = null
     }
 
     private static CapabilityState parseCapability(Object val) {
@@ -427,7 +455,7 @@ abstract class ScimBaseSpec extends Specification {
             .accept(SCIM_CONTENT_TYPE)
     }
 
-    private static RuntimeState state() {
+    protected static RuntimeState state() {
         RuntimeState currentState = STATE.get()
         if (currentState == null) {
             currentState = new RuntimeState()
@@ -436,7 +464,7 @@ abstract class ScimBaseSpec extends Specification {
         return currentState
     }
 
-    private static final class RuntimeState {
+    protected static final class RuntimeState {
         String scimApiUrl
         String baseUrl
         String basePath
@@ -455,6 +483,7 @@ abstract class ScimBaseSpec extends Specification {
         CapabilityState enterpriseState = CapabilityState.UNKNOWN
         CapabilityState cursorPaginationState = CapabilityState.UNKNOWN
         CapabilityState asyncState = CapabilityState.UNKNOWN
+        String asyncRequestMode
     }
 
     /**

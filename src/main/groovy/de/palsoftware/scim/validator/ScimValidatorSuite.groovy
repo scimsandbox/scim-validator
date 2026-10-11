@@ -11,6 +11,8 @@ import de.palsoftware.scim.validator.specs.A6_GroupLifecycleSpec
 import de.palsoftware.scim.validator.specs.A7_BulkOperationsSpec
 import de.palsoftware.scim.validator.specs.A8_SecurityAndRobustnessSpec
 import de.palsoftware.scim.validator.specs.A9_NegativeAndEdgeCasesSpec
+import de.palsoftware.scim.validator.specs.A10_CursorPaginationSpec
+import de.palsoftware.scim.validator.specs.A11_AsyncOperationsSpec
 import org.junit.platform.suite.api.SelectClasses
 import org.junit.platform.suite.api.Suite
 
@@ -26,7 +28,9 @@ import org.junit.platform.suite.api.Suite
     A6_GroupLifecycleSpec.class,
     A7_BulkOperationsSpec.class,
     A8_SecurityAndRobustnessSpec.class,
-    A9_NegativeAndEdgeCasesSpec.class
+    A9_NegativeAndEdgeCasesSpec.class,
+    A10_CursorPaginationSpec.class,
+    A11_AsyncOperationsSpec.class
 ])
 class ScimValidatorSuite {
 }

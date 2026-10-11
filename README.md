@@ -124,6 +124,20 @@ The default values come from `src/main/resources/validator-application.yml`.
 `SCIM_WORKSPACE_ID` mode. If neither explicit base URL nor workspace/token is
 provided, the suite falls back to bootstrap when Testcontainers is enabled.
 
+### Capability Overrides
+
+The suite discovers server capabilities dynamically via `/ServiceProviderConfig`, `/ResourceTypes/User`, and feature probing. You can explicitly force or disable capability gating for targeted compliance testing using the `-Dscim.capability.<name>=true|false` system property:
+
+```bash
+# Force cursor pagination tests to run (even if unadvertised)
+mvn test -Dscim.capability.cursorpagination=true
+
+# Force async operations tests to be skipped
+mvn test -Dscim.capability.async=false
+```
+
+Supported capability keys: `patch`, `bulk`, `sort`, `etag`, `filter`, `changepassword`, `search`, `enterprise`, `cursorpagination`, `async`.
+
 ## Development Notes
 
 - The compliance specs and shared validator infrastructure live in
