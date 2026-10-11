@@ -36,10 +36,12 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
                 createdUserIds << resp.jsonPath().getString("id")
             }
         }
-        // Verify that target server actually implements cursor pagination (emits nextCursor)
-        Response probe = scimRequestQuiet().queryParam("cursor", "").queryParam("count", 1).get("/Users")
-        if (probe.statusCode() != 200 || !probe.jsonPath().getString("nextCursor")) {
-            setCapabilityState("cursorPagination", CapabilityState.UNSUPPORTED)
+        // Verify that target server actually implements cursor pagination when capability is UNKNOWN
+        if (getCapabilityState("cursorPagination") == CapabilityState.UNKNOWN) {
+            Response probe = scimRequestQuiet().queryParam("cursor", "").queryParam("count", 1).get("/Users")
+            if (probe.statusCode() != 200 || !probe.jsonPath().getString("nextCursor")) {
+                setCapabilityState("cursorPagination", CapabilityState.UNSUPPORTED)
+            }
         }
     }
 

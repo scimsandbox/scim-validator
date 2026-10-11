@@ -206,6 +206,9 @@
                         <usePhrasedTestCaseClassName>true</usePhrasedTestCaseClassName>
                         <usePhrasedTestCaseMethodName>true</usePhrasedTestCaseMethodName>
                     </statelessTestsetReporter>
+                    <systemPropertyVariables>
+                        <scim.capability.cursorpagination>false</scim.capability.cursorpagination>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 

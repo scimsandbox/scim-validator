@@ -353,28 +353,6 @@ abstract class ScimBaseSpec extends Specification {
         } catch (Exception ignored) {
             currentState.searchState = CapabilityState.UNKNOWN
         }
-
-        // Verify cursor pagination capability if ServiceProviderConfig declared it supported
-        if (currentState.cursorPaginationState == CapabilityState.SUPPORTED) {
-            try {
-                Response probeResp = scimRequestQuiet()
-                    .queryParam("cursor", "")
-                    .queryParam("count", 1)
-                    .get("/Users")
-                if (probeResp.statusCode() == 200) {
-                    String cursor = probeResp.jsonPath().getString("nextCursor")
-                    int totalResults = asInt(probeResp.jsonPath().get("totalResults"), 0)
-                    if (cursor == null && totalResults > 1) {
-                        // Server returned index response and ignored cursor parameter
-                        currentState.cursorPaginationState = CapabilityState.UNSUPPORTED
-                    }
-                } else if (probeResp.statusCode() in [400, 404, 501]) {
-                    currentState.cursorPaginationState = CapabilityState.UNSUPPORTED
-                }
-            } catch (Exception ignored) {
-                currentState.cursorPaginationState = CapabilityState.UNSUPPORTED
-            }
-        }
     }
 
     private static void setAllCapabilitiesUnknown(RuntimeState state) {
