@@ -22,14 +22,9 @@ class DeviationCollector {
 
     static void record(Deviation deviation) {
         if (deviation == null) return
-        // De-duplicate: ignore if an equivalent deviation was already recorded
+        // De-duplicate: ignore if an identical deviation was already recorded for this test ID and message
         boolean duplicate = DEVIATIONS.any { existing ->
-            (existing.requirementId != null && existing.requirementId == deviation.requirementId &&
-             existing.testId == deviation.testId) ||
-            (existing.message != null && deviation.message != null &&
-             (existing.message == deviation.message ||
-              existing.message.endsWith(deviation.message) ||
-              deviation.message.endsWith(existing.message)))
+            existing.testId == deviation.testId && existing.message == deviation.message
         }
         if (!duplicate) {
             DEVIATIONS.add(deviation)

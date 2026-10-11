@@ -611,7 +611,11 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
     @SpecRef("RFC7644-3.14-R1")
     def "SEC_24: Wildcard If-Match * on existing resource"() {
         // RFC 7644 §3.14, RFC 7232 §3.1 — If-Match: * succeeds if resource exists
-        given:
+        given: "Retrieve existing user ETag"
+        Response before = scimRequest().get("/Users/${testUserId}")
+        assert before.statusCode() == 200
+        String etagBefore = before.header("ETag")
+
         Map patchPayload = buildPatchOp([
             [op: "replace", path: "displayName", value: "Wildcard-Matched-Name"]
         ])
@@ -625,6 +629,10 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
         then: "Server returns 200 OK or logs deviation for unsupported wildcard"
         if (response.statusCode() == 200) {
             assert response.jsonPath().getString("displayName") == "Wildcard-Matched-Name"
+            String etagAfter = response.header("ETag")
+            if (etagBefore != null && etagAfter != null) {
+                assert etagAfter != etagBefore
+            }
         } else {
             recordDeviation("RFC7644-3.14-R1", "RFC 7644 §3.14", "Server does not support HTTP wildcard 'If-Match: *' (returned ${response.statusCode()})")
         }
