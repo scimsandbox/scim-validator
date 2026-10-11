@@ -213,7 +213,6 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             assertScimError(response, 404)
         } else {
             recordDeviation("RFC7644-3.12-R1", "RFC 7644 §3.12", "GET /${randomPath} returned ${response.statusCode()} instead of 404")
-            ScimOutput.println "DEVIATION: GET /${randomPath} returned ${response.statusCode()} instead of 404 (RFC 7644 §3.12)"
         }
     }
 
@@ -403,7 +402,6 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             assertScimError(response, 400)
         } else if (response.statusCode() == 201) {
             recordDeviation("RFC7644-3.12-R1", "RFC 7644 §3.12", "Server accepted unknown schema URN without validation")
-            ScimOutput.println "DEVIATION: Server accepted unknown schema URN without validation"
         }
         String id = response.statusCode() == 201 ? response.jsonPath().getString("id") : null
 
@@ -567,13 +565,14 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
 
     @SpecRef("RFC7643-2.3.5-R1")
     def "NEG_27: Submitting malformed dateTime format in filter returns 400 invalidFilter or records deviation"() {
-        // RFC 7643 §2.3.5 — dateTime attributes must conform to ISO 8601
-        when: "Filter with malformed dateTime string"
+        // RFC 7643 §2.3.5 — dateTime attributes must conform to ISO 8601 / RFC 3339 (e.g. 2008-01-23T04:56:22Z)
+        when: "Filter with malformed dateTime string (missing required timezone offset per RFC 3339)"
         Response response = scimRequestQuiet()
-            .queryParam("filter", 'meta.lastModified gt "not-an-iso-8601-date"')
+            .queryParam("filter", 'meta.lastModified gt "2026-01-01T00:00:00"')
             .get("/Users")
 
-        then: "Server rejects with 400 invalidFilter or records deviation"
+        then: "Server rejects with 400 invalidFilter or records deviation (server error 500 is never valid)"
+        assert response.statusCode() < 500 : "Server returned HTTP 500 on malformed dateTime filter; internal server error is invalid"
         if (response.statusCode() == 400) {
             assertScimError(response, 400, "invalidFilter")
         } else {
@@ -592,7 +591,8 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             .queryParam("filter", "active gt true")
             .get("/Users")
 
-        then: "Server rejects with 400 invalidFilter or records deviation"
+        then: "Server rejects with 400 invalidFilter or records deviation (server error 500 is never valid)"
+        assert response.statusCode() < 500 : "Server returned HTTP 500 on boolean gt filter; internal server error is invalid"
         if (response.statusCode() == 400) {
             assertScimError(response, 400, "invalidFilter")
         } else {
