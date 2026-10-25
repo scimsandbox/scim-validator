@@ -50,7 +50,7 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
     @SpecRef("RFC9865-2-R1")
     @SpecRef("RFC9865-2-R2")
     @SpecRef("RFC9865-2-R3")
-    def "CUR_01: GET /Users with cursor=\"\" initiates cursor pagination returning nextCursor without previousCursor"() {
+    def "CUR_01: GET /Users with empty cursor initiates cursor pagination returning nextCursor without previousCursor"() {
         // RFC 9865 §2 & Table 1: Initial query specifies cursor="" (or omitted).
         // Table 2: nextCursor returned when more results remain; previousCursor omitted on first page.
         when: "Request users with empty cursor parameter and count=1"
