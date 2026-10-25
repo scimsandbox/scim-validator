@@ -312,6 +312,16 @@
   disposition: tested
   note: "Active status boolean true/false"
 
+- id: RFC7643-4.1.1-R7
+  rfc: "7643"
+  section: "4.1.1"
+  title: "User password modification via PUT and PATCH when changePassword is supported"
+  level: MUST
+  capability: changePassword
+  observability: response
+  disposition: tested
+  note: "Password can be updated via PUT or PATCH and is never returned in response"
+
 - id: RFC7643-4.1.2-R1
   rfc: "7643"
   section: "4.1.2"

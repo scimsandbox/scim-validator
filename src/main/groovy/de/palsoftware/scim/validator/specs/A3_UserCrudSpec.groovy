@@ -765,6 +765,76 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         if (uid) deleteUser(uid)
     }
 
+    // ─── USR_25: Change user password via PATCH and PUT ─────────────────────
+
+    @RequiresCapability("changePassword")
+    @SpecRef("RFC7643-4.1.1-R7")
+    def "USR_25: Change user password via PATCH and PUT succeeds and never returns password"() {
+        // RFC 7643 §4.1.1 (password mutability writeOnly, returned never, changePassword capability)
+        // RFC 7644 §3.5.1 (PUT) & §3.5.2.3 (PATCH replace)
+        given: "Create a user with an initial password"
+        def userName = "pwd_change_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        def initialPassword = "InitialPassword123!"
+        def createResponse = createUser(
+            userName: userName,
+            password: initialPassword
+        )
+        assert createResponse.statusCode() == 201
+        def userId = createResponse.jsonPath().getString("id")
+        assert createResponse.jsonPath().get("password") == null : "Password must not be returned in POST response"
+
+        when: "Change password via PATCH replace operation"
+        def patchedPassword = "PatchedPassword456!"
+        def patchPayload = buildPatchOp([
+            [op: "replace", path: "password", value: patchedPassword]
+        ])
+        def patchResponse = scimRequestQuiet()
+            .body(JsonOutput.toJson(patchPayload))
+            .patch("/Users/${userId}")
+
+        then: "PATCH succeeds with HTTP 200 or 204 and password is not returned"
+        assert patchResponse.statusCode() in [200, 204] : "PATCH password must return 200 or 204"
+        if (patchResponse.statusCode() == 200 && patchResponse.body().asString()?.trim()) {
+            assert patchResponse.jsonPath().get("password") == null : "Password must not be returned in PATCH response"
+        }
+
+        when: "Verify user via GET that password is not returned"
+        def getResponse1 = scimRequestQuiet().get("/Users/${userId}")
+
+        then: "GET returns 200 and password attribute is null"
+        assert getResponse1.statusCode() == 200
+        assert getResponse1.jsonPath().get("password") == null : "Password must never be returned in GET response"
+
+        when: "Change password via PUT full replacement"
+        def putPassword = "PutPassword789!"
+        def putPayload = [
+            schemas: [USER_SCHEMA],
+            userName: userName,
+            password: putPassword
+        ]
+        def putResponse = scimRequestQuiet()
+            .body(JsonOutput.toJson(putPayload))
+            .put("/Users/${userId}")
+
+        then: "PUT succeeds with HTTP 200 or 204 and password is not returned"
+        assert putResponse.statusCode() in [200, 204] : "PUT password must return 200 or 204"
+        if (putResponse.statusCode() == 200 && putResponse.body().asString()?.trim()) {
+            assert putResponse.jsonPath().get("password") == null : "Password must not be returned in PUT response"
+        }
+
+        when: "Verify user via GET after PUT"
+        def getResponse2 = scimRequestQuiet().get("/Users/${userId}")
+
+        then: "GET returns 200 and password attribute remains null"
+        assert getResponse2.statusCode() == 200
+        assert getResponse2.jsonPath().get("password") == null : "Password must never be returned in GET response after PUT"
+
+        cleanup:
+        if (userId) {
+            try { scimRequestQuiet().delete("/Users/${userId}") } catch (Exception ignored) {}
+        }
+    }
+
     // ─── Cleanup ────────────────────────────────────────────────────────────
 
     def cleanupSpec() {

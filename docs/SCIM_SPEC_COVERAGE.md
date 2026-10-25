@@ -5,8 +5,8 @@
 
 ### Coverage Summary
 
-- **Total Requirements Tracked**: 157
-- **Tested / Covered Requirements**: 155
+- **Total Requirements Tracked**: 158
+- **Tested / Covered Requirements**: 156
 - **Optional / Capability Gated**: 49
 - **Non-Observable / NA**: 2
 - **Known Gaps**: 0
@@ -140,6 +140,7 @@
 | RFC7643-4.1.1-R4 | 7643 | 4.1.1 | User displayName, nickName, profileUrl, title, userType adhere to schema definitions | MUST | none | Covered | SCH_09, USR_02 | Standard singular User attributes |
 | RFC7643-4.1.1-R5 | 7643 | 4.1.1 | User preferredLanguage, locale, timezone conform to standard formats | MUST | none | Covered | USR_02 | RFC 5646 language tags, IANA time zones |
 | RFC7643-4.1.1-R6 | 7643 | 4.1.1 | User active is a boolean indicating account administrative status | MUST | none | Covered | SCH_03 | Active status boolean true/false |
+| RFC7643-4.1.1-R7 | 7643 | 4.1.1 | User password modification via PUT and PATCH when changePassword is supported | MUST | changePassword | Gated (changePassword) | USR_25 | Password can be updated via PUT or PATCH and is never returned in response |
 | RFC7643-4.1.2-R1 | 7643 | 4.1.2 | User emails is multi-valued with canonical types (work, home, other) and primary | MUST | none | Covered | SCH_03 | Email addresses multi-valued complex attribute |
 | RFC7643-4.1.2-R2 | 7643 | 4.1.2 | User phoneNumbers is multi-valued with canonical types (work, home, mobile, fax, pager, other) | MUST | none | Covered | SCH_13 | Phone numbers multi-valued complex attribute |
 | RFC7643-4.1.2-R3 | 7643 | 4.1.2 | User ims is multi-valued instant messaging addresses | MUST | none | Covered | SCH_13, USR_21 | Instant messaging addresses |
