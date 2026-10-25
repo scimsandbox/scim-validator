@@ -354,6 +354,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
     // ─── GRP_13: Cascading Referential Integrity ────────────────────────────
 
     @SpecRef("RFC7643-2.3.7-R1")
+    @SpecRef("RFC7643-2.3.7-R2")
     def "GRP_13: Cascading referential integrity — deleting user prunes from group members"() {
         // RFC 7644 §3.6, RFC 7643 §2.3.7 — Referential Integrity
         given: "A user created specifically to be deleted"
@@ -442,6 +443,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
     // ─── GRP_15: Invalid Member Reference ───────────────────────────────────
 
     @SpecRef("RFC7643-2.3.7-R1")
+    @SpecRef("RFC7643-2.3.7-R2")
     def "GRP_15: Invalid member reference returns 400 or 404 SCIM Error or is accepted"() {
         // RFC 7644 §3.3, RFC 7643 §2.3.7 — Member reference validation
         given: "A non-existent member UUID"
@@ -472,6 +474,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
     // ─── GRP_16: Nested Groups ──────────────────────────────────────────────
 
     @SpecRef("RFC7643-4.2-R2")
+    @SpecRef("RFC7643-4.2-R3")
     def "GRP_16: Nested groups — adding a child Group as a member with type 'Group'"() {
         // RFC 7643 §4.2 — Group members can be 'User' or 'Group'
         given: "A child group"

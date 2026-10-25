@@ -45,6 +45,7 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
     // ─── PAT_01: Add attribute ──────────────────────────────────────────────
 
     @SpecRef("RFC7644-3.5.2.1-R2")
+    @SpecRef("RFC7644-3.5.2-R4")
     def "PAT_01: PATCH add sets a new attribute value (externalId)"() {
         // RFC 7644 §3.5.2.1 — Add Operation
         when:
@@ -757,6 +758,7 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
     }
 
     @SpecRef("RFC7644-3.5.2-R5")
+    @SpecRef("RFC7644-3.5.2-R4")
     def "PAT_28: PATCH with attributes query parameter MUST return 200 OK"() {
         // RFC 7644 §3.5.2 — MUST return 200 OK if the 'attributes' parameter is specified
         when: "PATCH with attributes query parameter"
@@ -825,6 +827,7 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
     // ─── PAT_31: Pathless add merges attributes ─────────────────────────────
 
     @SpecRef("RFC7644-3.5.2.1-R2")
+    @SpecRef("RFC7644-3.5.2.1-R3")
     def "PAT_31: PATCH add operation without path merges attributes into resource"() {
         // RFC 7644 §3.5.2.1 — Pathless add operation merges attributes into resource
         when: "PATCH add without path specifying title and nickName"

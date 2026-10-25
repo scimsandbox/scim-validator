@@ -339,7 +339,7 @@
   level: MUST
   capability: filter
   observability: behavior
-  disposition: optional
+  disposition: tested
   note: "Defaulted attribute filter evaluates against initial defaulted value"
 
 - id: RFC7644-3.4.2.3-R1
@@ -379,7 +379,7 @@
   level: MUST
   capability: sort
   observability: response
-  disposition: optional
+  disposition: tested
   note: "Null / unassigned values sorted to end in ascending order"
 
 - id: RFC7644-3.4.2.3-R5
@@ -389,7 +389,7 @@
   level: MUST
   capability: sort
   observability: response
-  disposition: optional
+  disposition: tested
   note: "Sort on complex multi-valued uses primary value"
 
 - id: RFC7644-3.4.2.4-R1
@@ -539,7 +539,7 @@
   level: MUST
   capability: patch
   observability: response
-  disposition: optional
+  disposition: tested
   note: "Server returns 200 with body or 204 No Content"
 
 - id: RFC7644-3.5.2-R5
@@ -589,7 +589,7 @@
   level: MUST
   capability: patch
   observability: response
-  disposition: optional
+  disposition: tested
   note: "Pathless add merges attributes into resource"
 
 - id: RFC7644-3.5.2.2-R1

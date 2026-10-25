@@ -6,8 +6,8 @@
 ### Coverage Summary
 
 - **Total Requirements Tracked**: 157
-- **Tested / Covered Requirements**: 147
-- **Optional / Capability Gated**: 57
+- **Tested / Covered Requirements**: 155
+- **Optional / Capability Gated**: 49
 - **Non-Observable / NA**: 2
 - **Known Gaps**: 0
 
@@ -46,12 +46,12 @@
 | RFC7644-3.4.2.2-R12 | 7644 | 3.4.2.2 | Value path filter matches items within multi-valued complex attributes | MUST | filter | Gated (filter) | FLT_27, FLT_32 | e.g. emails[type eq "work" and value co "@example.com"] |
 | RFC7644-3.4.2.2-R13 | 7644 | 3.4.2.2 | Filter on schemas attribute matches resources declaring schema URN | MUST | filter | Gated (filter) | FLT_39 | e.g. schemas eq "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User" |
 | RFC7644-3.4.2.2-R14 | 7644 | 3.4.2.2 | Invalid filter syntax returns HTTP 400 with scimType invalidFilter | MUST | filter | Gated (filter) | FLT_10, NEG_11, NEG_26, NEG_28 | Malformed filter expression returns 400 invalidFilter |
-| RFC7644-3.4.2.2-R15 | 7644 | 3.4.2.2 | Filter comparison on defaulted attribute uses value returned to creating client | MUST | filter | Optional (filter) | — | Defaulted attribute filter evaluates against initial defaulted value |
+| RFC7644-3.4.2.2-R15 | 7644 | 3.4.2.2 | Filter comparison on defaulted attribute uses value returned to creating client | MUST | filter | Gated (filter) | FLT_44 | Defaulted attribute filter evaluates against initial defaulted value |
 | RFC7644-3.4.2.3-R1 | 7644 | 3.4.2.3 | Sorting ascending orders results in ascending order | MUST | sort | Gated (sort) | SRT_01, SRT_04 | sortOrder=ascending |
 | RFC7644-3.4.2.3-R2 | 7644 | 3.4.2.3 | Sorting descending orders results in descending order | MUST | sort | Gated (sort) | SRT_02 | sortOrder=descending |
 | RFC7644-3.4.2.3-R3 | 7644 | 3.4.2.3 | Default sort order when omitted is ascending | MUST | sort | Gated (sort) | SRT_03 | When sortBy is specified without sortOrder, default is ascending |
-| RFC7644-3.4.2.3-R4 | 7644 | 3.4.2.3 | Sort order places missing data last for ascending and first for descending | MUST | sort | Optional (sort) | — | Null / unassigned values sorted to end in ascending order |
-| RFC7644-3.4.2.3-R5 | 7644 | 3.4.2.3 | Sort by multi-valued attribute orders by value where primary is true | MUST | sort | Optional (sort) | — | Sort on complex multi-valued uses primary value |
+| RFC7644-3.4.2.3-R4 | 7644 | 3.4.2.3 | Sort order places missing data last for ascending and first for descending | MUST | sort | Gated (sort) | SRT_06 | Null / unassigned values sorted to end in ascending order |
+| RFC7644-3.4.2.3-R5 | 7644 | 3.4.2.3 | Sort by multi-valued attribute orders by value where primary is true | MUST | sort | Gated (sort) | SRT_07 | Sort on complex multi-valued uses primary value |
 | RFC7644-3.4.2.4-R1 | 7644 | 3.4.2.4 | Pagination startIndex 1-based index default is 1 and values less than 1 interpreted as 1 | MUST | none | Covered | PAG_01, PAG_03, PAG_04, PAG_06 | 1-based indexing; startIndex < 1 becomes 1 |
 | RFC7644-3.4.2.4-R2 | 7644 | 3.4.2.4 | Pagination count specifies maximum results; server MUST NOT return more than specified | MUST | none | Covered | PAG_01, PAG_02, PAG_06 | itemsPerPage <= requested count; server MAY return fewer |
 | RFC7644-3.4.2.4-R3 | 7644 | 3.4.2.4 | Negative pagination count SHALL be interpreted as 0 | MUST | none | Covered | PAG_05 | Negative count returns 0 items in page |
@@ -66,12 +66,12 @@
 | RFC7644-3.5.2-R1 | 7644 | 3.5.2 | PATCH request SHALL be treated as atomic transaction | MUST | patch | Gated (patch) | PAT_15, PAT_16 | If any operation fails, original resource MUST be restored |
 | RFC7644-3.5.2-R2 | 7644 | 3.5.2 | PATCH Operations array MUST contain one or more operation objects | MUST | patch | Gated (patch) | PAT_22, NEG_13 | Empty Operations array returns 400 Bad Request |
 | RFC7644-3.5.2-R3 | 7644 | 3.5.2 | Each PATCH operation object MUST have exactly one op member | MUST | patch | Gated (patch) | PAT_17, PAT_23, NEG_06 | Operation missing op or containing multiple op members returns 400 |
-| RFC7644-3.5.2-R4 | 7644 | 3.5.2 | PATCH response MUST return HTTP 200 with representation or MAY return HTTP 204 | MUST | patch | Optional (patch) | — | Server returns 200 with body or 204 No Content |
+| RFC7644-3.5.2-R4 | 7644 | 3.5.2 | PATCH response MUST return HTTP 200 with representation or MAY return HTTP 204 | MUST | patch | Gated (patch) | PAT_01, PAT_28 | Server returns 200 with body or 204 No Content |
 | RFC7644-3.5.2-R5 | 7644 | 3.5.2 | PATCH with attributes query parameter MUST return HTTP 200 OK | MUST | patch | Gated (patch) | PAT_28 | When attributes parameter specified, server cannot return 204 |
 | RFC7644-3.5.2-R6 | 7644 | 3.5.2 | PATCH setting primary true SHALL automatically set primary false for any other values | MUST | patch | Gated (patch) | PAT_27 | Multi-valued primary unset rule |
 | RFC7644-3.5.2.1-R1 | 7644 | 3.5.2.1 | PATCH add operation MUST contain value member | MUST | patch | Gated (patch) | PAT_24, GRP_05 | add without value returns 400 invalidValue |
 | RFC7644-3.5.2.1-R2 | 7644 | 3.5.2.1 | PATCH add appends to multi-valued attribute or sets single-valued attribute | MUST | patch | Gated (patch) | PAT_01, PAT_06, PAT_31 | Appends elements to existing array |
-| RFC7644-3.5.2.1-R3 | 7644 | 3.5.2.1 | PATCH add without path adds attributes specified in value object to target resource | MUST | patch | Optional (patch) | — | Pathless add merges attributes into resource |
+| RFC7644-3.5.2.1-R3 | 7644 | 3.5.2.1 | PATCH add without path adds attributes specified in value object to target resource | MUST | patch | Gated (patch) | PAT_31 | Pathless add merges attributes into resource |
 | RFC7644-3.5.2.2-R1 | 7644 | 3.5.2.2 | PATCH remove without path returns HTTP 400 with scimType noTarget | MUST | patch | Gated (patch) | PAT_25, GRP_06 | Path is required for remove operation |
 | RFC7644-3.5.2.2-R2 | 7644 | 3.5.2.2 | PATCH remove with path clears single-valued attribute or removes matching multi-valued items | MUST | patch | Gated (patch) | PAT_04, PAT_07, PAT_14, PAT_20, PAT_21, PAT_29 | Removes attribute or filtered array entries |
 | RFC7644-3.5.2.3-R1 | 7644 | 3.5.2.3 | PATCH replace replaces existing attribute value | MUST | patch | Gated (patch) | PAT_02, PAT_03, PAT_05, PAT_11, PAT_12, PAT_13, PAT_18, PAT_30 | Overwrites existing value |
@@ -116,12 +116,12 @@
 | RFC7643-2.2-R4 | 7643 | 2.2 | Attribute returned definitions (always, never, default, request) are honored | MUST | none | Covered | SCH_08, FLT_13, SEC_07 | returned=never attributes like password are never returned in responses |
 | RFC7643-2.2-R5 | 7643 | 2.2 | Attribute uniqueness definitions (none, server, global) are enforced | MUST | none | Covered | USR_13, SEC_07, SEC_25 | Enforces server-wide uniqueness for unique attributes |
 | RFC7643-2.2-R6 | 7643 | 2.2 | Attribute caseExact definition is honored in filtering and matching | MUST | none | Covered | SCH_08, FLT_12 | caseExact false matches case-insensitively; caseExact true requires exact case match |
-| RFC7643-2.2-R7 | 7643 | 2.2 | Attribute canonicalValues restriction rejects or validates unrecognized values | MAY | none | Optional (none) | — | Server restricts or suggests values from canonical list |
+| RFC7643-2.2-R7 | 7643 | 2.2 | Attribute canonicalValues restriction rejects or validates unrecognized values | MAY | none | Covered | SCH_04 | Server restricts or suggests values from canonical list |
 | RFC7643-2.3-R1 | 7643 | 2.3 | Value validation conforms to declared attribute data types | MUST | none | Covered | SCH_08, NEG_24, NEG_25 | Invalid data types (e.g. string for boolean/integer) return 400 invalidValue |
 | RFC7643-2.3.5-R1 | 7643 | 2.3.5 | dateTime attributes are formatted as XML dateTime according to ISO 8601 | MUST | none | Covered | SCH_09, USR_02, NEG_27 | dateTime values (e.g. meta.created, meta.lastModified) follow ISO 8601 |
 | RFC7643-2.3.6-R1 | 7643 | 2.3.6 | binary attributes are base64 encoded and case-exact | MUST | none | Covered | SCH_13 | Binary attributes must be base64 strings |
 | RFC7643-2.3.7-R1 | 7643 | 2.3.7 | reference attributes contain valid URI ($ref) and target resource referenceTypes | MUST | none | Covered | SCH_04, GRP_13, GRP_15 | References point to target SCIM resources or external URIs |
-| RFC7643-2.3.7-R2 | 7643 | 2.3.7 | Service providers MAY enforce referential integrity for reference attributes | MAY | none | Optional (none) | — | Referential integrity enforcement is optional per RFC 7643 §2.3.7 |
+| RFC7643-2.3.7-R2 | 7643 | 2.3.7 | Service providers MAY enforce referential integrity for reference attributes | MAY | none | Covered | GRP_13, GRP_15 | Referential integrity enforcement is optional per RFC 7643 §2.3.7 |
 | RFC7643-2.3.8-R1 | 7643 | 2.3.8 | Complex attributes MUST NOT contain nested complex attributes (except Schema resource) | MUST | none | Covered | SCH_04 | Complex attributes cannot nest complex sub-attributes |
 | RFC7643-2.4-R1 | 7643 | 2.4 | Multi-valued complex attribute primary sub-attribute is boolean with at most one true | MUST | none | Covered | SCH_13, USR_03, PAT_27 | At most one value in a multi-valued set has primary set to true; default is false |
 | RFC7643-2.4-R2 | 7643 | 2.4 | Multi-valued complex attribute display sub-attribute is human-readable and readOnly | MUST | none | Covered | SCH_12 | display sub-attribute describes the item and is not intended for client modification |
@@ -150,7 +150,7 @@
 | RFC7643-4.1.2-R8 | 7643 | 4.1.2 | User x509Certificates values contain exactly one DER-encoded certificate in base64 | MUST | none | Covered | SCH_13 | Single DER certificate per element; sequence of certificates forbidden |
 | RFC7643-4.2-R1 | 7643 | 4.2 | Group displayName is REQUIRED | MUST | none | Covered | SCH_06, SCH_11, GRP_11, NEG_18 | Erratum 5368 confirms Group displayName required=true |
 | RFC7643-4.2-R2 | 7643 | 4.2 | Group members sub-attributes (value, $ref, type) are immutable | MUST | none | Covered | SCH_06, GRP_17 | Members can be added/removed, but individual member sub-attributes cannot be modified |
-| RFC7643-4.2-R3 | 7643 | 4.2 | Group supports nested groups as members | MAY | none | Optional (none) | — | Member type Group references another Group resource |
+| RFC7643-4.2-R3 | 7643 | 4.2 | Group supports nested groups as members | MAY | none | Covered | GRP_17 | Member type Group references another Group resource |
 | RFC7643-4.3-R1 | 7643 | 4.3 | Enterprise User extension attributes (employeeNumber, department, etc.) adhere to schema | MUST | enterprise | Gated (enterprise) | SCH_07, USR_02 | Standard Enterprise User extension schema definitions |
 | RFC7643-4.3-R2 | 7643 | 4.3 | Enterprise User manager complex attribute includes value ($ref) and readOnly displayName | MUST | enterprise | Gated (enterprise) | SCH_07 | Manager reference to another User |
 | RFC7643-5-R1 | 7643 | 5 | ServiceProviderConfig attributes are all readOnly and include required capability flags | MUST | none | Covered | DSC_01, DSC_18 | patch, bulk, filter, changePassword, sort, etag, authenticationSchemes |

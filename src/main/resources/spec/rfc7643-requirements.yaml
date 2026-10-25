@@ -79,7 +79,7 @@
   level: MAY
   capability: none
   observability: behavior
-  disposition: optional
+  disposition: tested
   note: "Server restricts or suggests values from canonical list"
 
 - id: RFC7643-2.3-R1
@@ -129,7 +129,7 @@
   level: MAY
   capability: none
   observability: behavior
-  disposition: optional
+  disposition: tested
   note: "Referential integrity enforcement is optional per RFC 7643 §2.3.7"
 
 - id: RFC7643-2.3.8-R1
@@ -419,7 +419,7 @@
   level: MAY
   capability: none
   observability: behavior
-  disposition: optional
+  disposition: tested
   note: "Member type Group references another Group resource"
 
 - id: RFC7643-4.3-R1

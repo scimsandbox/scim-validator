@@ -152,6 +152,7 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
 
     @SpecRef("RFC7643-2.3.7-R1")
     @SpecRef("RFC7643-2.3.8-R1")
+    @SpecRef("RFC7643-2.2-R7")
     def "SCH_04: Core User schema complex and reference attributes adhere to RFC 7643"() {
         // RFC 7643 §2.3.7 — Reference; §2.3.8 — Complex attributes
         when: "GET the User schema definition"

@@ -61,6 +61,10 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
         firstNextCursor = response.jsonPath().getString("nextCursor")
         firstPageIds = response.jsonPath().getList("Resources.id") ?: []
 
+        if (getCapabilityState("cursorPagination") == CapabilityState.UNKNOWN && (firstNextCursor == null || firstNextCursor.trim().isEmpty())) {
+            throw new TestAbortedException("Server does not return nextCursor on initial cursor page")
+        }
+
         then: "Status is 200 OK"
         assert response.statusCode() == 200
 

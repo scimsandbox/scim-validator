@@ -927,5 +927,45 @@ class A5_FilteringSpec extends A5_BaseSpec {
         assert !gtNames.contains(targetUserName) : "gt must strictly exclude boundary value ${targetUserName}"
         assert geNames.size() == gtNames.size() + 1 : "ge count must be exactly gt count + 1"
     }
+
+    // ─── FLT_44: Filter comparison on defaulted active attribute ────────────
+
+    @SpecRef("RFC7644-3.4.2.2-R15")
+    def "FLT_44: Filter comparison on defaulted active attribute matches value returned at creation"() {
+        // RFC 7644 §3.4.2.2: "When evaluating a comparison operator against an attribute
+        // that was defaulted, the filter comparison MUST evaluate against the value returned
+        // to the client when the resource was created."
+        given: "A user created without specifying the active attribute"
+        String testUserName = "${PREFIX}default_active_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        Response createResp = createUser([userName: testUserName])
+        assert createResp.statusCode() == 201
+        String userId = createResp.jsonPath().getString("id")
+        Boolean returnedActive = createResp.jsonPath().getBoolean("active")
+        assert returnedActive != null : "Created user representation should contain defaulted active attribute"
+
+        when: "Filtering with active eq matching the defaulted creation value"
+        Response matchResp = scimRequest()
+            .queryParam("filter", "userName eq \"${testUserName}\" and active eq ${returnedActive}")
+            .get("/Users")
+
+        and: "Filtering with active eq the opposite boolean value"
+        Response oppositeResp = scimRequest()
+            .queryParam("filter", "userName eq \"${testUserName}\" and active eq ${!returnedActive}")
+            .get("/Users")
+
+        then: "Matching filter returns the resource, opposite filter excludes it"
+        assert matchResp.statusCode() == 200
+        assert matchResp.jsonPath().getInt("totalResults") == 1
+        assert matchResp.jsonPath().getList("Resources.userName")?.contains(testUserName)
+
+        assert oppositeResp.statusCode() == 200
+        assert oppositeResp.jsonPath().getInt("totalResults") == 0
+
+        cleanup:
+        if (userId) {
+            deleteUser(userId)
+        }
+    }
 }
+
 
