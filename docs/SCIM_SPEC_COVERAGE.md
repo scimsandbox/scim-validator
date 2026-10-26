@@ -73,7 +73,7 @@
 | RFC7644-3.5.2.1-R2 | 7644 | 3.5.2.1 | PATCH add appends to multi-valued attribute or sets single-valued attribute | MUST | patch | Gated (patch) | PAT_01, PAT_06, PAT_31 | Appends elements to existing array |
 | RFC7644-3.5.2.1-R3 | 7644 | 3.5.2.1 | PATCH add without path adds attributes specified in value object to target resource | MUST | patch | Gated (patch) | PAT_31 | Pathless add merges attributes into resource |
 | RFC7644-3.5.2.2-R1 | 7644 | 3.5.2.2 | PATCH remove without path returns HTTP 400 with scimType noTarget | MUST | patch | Gated (patch) | PAT_25, GRP_06 | Path is required for remove operation |
-| RFC7644-3.5.2.2-R2 | 7644 | 3.5.2.2 | PATCH remove with path clears single-valued attribute or removes matching multi-valued items | MUST | patch | Gated (patch) | PAT_04, PAT_07, PAT_14, PAT_20, PAT_21, PAT_29 | Removes attribute or filtered array entries |
+| RFC7644-3.5.2.2-R2 | 7644 | 3.5.2.2 | PATCH remove with path clears single-valued attribute or removes matching multi-valued items | MUST | patch | Gated (patch) | PAT_04, PAT_07, PAT_14, PAT_19, PAT_21, PAT_29 | Removes attribute or filtered array entries |
 | RFC7644-3.5.2.3-R1 | 7644 | 3.5.2.3 | PATCH replace replaces existing attribute value | MUST | patch | Gated (patch) | PAT_02, PAT_03, PAT_05, PAT_11, PAT_12, PAT_13, PAT_18, PAT_30 | Overwrites existing value |
 | RFC7644-3.5.2.3-R2 | 7644 | 3.5.2.3 | PATCH replace on absent target attribute is treated as add operation | MUST | patch | Gated (patch) | PAT_26 | Target attribute not existing is created |
 | RFC7644-3.6-R1 | 7644 | 3.6 | DELETE returns HTTP 204 No Content on successful deletion | MUST | none | Covered | USR_07, GRP_07 | Resource deleted with empty response body |
@@ -81,7 +81,7 @@
 | RFC7644-3.6-R3 | 7644 | 3.6 | Soft-deleted resources SHALL NOT be returned in query responses | MUST | none | Covered | GRP_20 | Deleted resources excluded from queries |
 | RFC7644-3.6-R4 | 7644 | 3.6 | Service provider SHOULD NOT consider deleted resource in uniqueness conflict calculation | SHOULD | none | Covered | GRP_20 | Re-creating resource with same unique attribute after deletion succeeds |
 | RFC7644-3.6-R5 | 7644 | 3.6 | DELETE supports If-Match header for conditional deletion | MAY | etag | Gated (etag) | GRP_19 | Conditional DELETE returns 412 if version does not match |
-| RFC7644-3.7-R1 | 7644 | 3.7 | POST to /Bulk executes multiple resource operations in single request | MUST | bulk | Gated (bulk) | BLK_01, BLK_02, BLK_05, BLK_06, BLK_09, BLK_10, BLK_11, BLK_15, BLK_16, BLK_17, BLK_20 | BulkRequest containing Operations array |
+| RFC7644-3.7-R1 | 7644 | 3.7 | POST to /Bulk executes multiple resource operations in single request | MUST | bulk | Gated (bulk) | BLK_01, BLK_02, BLK_05, BLK_06, BLK_09, BLK_10, BLK_11, BLK_15, BLK_16, BLK_17, BLK_18, BLK_19 | BulkRequest containing Operations array |
 | RFC7644-3.7-R2 | 7644 | 3.7 | bulkId is REQUIRED for each operation when method is POST | MUST | bulk | Gated (bulk) | BLK_20 | Missing bulkId on POST operation returns 400 |
 | RFC7644-3.7-R3 | 7644 | 3.7 | Bulk response echoes bulkId and location for created resources | MUST | bulk | Gated (bulk) | BLK_01 | Response operation includes bulkId and location |
 | RFC7644-3.7-R4 | 7644 | 3.7 | Bulk operations support bulkId cross-referencing in data and path | MUST | bulk | Gated (bulk) | BLK_07, BLK_08, BLK_14, BLK_23 | bulkId:id reference resolution across operations |
@@ -150,8 +150,8 @@
 | RFC7643-4.1.2-R7 | 7643 | 4.1.2 | User roles and entitlements multi-valued attributes adhere to schema definitions | MUST | none | Covered | USR_21 | User roles and entitlements collections |
 | RFC7643-4.1.2-R8 | 7643 | 4.1.2 | User x509Certificates values contain exactly one DER-encoded certificate in base64 | MUST | none | Covered | SCH_13 | Single DER certificate per element; sequence of certificates forbidden |
 | RFC7643-4.2-R1 | 7643 | 4.2 | Group displayName is REQUIRED | MUST | none | Covered | SCH_06, SCH_11, GRP_11, NEG_18 | Erratum 5368 confirms Group displayName required=true |
-| RFC7643-4.2-R2 | 7643 | 4.2 | Group members sub-attributes (value, $ref, type) are immutable | MUST | none | Covered | SCH_06, GRP_17 | Members can be added/removed, but individual member sub-attributes cannot be modified |
-| RFC7643-4.2-R3 | 7643 | 4.2 | Group supports nested groups as members | MAY | none | Covered | GRP_17 | Member type Group references another Group resource |
+| RFC7643-4.2-R2 | 7643 | 4.2 | Group members sub-attributes (value, $ref, type) are immutable | MUST | none | Covered | SCH_06, GRP_16 | Members can be added/removed, but individual member sub-attributes cannot be modified |
+| RFC7643-4.2-R3 | 7643 | 4.2 | Group supports nested groups as members | MAY | none | Covered | GRP_16 | Member type Group references another Group resource |
 | RFC7643-4.3-R1 | 7643 | 4.3 | Enterprise User extension attributes (employeeNumber, department, etc.) adhere to schema | MUST | enterprise | Gated (enterprise) | SCH_07, USR_02 | Standard Enterprise User extension schema definitions |
 | RFC7643-4.3-R2 | 7643 | 4.3 | Enterprise User manager complex attribute includes value ($ref) and readOnly displayName | MUST | enterprise | Gated (enterprise) | SCH_07 | Manager reference to another User |
 | RFC7643-5-R1 | 7643 | 5 | ServiceProviderConfig attributes are all readOnly and include required capability flags | MUST | none | Covered | DSC_01, DSC_18 | patch, bulk, filter, changePassword, sort, etag, authenticationSchemes |

@@ -164,7 +164,7 @@ class SpecMatrixGenerator {
             return tests
         }
 
-        Pattern methodPattern = Pattern.compile('^\\s*def\\s+["\']([^"\']+)["\']\\s*\\(.*')
+        Pattern methodPattern = Pattern.compile('^\\s*def\\s+(?:"([^"]+)"|\'([^\']+)\')\\s*\\(.*')
         Pattern specRefPattern = Pattern.compile('@SpecRef\\s*\\(\\s*["\']([^"\']+)["\'](?:\\s*,\\s*note\\s*=\\s*["\']([^"\']*)["\'])?\\s*\\)')
         Pattern capPattern = Pattern.compile('@RequiresCapability\\s*\\(\\s*["\']([^"\']+)["\']\\s*\\)')
 
@@ -188,7 +188,7 @@ class SpecMatrixGenerator {
 
                 Matcher methodMatcher = methodPattern.matcher(line)
                 if (methodMatcher.find()) {
-                    String fullTitle = methodMatcher.group(1).trim()
+                    String fullTitle = (methodMatcher.group(1) ?: methodMatcher.group(2)).trim()
                     String testId = extractTestId(fullTitle, fileName, tests.size() + 1)
                     TestMethod test = new TestMethod(
                         id: testId,
