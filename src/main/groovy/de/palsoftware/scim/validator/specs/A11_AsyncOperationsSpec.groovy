@@ -107,10 +107,12 @@ class A11_AsyncOperationsSpec extends ScimBaseSpec {
         assert locUri != null
 
         and: "Query Location only if same origin to prevent credential leakage"
-        URI baseUri = URI.create(getBaseUri())
+        URI baseUri = URI.create(BASE_URL)
         boolean isSameOrigin = !locUri.isAbsolute() || (locUri.host == null || locUri.host.equalsIgnoreCase(baseUri.host))
         if (isSameOrigin) {
-            Response locResp = scimRequestQuiet().get(asyncLocation)
+            Response locResp = scimRequestQuiet()
+                .accept("application/scim+json, application/secevent+json, application/json")
+                .get(asyncLocation)
             assert locResp.statusCode() in [200, 202, 404] :
                 "GET on Location header returned unexpected status ${locResp.statusCode()}"
             if (locResp.statusCode() == 200 && locResp.contentType()?.contains("scim+json")) {
