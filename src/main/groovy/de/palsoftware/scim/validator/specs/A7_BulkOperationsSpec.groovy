@@ -1189,6 +1189,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         given: "Two groups referencing each other via bulkId"
         String g1 = "grp_circ_1_${UUID.randomUUID().toString().substring(0, 8)}"
         String g2 = "grp_circ_2_${UUID.randomUUID().toString().substring(0, 8)}"
+        List<String> createdGroupIds = []
 
         Map bulkPayload = [
             schemas   : [BULK_REQUEST_SCHEMA],
@@ -1200,7 +1201,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     data  : [
                         schemas    : [GROUP_SCHEMA],
                         displayName: g1,
-                        members    : [[value: "bulkId:circG2"]]
+                        members    : [[value: "bulkId:circG2", type: "Group"]]
                     ]
                 ],
                 [
@@ -1210,7 +1211,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     data  : [
                         schemas    : [GROUP_SCHEMA],
                         displayName: g2,
-                        members    : [[value: "bulkId:circG1"]]
+                        members    : [[value: "bulkId:circG1", type: "Group"]]
                     ]
                 ]
             ]
@@ -1221,15 +1222,18 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
 
-        then: "Server resolves circular references or returns 409 Conflict per §3.7.1"
+        then: "Server resolves circular references or rejects with 409/per-op 400 per §3.7.1 / §3.7.3"
         assert response.statusCode() in [200, 409] : "Expected HTTP 200 or 409 per RFC 7644 §3.7.1, but got ${response.statusCode()}"
         if (response.statusCode() == 409) {
             assertScimError(response, 409)
         } else {
-            def ops = response.jsonPath().getList("Operations")
+            List<Map> ops = response.jsonPath().getList("Operations")
             assert ops != null && ops.size() == 2
-            boolean allCreated = ops.every { (it.status as String) == "201" }
-            if (allCreated) {
+            ops.each { Map op ->
+                String id = (op.location as String)?.tokenize("/")?.last() ?: (op.response?.id as String)
+                if (id) createdGroupIds << id
+            }
+            if (ops.every { (it.status as String) == "201" }) {
                 String id1 = ops[0].location ? (ops[0].location as String).tokenize("/").last() : (ops[0].response?.id as String)
                 String id2 = ops[1].location ? (ops[1].location as String).tokenize("/").last() : (ops[1].response?.id as String)
                 if (id1 && id2) {
@@ -1243,15 +1247,28 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     assert m2?.contains(id1) : "Group 2 members must contain resolved Group 1 ID (RFC 7644 §3.7.1)"
                 }
             } else {
-                boolean has409 = ops.any { (it.status as String) == "409" }
-                assert has409 : "Server did not resolve circular bulkId references (operations returned ${ops.collect { it.status }}) (RFC 7644 §3.7.1)"
-            }
-            ops.each { Map op ->
-                String id = (op.location as String)?.tokenize("/")?.last() ?: (op.response?.id as String)
-                if (id) {
-                    try { scimRequestQuiet().delete("/Groups/${id}") } catch (Exception ignored) {}
+                assert ops.every { (it.status as String) in ["400", "409"] } :
+                    "Expected all circular bulkId operations to either resolve (201) or fail with 400/409, but got statuses ${ops.collect { it.status }} (RFC 7644 §3.7.1 / §3.7.3)"
+                assert createdGroupIds.isEmpty() : "Failed circular bulkId operations must not create resources, but found IDs ${createdGroupIds}"
+                ops.each { Map op ->
+                    assert op.location == null : "Failed bulk operation must not return a location"
+                    assert (op.response?.schemas as List)?.contains(ERROR_SCHEMA) :
+                        "Failed bulk operation must include SCIM Error schema in response (RFC 7644 §3.7.3)"
+                }
+                if (isFilterSupported()) {
+                    Response checkResp = scimRequestQuiet()
+                        .queryParam("filter", "displayName eq \"${g1}\" or displayName eq \"${g2}\"")
+                        .get("/Groups")
+                    assert checkResp.statusCode() == 200
+                    assert checkResp.jsonPath().getInt("totalResults") == 0 :
+                        "Failed circular bulkId operations must not persist group resources"
                 }
             }
+        }
+
+        cleanup:
+        createdGroupIds.each { String id ->
+            try { scimRequestQuiet().delete("/Groups/${id}") } catch (Exception ignored) {}
         }
     }
 

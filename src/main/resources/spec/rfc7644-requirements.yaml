@@ -20,7 +20,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7644 §3.12 Table 8 & §4: 403 Forbidden on disallowed operations (e.g., filtering on discovery endpoints or sensitive attributes); verified in DSC_19 and NEG_23"
+  note: "RFC 7644 §3.12 Table 8 & §4: 403 Forbidden on disallowed operations (e.g., filtering on discovery endpoints in DSC_19; sensitive filter rejection is covered by RFC7644-7.5.2-R1 in NEG_23)"
 
 - id: RFC7644-3.1-R1
   rfc: "7644"
@@ -320,7 +320,7 @@
   capability: filter
   observability: response
   disposition: optional
-  note: "e.g. schemas eq \"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User\""
+  note: "RFC 7643 §3.1 defines schemas as a core multi-valued string attribute (returned=always, caseExact=true); RFC 7644 §3.4.2.2 Figure 2 specifies filtering by schema URI via schemas eq \"urn:...\""
 
 - id: RFC7644-3.4.2.2-R14
   rfc: "7644"
@@ -460,7 +460,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7644 §3.4.2.5 / §3.9 define attributes and excludedAttributes as mutually exclusive client parameters; providing both SHOULD return 400"
+  note: "RFC 7644 §3.4.2.5 / §3.9 define attributes and excludedAttributes as mutually exclusive; when both are supplied, server returns 400 Bad Request or 200 OK applying one parameter"
 
 - id: RFC7644-3.4.3-R1
   rfc: "7644"
@@ -720,7 +720,7 @@
   capability: bulk
   observability: behavior
   disposition: optional
-  note: "bulkId:id reference resolution across operations (§3.7.2) and circular reference processing (§3.7.1)"
+  note: "bulkId:id reference resolution across operations (§3.7.2) and circular reference processing (§3.7.1 / §3.7.3: resolved with 201 or rejected with 409/per-op 400)"
 
 - id: RFC7644-3.7-R5
   rfc: "7644"

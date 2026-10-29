@@ -1030,11 +1030,11 @@ class A3_UserCrudSpec extends ScimBaseSpec {
     // ─── USR_30: Mutual exclusion of attributes and excludedAttributes ──────
 
     @SpecRef("RFC7644-3.4.2.5-R3")
-    def "USR_30: GET /Users/{id} with mutually exclusive attributes and excludedAttributes returns 400"() {
+    def "USR_30: GET /Users/{id} with mutually exclusive attributes and excludedAttributes returns 400 or applies one parameter"() {
         // RFC 7644 §3.9 — attributes and excludedAttributes are mutually exclusive
         given: "An existing user"
         def userName = "mut_excl_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
-        def cr = createUser(userName: userName)
+        def cr = createUser(userName: userName, name: [givenName: "MutExcl", familyName: "User"])
         assert cr.statusCode() == 201
         def uid = cr.jsonPath().getString("id")
 
@@ -1044,9 +1044,16 @@ class A3_UserCrudSpec extends ScimBaseSpec {
             .queryParam("excludedAttributes", "name")
             .get("/Users/${uid}")
 
-        then: "Server rejects with HTTP 400 Bad Request"
-        assert response.statusCode() == 400 : "Expected 400 Bad Request for mutually exclusive params, got ${response.statusCode()}"
-        assertScimError(response, 400)
+        then: "Server rejects with HTTP 400 Bad Request or returns 200 OK applying one parameter"
+        assert response.statusCode() in [200, 400] : "Expected 200 OK or 400 Bad Request for mutually exclusive params, got ${response.statusCode()}"
+        if (response.statusCode() == 400) {
+            assertScimError(response, 400)
+        } else {
+            assert response.jsonPath().getString("id") == uid
+            assert response.jsonPath().getList("schemas")?.contains(USER_SCHEMA)
+            assert response.jsonPath().getString("userName") == userName
+            assert response.jsonPath().get("name") == null : "Expected 'name' to be omitted when either attributes=userName or excludedAttributes=name is applied"
+        }
 
         cleanup:
         if (uid) deleteUser(uid)

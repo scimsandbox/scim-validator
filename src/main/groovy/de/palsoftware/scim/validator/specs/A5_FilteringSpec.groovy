@@ -810,18 +810,33 @@ class A5_FilteringSpec extends A5_BaseSpec {
     // ─── FLT_37: attributes and excludedAttributes are mutually exclusive ────
 
     @SpecRef("RFC7644-3.4.2.5-R3")
-    def "FLT_37: Providing both attributes and excludedAttributes returns HTTP 400"() {
+    def "FLT_37: Providing both mutually exclusive attributes and excludedAttributes returns 400 or applies one parameter"() {
         // RFC 7644 §3.4.2.5: "The 'attributes' and 'excludedAttributes' query parameters
         // are mutually exclusive"
         when:
         Response response = scimRequest()
+            .queryParam("filter", "userName sw \"${PREFIX}\"")
             .queryParam("attributes", "userName")
             .queryParam("excludedAttributes", "emails")
             .get("/Users")
 
-        then: "Server returns HTTP 400 Bad Request"
-        assert response.statusCode() == 400 : "Expected 400 Bad Request for mutually exclusive query params, got ${response.statusCode()}"
-        assertScimError(response, 400)
+        then: "Server returns HTTP 400 Bad Request or 200 OK applying one parameter"
+        assert response.statusCode() in [200, 400] : "Expected 200 OK or 400 Bad Request for mutually exclusive query params, got ${response.statusCode()}"
+        if (response.statusCode() == 400) {
+            assertScimError(response, 400)
+        } else {
+            assert response.jsonPath().getList("schemas")?.contains(LIST_RESPONSE_SCHEMA)
+            List<Map> resources = response.jsonPath().getList("Resources")
+            assert resources != null && resources.size() >= 5
+            resources.each { Map res ->
+                assert (res.id as String)?.trim() : "Returned resource must include non-empty id (RFC 7644 §3.9)"
+                assert (res.schemas as List)?.contains(USER_SCHEMA) : "Returned resource must include User schema (RFC 7644 §3.9)"
+                assert (res.userName as String)?.trim() : "Returned resource must include userName"
+                assert res.emails == null : "Expected 'emails' to be omitted when either attributes=userName or excludedAttributes=emails is applied"
+            }
+            assert resources.every { it.name == null } || resources.every { it.name != null } :
+                "Expected all returned resources to consistently apply either attributes=userName (omitting name) or excludedAttributes=emails (retaining name)"
+        }
     }
 
     // ─── FLT_38: Unrecognized query parameters SHOULD be ignored ────────────
