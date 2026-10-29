@@ -89,7 +89,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         meta.lastModified != null
         meta.location == locationHeader
 
-        and: "Response contains the member and valid $ref URI when returned"
+        and: "Response contains the member and valid \$ref URI when returned"
         response.jsonPath().getList("members").size() == 1
         response.jsonPath().getString("members[0].value") == memberUserId1
         def memberRef = response.jsonPath().get("members[0].'\$ref'")
@@ -706,24 +706,35 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         assert crResp.statusCode() == 201
         String gId = crResp.jsonPath().getString("id")
 
-        when: "PUT /Groups/{id} attempting to alter member type to Group or keeping valid membership"
+        when: "PUT /Groups/{id} attempting to alter existing member immutable type from User to Group"
         Map payload = [
             schemas    : [GROUP_SCHEMA],
             displayName: gName,
             members    : [
-                [value: memberUserId1, type: "User"]
+                [value: memberUserId1, type: "Group"]
             ]
         ]
         Response putResp = scimRequestQuiet()
             .body(JsonOutput.toJson(payload))
             .put("/Groups/${gId}")
 
-        then: "Server returns 200 OK preserving immutable member characteristics"
+        then: "Server rejects with 400 mutability or returns 200 OK ignoring the immutable type mutation"
         assert putResp.statusCode() in [200, 400]
         if (putResp.statusCode() == 200) {
             def members = putResp.jsonPath().getList("members")
             assert members != null && !members.isEmpty()
-            assert members.any { it.value == memberUserId1 }
+            def member = members.find { it.value == memberUserId1 }
+            assert member != null
+            if (member.type != null) {
+                assert member.type == "User" : "Immutable member type must remain 'User' when server returns 200 OK on PUT"
+            }
+            Response getResp = scimRequestQuiet().get("/Groups/${gId}")
+            assert getResp.statusCode() == 200
+            def getMember = getResp.jsonPath().getList("members")?.find { it.value == memberUserId1 }
+            assert getMember != null
+            if (getMember.type != null) {
+                assert getMember.type == "User" : "Persisted member type must remain 'User' after PUT"
+            }
         } else {
             assertScimErrorOptionalType(putResp, 400, "mutability")
         }

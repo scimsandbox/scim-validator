@@ -1,5 +1,5 @@
 # RFC 7643: SCIM Core Schema Specification Requirements Catalog
-# Basis: RFC 7643 as published (September 2015) + Verified Errata (5368, 5606, 5990, 5991, 6004, 7522, 8415, 8417, 8435, 8450, 8471, 8472, 8475)
+# Basis: RFC 7643 as published (September 2015) + Verified Errata (5368, 5606, 5990, 5991, 6004, 7522, 8415, 8417, 8435, 8450, 8471, 8472, 8475) + Reported Erratum (6000)
 # Date: 2026-10-10
 
 - id: RFC7643-2.1-R1
@@ -110,7 +110,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "Binary attributes must be base64 strings"
+  note: "Binary attributes must be base64 strings with caseExact=true per RFC 7643 §2.3.6 and Reported Erratum 6000"
 
 - id: RFC7643-2.3.7-R1
   rfc: "7643"
@@ -185,12 +185,12 @@
 - id: RFC7643-3-R1
   rfc: "7643"
   section: "3"
-  title: "Resource representations MUST include non-empty schemas array of unique schema URIs"
+  title: "Resource representations MUST include non-empty schemas array of unique, resource-type-supported schema URIs"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "Every resource carries valid schemas array with no duplicate URIs"
+  note: "Every resource carries valid schemas array with no duplicate or unknown URIs (RFC 7643 §3: 'The \"schemas\" attribute MUST only contain values defined as \"schema\" and \"schemaExtensions\" for the resource's defined \"resourceType\"')"
 
 - id: RFC7643-3-R2
   rfc: "7643"
@@ -380,7 +380,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "Direct write to User groups attribute is rejected or ignored"
+  note: "Direct write to User groups attribute is ignored on POST/PUT"
 
 - id: RFC7643-4.1.2-R7
   rfc: "7643"

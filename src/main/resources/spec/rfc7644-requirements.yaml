@@ -15,12 +15,12 @@
 - id: RFC7644-2-R2
   rfc: "7644"
   section: "3.12"
-  title: "Detailed error responses SHOULD be returned for 4xx and 5xx errors"
+  title: "Forbidden operations return HTTP 403 Forbidden"
   level: SHOULD
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7644 §3.12: Detailed error responses SHOULD be returned; not all servers provide SCIM error bodies on generic 401s."
+  note: "RFC 7644 §3.12 Table 8 & §4: 403 Forbidden on disallowed operations (e.g., filtering on discovery endpoints or sensitive attributes); verified in DSC_19 and NEG_23"
 
 - id: RFC7644-3.1-R1
   rfc: "7644"
@@ -310,7 +310,7 @@
   capability: filter
   observability: response
   disposition: optional
-  note: "e.g. emails[type eq \"work\" and value co \"@example.com\"]"
+  note: "RFC 7644 §3.4.2.2 Table 5: When complex bracket filters are supported, expressions within square brackets MUST be applied to the same value of the parent attribute (e.g. emails[type eq \"work\" and value co \"@example.com\"])"
 
 - id: RFC7644-3.4.2.2-R13
   rfc: "7644"
@@ -454,7 +454,7 @@
 
 - id: RFC7644-3.4.2.5-R3
   rfc: "7644"
-  section: "3.4.2.5"
+  section: "3.9"
   title: "attributes and excludedAttributes are mutually exclusive"
   level: SHOULD
   capability: none
@@ -490,17 +490,17 @@
   capability: none
   observability: behavior
   disposition: tested
-  note: "Omitted attributes are either set to null or receive server default"
+  note: "RFC 7644 §3.5.1 MAY: Omitted readWrite attributes may be cleared/defaulted (aborts if server retains omitted attributes)"
 
 - id: RFC7644-3.5.1-R3
   rfc: "7644"
   section: "3.5.1"
-  title: "Client-supplied readOnly attributes in PUT SHALL be ignored or rejected"
+  title: "Client-supplied readOnly attributes in PUT SHALL be ignored"
   level: MUST
   capability: none
   observability: behavior
   disposition: tested
-  note: "Modifying readOnly attributes like id or meta.created fails or is ignored"
+  note: "Modifying readOnly attributes like id or meta.created on PUT is ignored (RFC 7644 §3.5.1)"
 
 - id: RFC7644-3.5.2-R1
   rfc: "7644"
@@ -785,7 +785,7 @@
 - id: RFC7644-3.8-R3
   rfc: "7644"
   section: "3.8"
-  title: "Servers MUST support application/scim+json and SHOULD support application/json media types"
+  title: "Service providers MUST support the Accept header Accept: application/scim+json and Content-Type negotiation per RFC 7231"
   level: MUST
   capability: none
   observability: response
@@ -795,13 +795,12 @@
 - id: RFC7644-3.8-R4
   rfc: "7644"
   section: "3.8"
-  title: "Accepting application/json Content-Type"
+  title: "Service providers SHOULD support the Accept header Accept: application/json"
   level: SHOULD
   capability: none
   observability: response
   disposition: tested
-  normative: "Service providers SHOULD accept POST, PUT, and PATCH operations with Content-Type application/json in addition to application/scim+json."
-  note: "Service providers SHOULD accept POST, PUT, and PATCH operations with Content-Type application/json in addition to application/scim+json."
+  note: "RFC 7644 §3.8: Service providers SHOULD support Accept: application/json in addition to Accept: application/scim+json"
 
 - id: RFC7644-3.9-R1
   rfc: "7644"
@@ -821,7 +820,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7644 §3.11 allows 200 or 308 (with Location header), 400 (unresolvable subject), or SHOULD return 501 when unsupported"
+  note: "RFC 7644 §3.11 allows 200 or 308 (with Location header), or SHOULD return 501 when unsupported"
 
 - id: RFC7644-3.12-R1
   rfc: "7644"
@@ -971,4 +970,4 @@
   capability: filter
   observability: response
   disposition: optional
-  note: "RFC 7644 §7.5.2: Rejects sensitive filter in GET URI with 403 Forbidden (or 400) so secrets/sensitive data are not exposed"
+  note: "RFC 7644 §7.5.2: Rejects sensitive filter in GET URI with 403 Forbidden so secrets/sensitive data are not exposed"

@@ -1,6 +1,8 @@
 package de.palsoftware.scim.validator.base
 
 import io.restassured.RestAssured
+import io.restassured.config.EncoderConfig
+import io.restassured.config.RestAssuredConfig
 import io.restassured.filter.log.RequestLoggingFilter
 import io.restassured.filter.log.ResponseLoggingFilter
 import io.restassured.http.ContentType
@@ -236,6 +238,11 @@ abstract class ScimBaseSpec extends Specification {
     }
 
     protected static void configureRestAssured() {
+        RestAssured.config = RestAssuredConfig.config().encoderConfig(
+            EncoderConfig.encoderConfig()
+                .defaultContentCharset("UTF-8")
+                .appendDefaultContentCharsetToContentTypeIfUndefined(false)
+        )
         state()
     }
 
@@ -669,10 +676,24 @@ abstract class ScimBaseSpec extends Specification {
     protected void assertScimError(Response response, int expectedStatus, String... expectedScimTypes) {
         assert response.statusCode() == expectedStatus :
             "HTTP status ${response.statusCode()} != expected ${expectedStatus}"
-        def schemas = response.jsonPath().getList("schemas")
+        String rawBody = response.body()?.asString()
+        assert rawBody != null && !rawBody.isBlank() :
+            "Expected SCIM Error JSON body for HTTP ${expectedStatus}, but response body was empty (RFC 7644 §3.12)"
+        def json
+        def parsedRoot
+        try {
+            json = response.jsonPath()
+            parsedRoot = json.get("")
+        } catch (Exception e) {
+            assert false :
+                "Expected valid SCIM Error JSON body for HTTP ${expectedStatus}, but failed to parse JSON (${e.class.simpleName}: ${e.message}). Body: ${rawBody.take(200)} (RFC 7644 §3.12)"
+        }
+        assert parsedRoot instanceof Map :
+            "Expected SCIM Error JSON object for HTTP ${expectedStatus}, but got ${parsedRoot?.getClass()?.simpleName}: ${rawBody.take(200)} (RFC 7644 §3.12)"
+        def schemas = json.getList("schemas")
         assert schemas != null && schemas.contains(ERROR_SCHEMA) :
             "Response schemas ${schemas} must contain ${ERROR_SCHEMA} (RFC 7644 §3.12)"
-        def rawStatus = response.jsonPath().get("status")
+        def rawStatus = json.get("status")
         assert rawStatus instanceof String :
             "SCIM error status attribute '${rawStatus}' must be a JSON String, but was ${rawStatus?.getClass()?.name} (RFC 7644 §3.12)"
         assert rawStatus == expectedStatus as String :
@@ -712,26 +733,10 @@ abstract class ScimBaseSpec extends Specification {
      * Assert standard SCIM error with optional scimType per RFC 7644 §3.12.
      * When allowedScimTypes are specified, scimType MAY be omitted or MUST match one of allowedScimTypes.
      */
-    protected void assertScimErrorWithOptionalType(Response response, int expectedStatus, String... allowedScimTypes) {
-        assert response.statusCode() == expectedStatus :
-            "HTTP status ${response.statusCode()} != expected ${expectedStatus}"
-        def schemas = response.jsonPath().getList("schemas")
-        assert schemas != null && schemas.contains(ERROR_SCHEMA) :
-            "Response schemas ${schemas} must contain ${ERROR_SCHEMA} (RFC 7644 §3.12)"
-        def rawStatus = response.jsonPath().get("status")
-        assert rawStatus instanceof String :
-            "SCIM error status attribute '${rawStatus}' must be a JSON String, but was ${rawStatus?.getClass()?.name} (RFC 7644 §3.12)"
-        assert rawStatus == expectedStatus as String :
-            "SCIM error status attribute '${rawStatus}' must equal '${expectedStatus}' (RFC 7644 §3.12)"
+    protected void assertScimErrorOptionalType(Response response, int expectedStatus, String... allowedScimTypes) {
+        assertScimError(response, expectedStatus)
         if (allowedScimTypes != null && allowedScimTypes.length > 0) {
             assertOptionalScimType(response, allowedScimTypes)
         }
-    }
-
-    /**
-     * Alias for assertScimErrorWithOptionalType.
-     */
-    protected void assertScimErrorOptionalType(Response response, int expectedStatus, String... allowedScimTypes) {
-        assertScimErrorWithOptionalType(response, expectedStatus, allowedScimTypes)
     }
 }

@@ -346,7 +346,7 @@ class A3_UserCrudSpec extends ScimBaseSpec {
 
     @SpecRef("RFC7644-3.11-R1")
     def "USR_11: GET /Me returns the authenticated subject"() {
-        // RFC 7644 §3.11 — /Me Authenticated Subject Alias: accepts 200, 308, 400 (unresolvable subject), or 501
+        // RFC 7644 §3.11 — /Me Authenticated Subject Alias: accepts 200, 308, or 501
         when: "GET /Me without following redirects"
         def response = scimRequest()
             .redirects().follow(false)
@@ -438,21 +438,20 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         when: "Create user with internationalized Unicode userName and test PRECIS case-folding (RFC 7644 §5)"
         def precisBase = "müller_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
         def precisFirst = createUser(userName: precisBase)
-        String precisUserId = precisFirst.statusCode() == 201 ? precisFirst.jsonPath().getString("id") : null
+        assert precisFirst.statusCode() == 201 : "Server must accept valid UTF-8 internationalized userName (RFC 7644 §3.8 & §5)"
+        String precisUserId = precisFirst.jsonPath().getString("id")
         if (precisUserId) createdUserIds << precisUserId
-        def precisUpperResp = precisUserId != null ? scimRequestQuiet()
+        def precisUpperResp = scimRequestQuiet()
             .body(JsonOutput.toJson([schemas: [USER_SCHEMA], userName: precisBase.toUpperCase(Locale.ROOT)]))
-            .post("/Users") : null
+            .post("/Users")
 
-        then: "PRECIS internationalized case-insensitive duplicate returns 409 Conflict when Unicode userName is accepted"
-        if (precisUpperResp != null) {
-            if (precisUpperResp.statusCode() == 201) {
-                String strayPrecisId = precisUpperResp.jsonPath().getString("id")
-                if (strayPrecisId) createdUserIds << strayPrecisId
-            }
-            assert precisUpperResp.statusCode() == 409 : "PRECIS case-folded Unicode userName duplicate MUST return 409 Conflict (RFC 7644 §5)"
-            assertScimError(precisUpperResp, 409, "uniqueness")
+        then: "PRECIS internationalized case-insensitive duplicate returns 409 Conflict"
+        if (precisUpperResp.statusCode() == 201) {
+            String strayPrecisId = precisUpperResp.jsonPath().getString("id")
+            if (strayPrecisId) createdUserIds << strayPrecisId
         }
+        assert precisUpperResp.statusCode() == 409 : "PRECIS case-folded Unicode userName duplicate MUST return 409 Conflict (RFC 7644 §5)"
+        assertScimError(precisUpperResp, 409, "uniqueness")
 
         cleanup:
         if (firstUserId) {
@@ -943,12 +942,21 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         createdUserIds.remove(uid)
 
         when: "Querying /Users"
-        Response queryResp = scimRequestQuiet().get("/Users")
+        Response queryResp = scimRequestQuiet()
+            .queryParam("count", 1000)
+            .get("/Users")
 
         then: "Deleted user is not returned in query results"
         assert queryResp.statusCode() == 200
         def resources = queryResp.jsonPath().getList("Resources")
         assert resources == null || !resources.any { it.id == uid }
+        if (isFilterSupported()) {
+            Response filterResp = scimRequestQuiet()
+                .queryParam("filter", "id eq \"${uid}\"")
+                .get("/Users")
+            assert filterResp.statusCode() == 200
+            assert filterResp.jsonPath().getInt("totalResults") == 0
+        }
     }
 
     // ─── USR_28: Re-creating User with same userName succeeds ───────────────
@@ -1086,11 +1094,10 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         String id = response.jsonPath().getString("id")
         if (id) createdUserIds << id
         def addresses = response.jsonPath().getList("addresses")
-        if (addresses != null && !addresses.isEmpty()) {
-            assert addresses[0].country == "US"
-            assert addresses[0].locality == "Austin"
-            assert addresses[0].region == "TX"
-        }
+        assert addresses != null && !addresses.isEmpty() : "Created user response must return supplied addresses (RFC 7643 §4.1.2)"
+        assert addresses[0].country == "US"
+        assert addresses[0].locality == "Austin"
+        assert addresses[0].region == "TX"
     }
 
     // ─── USR_33: Multi-valued roles and entitlements ────────────────────────
@@ -1119,13 +1126,11 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         String id = response.jsonPath().getString("id")
         if (id) createdUserIds << id
         def roles = response.jsonPath().getList("roles")
-        if (roles != null) {
-            assert roles.any { it.value == "Developer" }
-        }
+        assert roles != null && !roles.isEmpty() : "Created user response must return supplied roles (RFC 7643 §4.1.2)"
+        assert roles.any { it.value == "Developer" }
         def entitlements = response.jsonPath().getList("entitlements")
-        if (entitlements != null) {
-            assert entitlements.any { it.value == "AdminAccess" }
-        }
+        assert entitlements != null && !entitlements.isEmpty() : "Created user response must return supplied entitlements (RFC 7643 §4.1.2)"
+        assert entitlements.any { it.value == "AdminAccess" }
     }
 
     // ─── USR_34: Binary x509Certificates canonical DER round-trip ───────────
@@ -1136,8 +1141,10 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         // RFC 7643 §4.1.2 & §2.3.6 — x509Certificates is binary (Base64 DER)
         given: "User with valid binary DER encoded x509Certificate"
         def userName = "cert_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
-        byte[] derBytes = [0x30, 0x03, 0x02, 0x01, 0x01] as byte[]
-        String sampleCertBase64 = Base64.encoder.encodeToString(derBytes)
+        String sampleCertBase64 = "MIIBGjCBwAIJAOcRs9vZyr3GMAoGCCqGSM49BAMCMBQxEjAQBgNVBAMMCXNjaW0tdGVzdDAgFw0yNjEwMjkyMDE5NDVaGA8yMTI2MTAwNTIwMTk0NVowFDESMBAGA1UEAwwJc2NpbS10ZXN0MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEN2EIwSw7ut11QAdh5+6rxbzEBQrfvlfIxK8YcL5CUTQOo5OruaInSvj1rXcpNQ1aA2Yk70mN/6ize5mJZwugHDAKBggqhkjOPQQDAgNJADBGAiEA8nhD+/ZCR6P9IsaXrP/qWSefPbce1iu5qO++EUmD0tECIQC9Lu9cZvvTWS+R1qxnKx0Bqn6lqiAKyV5uINxPMVEgVg=="
+        byte[] derBytes = Base64.decoder.decode(sampleCertBase64)
+        assert java.security.cert.CertificateFactory.getInstance("X.509")
+            .generateCertificate(new ByteArrayInputStream(derBytes)) != null
         def payload = [
             schemas         : [USER_SCHEMA],
             userName        : userName,
@@ -1154,12 +1161,11 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         String id = response.jsonPath().getString("id")
         if (id) createdUserIds << id
         def certs = response.jsonPath().getList("x509Certificates")
-        if (certs != null && !certs.isEmpty()) {
-            String returnedVal = certs[0].value
-            assert returnedVal != null
-            byte[] returnedBytes = Base64.decoder.decode(returnedVal.trim())
-            assert returnedBytes == derBytes
-        }
+        assert certs != null && !certs.isEmpty() : "Created user response must return supplied x509Certificates (RFC 7643 §4.1.2)"
+        String returnedVal = certs[0].value
+        assert returnedVal != null
+        byte[] returnedBytes = Base64.decoder.decode(returnedVal.trim())
+        assert returnedBytes == derBytes
     }
 
     // ─── USR_35: Invalid ISO 3166-1 country code returns 400 Bad Request ────
@@ -1183,6 +1189,10 @@ class A3_UserCrudSpec extends ScimBaseSpec {
             .post("/Users")
 
         then: "Server rejects with HTTP 400 Bad Request"
+        if (response.statusCode() == 201) {
+            String id = response.jsonPath().getString("id")
+            if (id) createdUserIds << id
+        }
         assert response.statusCode() == 400 : "Expected 400 Bad Request for non-ISO-3166-1 country code, got ${response.statusCode()}"
         assertScimErrorOptionalType(response, 400, "invalidValue")
     }

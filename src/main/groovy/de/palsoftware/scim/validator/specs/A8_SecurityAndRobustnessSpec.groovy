@@ -402,18 +402,14 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
         if (etag) reqSpec = reqSpec.header("If-Match", etag)
         Response putResp = reqSpec.put("/Users/${testUserId}")
 
-        then: "Server either rejects with 400 or ignores the forged meta.created"
-        putResp.statusCode() in [200, 400]
-        if (putResp.statusCode() == 200) {
-            String returnedCreated = putResp.jsonPath().getString("meta.created")
-            assert returnedCreated != "1970-01-01T00:00:00Z" :
-                "Server MUST NOT accept client-supplied meta.created on PUT (RFC 7643 §3.1)"
-            if (originalCreated != null) {
-                assert returnedCreated == originalCreated :
-                    "meta.created should remain unchanged after PUT"
-            }
-        } else {
-            assertScimError(putResp, 400, "mutability", "invalidValue")
+        then: "Server returns 200 OK and ignores the forged meta.created (RFC 7644 §3.5.1)"
+        assert putResp.statusCode() == 200 : "PUT with readOnly meta.created must return 200 OK and ignore readOnly attributes (RFC 7644 §3.5.1), got ${putResp.statusCode()}"
+        String returnedCreated = putResp.jsonPath().getString("meta.created")
+        assert returnedCreated != "1970-01-01T00:00:00Z" :
+            "Server MUST NOT accept client-supplied meta.created on PUT (RFC 7643 §3.1)"
+        if (originalCreated != null) {
+            assert returnedCreated == originalCreated :
+                "meta.created should remain unchanged after PUT"
         }
     }
 
@@ -448,7 +444,6 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
     // ─── SEC_20: Negative Content Negotiation (Unsupported Content-Type) ────
 
-    @SpecRef("RFC7644-3.8-R1")
     @SpecRef("RFC7644-3.8-R3")
     def "SEC_20: Request with unsupported Content-Type returns 415 or 400 Bad Request"() {
         // RFC 7644 §3.8 — Unsupported Content-Type SHOULD return HTTP 415
@@ -708,7 +703,6 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
     // ─── SEC_27: 401 and 403 return JSON error body ─────────────────────────
 
-    @SpecRef("RFC7644-2-R2")
     @SpecRef("RFC7644-3.12-R3")
     def "SEC_27: HTTP 401 and 403 error responses return JSON error body"() {
         // RFC 7644 §3.12: "For HTTP status codes 401 and 403, the response body MUST
@@ -764,6 +758,7 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
         when: "POST raw UTF-8 JSON"
         Response response = scimRequest()
+            .contentType("${SCIM_CONTENT_TYPE}; charset=UTF-8")
             .body(rawUtf8Json)
             .post("/Users")
 

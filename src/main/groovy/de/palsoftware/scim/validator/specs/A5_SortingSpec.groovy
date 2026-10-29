@@ -264,4 +264,3 @@ class A5_SortingSpec extends A5_BaseSpec {
         createdIds.each { id -> if (id) deleteUser(id) }
     }
 }
-

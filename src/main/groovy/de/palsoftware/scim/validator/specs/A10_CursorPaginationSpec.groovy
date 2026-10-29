@@ -192,9 +192,9 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
         then: "Status is 200 OK"
         assert response.statusCode() == 200
 
-        and: "pagination complex attribute MUST be present per RFC 9865 §4"
+        and: "pagination complex attribute SHOULD be present per RFC 9865 §4"
         def pag = response.jsonPath().get("pagination")
-        assert pag != null : "ServiceProviderConfig MUST include 'pagination' configuration attribute (RFC 9865 §4)"
+        assert pag != null : "ServiceProviderConfig SHOULD include 'pagination' configuration attribute (RFC 9865 §4)"
         assert pag.cursor instanceof Boolean : "'pagination.cursor' must be a Boolean"
         assert pag.index instanceof Boolean : "'pagination.index' must be a Boolean"
     }

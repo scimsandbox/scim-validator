@@ -579,11 +579,16 @@ class A5_FilteringSpec extends A5_BaseSpec {
         Response response = scimRequest()
             .queryParam("filter", "emails[type eq \"work\"] and userName sw \"${PREFIX}\"")
             .get("/Users")
+        Response negResponse = scimRequest()
+            .queryParam("filter", "emails[type eq \"home\"] and userName sw \"${PREFIX}\"")
+            .get("/Users")
 
         then:
         response.statusCode() == 200
         // All our test users have a work email
         response.jsonPath().getInt("totalResults") >= 5
+        negResponse.statusCode() == 200
+        negResponse.jsonPath().getInt("totalResults") == 0
     }
 
     // ─── FLT_28: Case-insensitive operator ──────────────────────────────────
@@ -685,9 +690,18 @@ class A5_FilteringSpec extends A5_BaseSpec {
             .queryParam("filter", "emails[type eq \"work\" and value co \"@test.com\"] and userName sw \"${PREFIX}\"")
             .get("/Users")
 
-        then: "Server returns matching users"
-        bracketSubAttr.statusCode() == 200
-        assert bracketSubAttr.jsonPath().getInt("totalResults") >= 5
+        then: "Server returns matching users (200) or rejects unsupported complex bracket filter with 400 invalidFilter (RFC 7644 §3.4.2.2 Table 5 MAY)"
+        assert bracketSubAttr.statusCode() in [200, 400]
+        if (bracketSubAttr.statusCode() == 200) {
+            assert bracketSubAttr.jsonPath().getInt("totalResults") >= 5
+            Response negBracket = scimRequest()
+                .queryParam("filter", "emails[type eq \"home\" and value co \"@test.com\"] and userName sw \"${PREFIX}\"")
+                .get("/Users")
+            assert negBracket.statusCode() == 200
+            assert negBracket.jsonPath().getInt("totalResults") == 0
+        } else {
+            assertScimError(bracketSubAttr, 400, "invalidFilter")
+        }
     }
 
     // ─── FLT_33: Root global search POST /.search ───────────────────────────
@@ -979,7 +993,10 @@ class A5_FilteringSpec extends A5_BaseSpec {
         String userId = createResp.jsonPath().getString("id")
         Boolean returnedActive = createResp.jsonPath().get("active") as Boolean
         if (returnedActive == null) {
-            if (userId) deleteUser(userId)
+            if (userId) {
+                deleteUser(userId)
+                createdUserIds.remove(userId)
+            }
             throw new org.opentest4j.TestAbortedException("Server does not assign a default value to omitted 'active' attribute on creation")
         }
 
@@ -1004,6 +1021,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
         cleanup:
         if (userId) {
             deleteUser(userId)
+            createdUserIds.remove(userId)
         }
     }
 
@@ -1049,5 +1067,3 @@ class A5_FilteringSpec extends A5_BaseSpec {
         assert wrongCaseResp.jsonPath().getInt("totalResults") == 0
     }
 }
-
-

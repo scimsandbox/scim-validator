@@ -43,10 +43,6 @@ class SpecMatrixGenerator {
         int lineNumber
         List<String> specRefs = []
         List<String> capabilities = []
-
-        String getCapability() {
-            return capabilities ? capabilities.last() : null
-        }
     }
 
     static void main(String[] args) {

@@ -207,8 +207,8 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         then: "Server returns 200 with operations, but stops after error threshold is reached"
         response.statusCode() == 200
         def operations = response.jsonPath().getList("Operations")
-        // Server stops after 1 error (or < 3 operations processed per RFC 7644 §3.7.3)
-        operations.size() in [1, 2]
+        // Server stops after 1 error per RFC 7644 §3.7.3
+        operations.size() == 1
         (operations[0].status as String) in ["404", "400"]
     }
 

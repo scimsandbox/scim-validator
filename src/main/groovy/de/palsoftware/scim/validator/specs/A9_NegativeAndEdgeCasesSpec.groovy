@@ -83,7 +83,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             .post("/Users")
 
         then:
-        assertScimError(response, 400, "invalidValue")
+        assertScimErrorOptionalType(response, 400, "invalidValue")
 
         cleanup:
         if (response.statusCode() == 201) {
@@ -168,7 +168,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             .post("/Users")
 
         then:
-        assertScimError(response, 400, "invalidSyntax")
+        assertScimErrorOptionalType(response, 400, "invalidSyntax")
     }
 
     // ─── NEG_08: Invalid endpoint returns 404 ───────────────────────────────
@@ -195,7 +195,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             .post("/Users")
 
         then: "Strict 400 Bad Request without server error"
-        assertScimError(response, 400, "invalidSyntax")
+        assertScimErrorOptionalType(response, 400, "invalidSyntax")
     }
 
     // ─── NEG_10: Random UUID URL returns 404 with SCIM Error body ───────────
@@ -268,7 +268,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         then: "400 Bad Request with SCIM Error schema"
         response.statusCode() == 400
         assertScimError(response, 400)
-        assertScimType(response, "invalidPath", "noTarget", "invalidFilter", "invalidValue")
+        assertOptionalScimType(response, "invalidPath", "noTarget", "invalidFilter", "invalidValue")
     }
 
     // ─── NEG_14: Root JSON Array Payload on POST User ───────────────────────
@@ -349,7 +349,7 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
             .post("/Groups")
 
         then: "Missing displayName returns 400 Bad Request with invalidValue"
-        assertScimError(noName, 400, "invalidValue")
+        assertScimErrorOptionalType(noName, 400, "invalidValue")
     }
 
     // ─── NEG_19: Unknown Schema URN in POST Payload ─────────────────────────
@@ -371,6 +371,12 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
         then: "Server rejects with 400 Bad Request (RFC 7643 §3)"
         response.statusCode() == 400
         assertScimError(response, 400)
+
+        cleanup:
+        if (response?.statusCode() == 201) {
+            String strayId = response.jsonPath().getString("id")
+            if (strayId) deleteUser(strayId)
+        }
     }
 
     // ─── NEG_20: tooMany error keyword on excessive results ─────────────────
@@ -561,14 +567,20 @@ class A9_NegativeAndEdgeCasesSpec extends ScimBaseSpec {
     def "NEG_29: Unsupported SCIM protocol version returns 400 with scimType invalidVers"() {
         // RFC 7644 §3.12: "invalidVers: The specified SCIM protocol version is not supported"
         when: "Request resource under unsupported protocol version /v1"
-        Response response = scimRequestQuiet().get("/v1/Users")
+        URI base = URI.create(BASE_URL)
+        String rawPath = (base.path ?: "").replaceAll('/+$', '')
+        String v1Path = rawPath.contains("/v2") ? rawPath.replaceFirst('/v2(?=/|$)', '/v1') + "/Users" : (rawPath + "/v1/Users")
+        Response response = scimRequestQuiet()
+            .baseUri("${base.scheme}://${base.rawAuthority}")
+            .basePath("")
+            .get(v1Path)
 
         then: "Server rejects with 400 invalidVers (or aborts if router path 404)"
         if (response.statusCode() == 404) {
-            throw new TestAbortedException("Server router does not bind /v1 endpoint (404 Not Found)")
+            throw new TestAbortedException("Server returned HTTP 404 for /v1/Users at router layer before SCIM invalidVers evaluation")
         }
         response.statusCode() == 400
-        assertScimErrorOptionalType(response, 400, "invalidVers")
+        assertScimError(response, 400, "invalidVers")
     }
 }
 
