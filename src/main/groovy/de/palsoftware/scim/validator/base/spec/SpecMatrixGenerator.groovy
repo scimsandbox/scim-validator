@@ -42,7 +42,11 @@ class SpecMatrixGenerator {
         String fileName
         int lineNumber
         List<String> specRefs = []
-        String capability
+        List<String> capabilities = []
+
+        String getCapability() {
+            return capabilities ? capabilities.last() : null
+        }
     }
 
     static void main(String[] args) {
@@ -124,6 +128,8 @@ class SpecMatrixGenerator {
                         if (n2.startsWith("rfc7644")) return 1
                         if (n1.startsWith("rfc7643")) return -1
                         if (n2.startsWith("rfc7643")) return 1
+                        if (n1.startsWith("rfc9865")) return -1
+                        if (n2.startsWith("rfc9865")) return 1
                         return n1.compareTo(n2)
                     }
                     .toList()
@@ -164,6 +170,7 @@ class SpecMatrixGenerator {
             return tests
         }
 
+        Pattern classPattern = Pattern.compile('^\\s*class\\s+\\w+.*')
         Pattern methodPattern = Pattern.compile('^\\s*def\\s+(?:"([^"]+)"|\'([^\']+)\')\\s*\\(.*')
         Pattern specRefPattern = Pattern.compile('@SpecRef\\s*\\(\\s*["\']([^"\']+)["\'](?:\\s*,\\s*note\\s*=\\s*["\']([^"\']*)["\'])?\\s*\\)')
         Pattern capPattern = Pattern.compile('@RequiresCapability\\s*\\(\\s*["\']([^"\']+)["\']\\s*\\)')
@@ -172,13 +179,23 @@ class SpecMatrixGenerator {
             List<String> lines = Files.readAllLines(file)
             String fileName = file.fileName.toString()
             List<String> pendingSpecRefs = []
+            String classCap = null
             String pendingCap = null
+            boolean inClassBody = false
 
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i)
+                if (!inClassBody && classPattern.matcher(line).matches()) {
+                    inClassBody = true
+                }
+
                 Matcher capMatcher = capPattern.matcher(line)
                 while (capMatcher.find()) {
-                    pendingCap = capMatcher.group(1).trim()
+                    if (!inClassBody) {
+                        classCap = capMatcher.group(1).trim()
+                    } else {
+                        pendingCap = capMatcher.group(1).trim()
+                    }
                 }
 
                 Matcher refMatcher = specRefPattern.matcher(line)
@@ -196,7 +213,7 @@ class SpecMatrixGenerator {
                         fileName: fileName,
                         lineNumber: i + 1,
                         specRefs: new ArrayList<>(pendingSpecRefs),
-                        capability: pendingCap
+                        capabilities: [classCap, pendingCap].findAll { it != null && it != 'none' }.unique()
                     )
                     tests.add(test)
                     pendingSpecRefs.clear()
@@ -255,12 +272,10 @@ class SpecMatrixGenerator {
             }
         }
 
-        // 3. Every MUST or SHOULD requirement must be tested, optional (gated), or have na disposition
+        // 3. Every non-na requirement must have at least one mapped @SpecRef test
         requirements.values().each { req ->
-            if (req.level in ["MUST", "SHOULD"]) {
-                if (req.tests.isEmpty() && req.disposition == "tested") {
-                    errors.add("Normative requirement ${req.id} (RFC ${req.rfc} §${req.section} - '${req.title}') has no test and is not marked optional/na")
-                }
+            if (req.disposition in ["tested", "optional"] && req.tests.isEmpty()) {
+                errors.add("Requirement ${req.id} (RFC ${req.rfc} §${req.section} - '${req.title}', disposition=${req.disposition}) has no mapped @SpecRef test")
             }
         }
 
@@ -275,14 +290,14 @@ class SpecMatrixGenerator {
         sb.append("| :--- | :--- | :--- | :---: | :---: | :--- | :--- | :---: |\n")
 
         tests.each { test ->
-            String mode = test.capability ? "gated (${test.capability})" : "strict"
+            String mode = test.capabilities ? "gated (${test.capabilities.join(', ')})" : "strict"
             if (test.specRefs.isEmpty()) {
                 sb.append("| ${test.id} | ${escapePipes(test.name)} | [${test.fileName}:${test.lineNumber}](../src/main/groovy/de/palsoftware/scim/validator/specs/${test.fileName}#L${test.lineNumber}) | - | - | - | - | ${mode} |\n")
             } else {
                 test.specRefs.each { refId ->
                     Requirement req = requirements.get(refId)
                     String rfc = req ? req.rfc : "-"
-                    String sec = req ? req.section : "-"
+                    String sec = (req && req.rfc && req.section) ? "[§${req.section}](https://www.rfc-editor.org/rfc/rfc${req.rfc}#section-${req.section})" : "-"
                     String reqTitle = req ? escapePipes(req.title) : "-"
                     sb.append("| ${test.id} | ${escapePipes(test.name)} | [${test.fileName}:${test.lineNumber}](../src/main/groovy/de/palsoftware/scim/validator/specs/${test.fileName}#L${test.lineNumber}) | ${rfc} | ${sec} | ${refId} | ${reqTitle} | ${mode} |\n")
                 }
@@ -296,7 +311,7 @@ class SpecMatrixGenerator {
         StringBuilder sb = new StringBuilder()
         sb.append("# SCIM 2.0 Specification Coverage Matrix\n\n")
         sb.append("*Auto-generated by `SpecMatrixGenerator`. Do not edit by hand.*\n")
-        sb.append("*Specification Basis: RFC 7643, RFC 7644 + Verified Errata*\n\n")
+        sb.append("*Specification Basis: RFC 7643, RFC 7644, RFC 9865, RFC 9967 + Verified Errata*\n\n")
 
         int total = requirements.size()
         long covered = requirements.values().count { !it.tests.isEmpty() }
@@ -326,8 +341,9 @@ class SpecMatrixGenerator {
                 status = "Gap"
             }
 
+            String secLink = (req.rfc && req.section) ? "[§${req.section}](https://www.rfc-editor.org/rfc/rfc${req.rfc}#section-${req.section})" : (req.section ?: "-")
             String testsStr = req.tests.isEmpty() ? "—" : req.tests.join(", ")
-            sb.append("| ${req.id} | ${req.rfc} | ${req.section} | ${escapePipes(req.title)} | ${req.level} | ${req.capability} | ${status} | ${testsStr} | ${escapePipes(req.note)} |\n")
+            sb.append("| ${req.id} | ${req.rfc} | ${secLink} | ${escapePipes(req.title)} | ${req.level} | ${req.capability} | ${status} | ${testsStr} | ${escapePipes(req.note)} |\n")
         }
 
         return sb.toString()

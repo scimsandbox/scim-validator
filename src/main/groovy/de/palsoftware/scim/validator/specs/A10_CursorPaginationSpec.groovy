@@ -119,8 +119,8 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
             throw new TestAbortedException("Skipped: no nextCursor obtained from CUR_01")
         }
 
-        when: "Request all remaining results with high count using cursor"
-        String currentCursor = firstNextCursor
+        when: "Initiate a fresh cursor query with high count=100 and advance until final page"
+        String currentCursor = ""
         Response lastResponse = null
         int maxPages = 10
         while (currentCursor != null && maxPages-- > 0) {
@@ -148,9 +148,7 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
             .queryParam("cursor", "invalid-opaque-cursor-value-999")
             .get("/Users")
 
-        then: "Server returns HTTP 400 Bad Request with scimType invalidCursor"
-        assert response.statusCode() == 400 :
-            "Expected HTTP 400 Bad Request for invalid cursor, but got ${response.statusCode()}"
+        then: "Server returns HTTP 400 Bad Request with scimType invalidCursor (RFC 9865 §2.1)"
         assertScimError(response, 400, "invalidCursor")
     }
 
@@ -172,11 +170,15 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(payload))
             .post("/Users/.search")
 
-        then: "Status is 200 OK (or 501 if endpoint not implemented)"
-        assert response.statusCode() in [200, 501]
-        if (response.statusCode() == 200) {
-            assert response.jsonPath().getList("schemas")?.contains(LIST_RESPONSE_SCHEMA)
+        then: "Status is 200 OK (or aborts if endpoint returns 501)"
+        if (response.statusCode() == 501) {
+            throw new TestAbortedException("Server does not implement POST /Users/.search (HTTP 501)")
         }
+        assert response.statusCode() == 200
+        assert response.jsonPath().getList("schemas")?.contains(LIST_RESPONSE_SCHEMA)
+        assert response.jsonPath().get("previousCursor") == null
+        String nextCur = response.jsonPath().getString("nextCursor")
+        assert nextCur != null && !nextCur.trim().isEmpty() : "nextCursor must be non-empty in POST /.search cursor response (RFC 9865 §3)"
     }
 
     // ─── CUR_06: ServiceProviderConfig pagination schema ────────────────────
@@ -190,14 +192,11 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
         then: "Status is 200 OK"
         assert response.statusCode() == 200
 
-        and: "pagination complex attribute SHOULD be present per RFC 9865 §4"
+        and: "pagination complex attribute MUST be present per RFC 9865 §4"
         def pag = response.jsonPath().get("pagination")
-        if (pag == null) {
-            recordDeviation("RFC9865-4-R1", "RFC 9865 §4", "ServiceProviderConfig omits recommended 'pagination' configuration attribute (SHOULD include per §4)")
-        } else {
-            assert pag.cursor instanceof Boolean : "'pagination.cursor' must be a Boolean"
-            assert pag.index instanceof Boolean : "'pagination.index' must be a Boolean"
-        }
+        assert pag != null : "ServiceProviderConfig MUST include 'pagination' configuration attribute (RFC 9865 §4)"
+        assert pag.cursor instanceof Boolean : "'pagination.cursor' must be a Boolean"
+        assert pag.index instanceof Boolean : "'pagination.index' must be a Boolean"
     }
 
     def cleanupSpec() {

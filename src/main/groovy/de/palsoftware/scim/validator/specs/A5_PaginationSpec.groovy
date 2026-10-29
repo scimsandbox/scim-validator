@@ -1,6 +1,7 @@
 package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.A5_BaseSpec
+import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
 
@@ -135,7 +136,8 @@ class A5_PaginationSpec extends A5_BaseSpec {
         then:
         response.statusCode() == 200
         response.jsonPath().getInt("totalResults") >= 5
-        response.jsonPath().getInt("startIndex") == 9999
+        def startIndex = response.jsonPath().get("startIndex")
+        startIndex == null || startIndex == 9999
         def resources = response.jsonPath().getList("Resources")
         resources == null || resources.isEmpty()
         def itemsPerPage = response.jsonPath().get("itemsPerPage")
@@ -224,6 +226,7 @@ class A5_PaginationSpec extends A5_BaseSpec {
 
     // ─── PAG_07: Pagination via POST /.search ───────────────────────────────
 
+    @RequiresCapability("search")
     @SpecRef("RFC7644-3.4.3-R1")
     def "PAG_07: Pagination via POST /.search conforms to SearchRequest specification"() {
         // RFC 7644 §3.4.3: POST /.search (or /Users/.search) with SearchRequest
@@ -244,7 +247,9 @@ class A5_PaginationSpec extends A5_BaseSpec {
         }
         assert response.statusCode() == 200
         assert response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+        assert response.jsonPath().getInt("totalResults") >= 5
         assert response.jsonPath().getInt("startIndex") == 1
+        assert response.jsonPath().getInt("itemsPerPage") >= 1
         assert response.jsonPath().getInt("itemsPerPage") <= 2
         assert response.jsonPath().getList("Resources").size() == response.jsonPath().getInt("itemsPerPage")
     }

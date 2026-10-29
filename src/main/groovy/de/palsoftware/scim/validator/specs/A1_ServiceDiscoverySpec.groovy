@@ -102,30 +102,25 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         and: "Response contains User and Group resource types"
         def body = response.jsonPath()
 
-        // Response may be a list (array) or a ListResponse
-        def resources
-        if (body.get("Resources") != null) {
-            resources = body.getList("Resources")
-            def schemas = body.getList("schemas")
-            if (schemas != null) {
-                assert schemas.contains(LIST_RESPONSE_SCHEMA) : "ListResponse must contain ListResponse schema URI"
-            }
-        } else {
-            // Direct array response
-            resources = body.getList("")
-        }
+        // Response must be a ListResponse envelope per RFC 7644 §4
+        assert body.get("Resources") != null : "/ResourceTypes must return ListResponse envelope with 'Resources' attribute (RFC 7644 §4)"
+        def resources = body.getList("Resources")
+        def schemas = body.getList("schemas")
+        assert schemas != null && schemas.contains(LIST_RESPONSE_SCHEMA) : "ListResponse must contain ListResponse schema URI"
         resources != null
         resources.size() >= 2
 
         // Find User resource type
         def userRT = resources.find { it.name == "User" || it.id == "User" }
         assert userRT != null : "User resource type must be present"
+        assert userRT.name == "User" : "User ResourceType name must be 'User' (RFC 7643 §6)"
         assert userRT.schema == USER_SCHEMA : "User schema URI must be ${USER_SCHEMA}"
         userRT.endpoint?.endsWith("/Users")
 
         // Find Group resource type
         def groupRT = resources.find { it.name == "Group" || it.id == "Group" }
         assert groupRT != null : "Group resource type must be present"
+        assert groupRT.name == "Group" : "Group ResourceType name must be 'Group' (RFC 7643 §6)"
         assert groupRT.schema == GROUP_SCHEMA : "Group schema URI must be ${GROUP_SCHEMA}"
         groupRT.endpoint?.endsWith("/Groups")
 
@@ -156,15 +151,13 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         then: "Status is 200"
         response.statusCode() == 200
 
-        and: "Response contains the core User schema"
+        and: "Response contains the core User schema in a ListResponse envelope"
         def body = response.jsonPath()
 
-        def schemas
-        if (body.get("Resources") != null) {
-            schemas = body.getList("Resources")
-        } else {
-            schemas = body.getList("")
-        }
+        assert body.get("Resources") != null : "/Schemas must return ListResponse envelope with 'Resources' attribute (RFC 7644 §4)"
+        def schemas = body.getList("Resources")
+        def topSchemas = body.getList("schemas")
+        assert topSchemas != null && topSchemas.contains(LIST_RESPONSE_SCHEMA) : "ListResponse must contain ListResponse schema URI"
         schemas != null
         schemas.size() >= 1
 
@@ -219,10 +212,6 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         def hasSchema = schemaIds.contains("urn:ietf:params:scim:schemas:core:2.0:Schema") ||
             schemaNames.any { it.toLowerCase() == "schema" }
 
-        if (!hasSPC) ScimOutput.deviation("/Schemas missing ServiceProviderConfig schema definition", "DSC_04", "RFC7643-7-R1")
-        if (!hasRT) ScimOutput.deviation("/Schemas missing ResourceType schema definition", "DSC_04", "RFC7643-7-R1")
-        if (!hasSchema) ScimOutput.deviation("/Schemas missing Schema schema definition", "DSC_04", "RFC7643-7-R1")
-
         assert hasSPC : "ServiceProviderConfig schema definition missing from /Schemas (RFC 7643 §7)"
         assert hasRT : "ResourceType schema definition missing from /Schemas (RFC 7643 §7)"
         assert hasSchema : "Schema schema definition missing from /Schemas (RFC 7643 §7)"
@@ -255,6 +244,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                     .get("/Schemas/${schema.id}")
                 assert getResponse.statusCode() == 200 :
                     "Failed to retrieve schema '${schema.id}': HTTP ${getResponse.statusCode()}"
+                assert getResponse.jsonPath().get("totalResults") == null && getResponse.jsonPath().get("Resources") == null :
+                    "Direct schema retrieval '/Schemas/${schema.id}' must return a single object, not ListResponse (RFC 7644 §4)"
+                assert getResponse.jsonPath().getString("id") == schema.id
             }
         }
     }
@@ -303,6 +295,9 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                     .get("/ResourceTypes/${rtId}")
                 assert getResponse.statusCode() == 200 :
                     "Failed to retrieve ResourceType '${rtId}': HTTP ${getResponse.statusCode()}"
+                assert getResponse.jsonPath().get("totalResults") == null && getResponse.jsonPath().get("Resources") == null :
+                    "Direct ResourceType retrieval '/ResourceTypes/${rtId}' must return a single object, not ListResponse (RFC 7644 §4)"
+                assert getResponse.jsonPath().getString("id") == rtId || getResponse.jsonPath().getString("name") == rtId
             }
         }
     }
@@ -346,21 +341,21 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         then: "Each ResourceType's schema URI and extension schema URIs are accessible via /Schemas/{schemaUri}"
         resources.each { rt ->
             String schemaUri = rt.schema
-            if (schemaUri) {
-                def schemaResponse = scimRequestQuiet()
-                    .get("/Schemas/${schemaUri}")
-                assert schemaResponse.statusCode() == 200 :
-                    "ResourceType '${rt.name}' references schema '${schemaUri}' which is not accessible: HTTP ${schemaResponse.statusCode()}"
-            }
+            assert schemaUri != null && !schemaUri.isBlank() :
+                "ResourceType '${rt.name}' must declare a non-empty schema URI (RFC 7643 §6)"
+            def schemaResponse = scimRequestQuiet()
+                .get("/Schemas/${schemaUri}")
+            assert schemaResponse.statusCode() == 200 :
+                "ResourceType '${rt.name}' references schema '${schemaUri}' which is not accessible: HTTP ${schemaResponse.statusCode()}"
             if (rt.schemaExtensions) {
                 rt.schemaExtensions.each { ext ->
                     String extUri = ext.schema
-                    if (extUri) {
-                        def extResponse = scimRequestQuiet()
-                            .get("/Schemas/${extUri}")
-                        assert extResponse.statusCode() == 200 :
-                            "ResourceType '${rt.name}' references schema extension '${extUri}' which is not accessible: HTTP ${extResponse.statusCode()}"
-                    }
+                    assert extUri != null && !extUri.isBlank() :
+                        "ResourceType '${rt.name}' schemaExtension must declare a non-empty schema URI (RFC 7643 §6)"
+                    def extResponse = scimRequestQuiet()
+                        .get("/Schemas/${extUri}")
+                    assert extResponse.statusCode() == 200 :
+                        "ResourceType '${rt.name}' references schema extension '${extUri}' which is not accessible: HTTP ${extResponse.statusCode()}"
                 }
             }
         }
@@ -389,15 +384,13 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                         response = scimRequestQuiet().delete(endpoint)
                         break
                 }
-                assert response.statusCode() >= 400 && response.statusCode() < 500 :
-                    "${method} ${endpoint} must be rejected with a 4xx client error, got ${response.statusCode()}"
+                assert (response.statusCode() >= 400 && response.statusCode() < 500) || response.statusCode() == 501 :
+                    "${method} ${endpoint} must be rejected with a 4xx or 501 error, got ${response.statusCode()}"
                 if (response.statusCode() == 405) {
                     def allowHeader = response.header("Allow")
-                    if (allowHeader != null && !allowHeader.contains("GET")) {
-                        ScimOutput.println "NOTE: ${method} ${endpoint} returned 405 with Allow header '${allowHeader}' not listing GET"
+                    if (allowHeader != null) {
+                        assert allowHeader.contains("GET") : "Allow header '${allowHeader}' must list GET (RFC 7644 §4)"
                     }
-                } else {
-                    ScimOutput.deviation("${method} ${endpoint} returned ${response.statusCode()} instead of 405 (RFC 7644 §4)", "DSC_10", "RFC7644-4-R3")
                 }
             }
         }
@@ -424,15 +417,13 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                         response = scimRequestQuiet().delete(endpoint)
                         break
                 }
-                assert response.statusCode() >= 400 && response.statusCode() < 500 :
-                    "${method} ${endpoint} must be rejected with a 4xx client error, got ${response.statusCode()}"
+                assert (response.statusCode() >= 400 && response.statusCode() < 500) || response.statusCode() == 501 :
+                    "${method} ${endpoint} must be rejected with a 4xx or 501 error, got ${response.statusCode()}"
                 if (response.statusCode() == 405) {
                     def allowHeader = response.header("Allow")
-                    if (allowHeader != null && !allowHeader.contains("GET")) {
-                        ScimOutput.println "NOTE: ${method} ${endpoint} returned 405 with Allow header '${allowHeader}' not listing GET"
+                    if (allowHeader != null) {
+                        assert allowHeader.contains("GET") : "Allow header '${allowHeader}' must list GET (RFC 7644 §4)"
                     }
-                } else {
-                    ScimOutput.deviation("${method} ${endpoint} returned ${response.statusCode()} instead of 405 (RFC 7644 §4)", "DSC_11", "RFC7644-4-R3")
                 }
             }
         }
@@ -459,15 +450,13 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
                         response = scimRequestQuiet().delete(endpoint)
                         break
                 }
-                assert response.statusCode() >= 400 && response.statusCode() < 500 :
-                    "${method} ${endpoint} must be rejected with a 4xx client error, got ${response.statusCode()}"
+                assert (response.statusCode() >= 400 && response.statusCode() < 500) || response.statusCode() == 501 :
+                    "${method} ${endpoint} must be rejected with a 4xx or 501 error, got ${response.statusCode()}"
                 if (response.statusCode() == 405) {
                     def allowHeader = response.header("Allow")
-                    if (allowHeader != null && !allowHeader.contains("GET")) {
-                        ScimOutput.println "NOTE: ${method} ${endpoint} returned 405 with Allow header '${allowHeader}' not listing GET"
+                    if (allowHeader != null) {
+                        assert allowHeader.contains("GET") : "Allow header '${allowHeader}' must list GET (RFC 7644 §4)"
                     }
-                } else {
-                    ScimOutput.deviation("${method} ${endpoint} returned ${response.statusCode()} instead of 405 (RFC 7644 §4)", "DSC_12", "RFC7644-4-R3")
                 }
             }
         }
@@ -512,17 +501,17 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         def rtResp = scimRequestAnonymous().get("/ResourceTypes")
         def schemasResp = scimRequestAnonymous().get("/Schemas")
 
-        then: "Discovery endpoints return 200 OK or record deviation if authentication is required"
+        then: "Anonymous GET to /ServiceProviderConfig returns 200 OK with authenticationSchemes (RFC 7643 §5 / RFC 7644 §4)"
+        assert spcResp.statusCode() == 200 : "Expected HTTP 200 on anonymous discovery access for /ServiceProviderConfig, got ${spcResp.statusCode()}"
+        def authSchemes = spcResp.jsonPath().getList("authenticationSchemes")
+        assert authSchemes != null && !authSchemes.isEmpty() : "Anonymous /ServiceProviderConfig must expose non-empty authenticationSchemes (RFC 7643 §5)"
+
+        and: "/ResourceTypes and /Schemas return 200, 401, or 403"
         [
-            ["/ServiceProviderConfig", spcResp],
             ["/ResourceTypes", rtResp],
             ["/Schemas", schemasResp]
         ].each { path, resp ->
-            if (resp.statusCode() == 401) {
-                recordDeviation("RFC7644-4-R4", "RFC 7644 §4", "Discovery endpoint ${path} requires authentication contrary to RFC 7644 §4 SHOULD recommendation")
-            } else {
-                assert resp.statusCode() == 200 : "Expected HTTP 200 or 401 on anonymous discovery access for ${path}, got ${resp.statusCode()}"
-            }
+            assert resp.statusCode() in [200, 401, 403] : "Expected HTTP 200, 401, or 403 on anonymous discovery access for ${path}, got ${resp.statusCode()}"
         }
     }
 
@@ -557,13 +546,12 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         def schemas = response.jsonPath().getList("schemas")
         assert schemas != null && !schemas.isEmpty() :
             "Schema representation must include schemas attribute (RFC 7643 §7, Erratum 8417)"
+        assert schemas.size() == schemas.unique(false).size() :
+            "Schema representation schemas array must not contain duplicate URIs (RFC 7643 §3)"
 
         def meta = response.jsonPath().getMap("meta")
-        if (meta == null) {
-            ScimOutput.deviation("Schema representation omits meta object per RFC 7643 erratum 8417", "DSC_16", "RFC7643-7-R1")
-        } else {
-            assert meta.resourceType == "Schema" : "meta.resourceType must be 'Schema'"
-        }
+        assert meta != null : "Schema representation must include meta object per RFC 7643 Erratum 8417"
+        assert meta.resourceType == "Schema" : "meta.resourceType must be 'Schema'"
     }
 
     @SpecRef("RFC7643-6-R1")
@@ -575,11 +563,15 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
         then: "Response is 200"
         response.statusCode() == 200
 
-        and: "All ResourceType names and endpoints are unique across the server"
+        and: "All ResourceType names and endpoints are present and unique across the server"
         def body = response.jsonPath()
         def resources = body.get("Resources") != null ? body.getList("Resources") : body.getList("")
-        def names = resources.collect { it.name }.findAll { it != null }
-        def endpoints = resources.collect { it.endpoint }.findAll { it != null }
+        resources.each { rt ->
+            assert rt.name != null && !rt.name.toString().isBlank() : "Every ResourceType must have a non-empty name (RFC 7643 §6)"
+            assert rt.endpoint != null && !rt.endpoint.toString().isBlank() : "Every ResourceType must have a non-empty endpoint (RFC 7643 §6)"
+        }
+        def names = resources.collect { it.name }
+        def endpoints = resources.collect { it.endpoint }
 
         assert names.size() == names.unique(false).size() :
             "ResourceType names must be server-unique per RFC 7643 Erratum 8475"
@@ -598,11 +590,34 @@ class A1_ServiceDiscoverySpec extends ScimBaseSpec {
 
         and: "All required capability objects and supported booleans are present"
         def json = response.jsonPath()
-        assert json.get("patch.supported") != null : "patch.supported is required in SPC (RFC 7643 §5)"
-        assert json.get("bulk.supported") != null : "bulk.supported is required in SPC (RFC 7643 §5)"
-        assert json.get("filter.supported") != null : "filter.supported is required in SPC (RFC 7643 §5)"
-        assert json.get("changePassword.supported") != null : "changePassword.supported is required in SPC (RFC 7643 §5)"
-        assert json.get("sort.supported") != null : "sort.supported is required in SPC (RFC 7643 §5)"
-        assert json.get("etag.supported") != null : "etag.supported is required in SPC (RFC 7643 §5)"
+        assert json.get("patch.supported") instanceof Boolean : "patch.supported boolean is required in SPC (RFC 7643 §5)"
+        assert json.get("bulk.supported") instanceof Boolean : "bulk.supported boolean is required in SPC (RFC 7643 §5)"
+        assert json.get("filter.supported") instanceof Boolean : "filter.supported boolean is required in SPC (RFC 7643 §5)"
+        assert json.get("changePassword.supported") instanceof Boolean : "changePassword.supported boolean is required in SPC (RFC 7643 §5)"
+        assert json.get("sort.supported") instanceof Boolean : "sort.supported boolean is required in SPC (RFC 7643 §5)"
+        assert json.get("etag.supported") instanceof Boolean : "etag.supported boolean is required in SPC (RFC 7643 §5)"
+    }
+
+    // ─── Discovery Endpoints: Reject Filter Parameter with 403 ──────────────
+
+    @SpecRef("RFC7644-2-R2")
+    @SpecRef("RFC7644-3.12-R3")
+    def "DSC_19: Discovery endpoints reject filter query parameter with 403 Forbidden"() {
+        // RFC 7644 §4 — If a 'filter' is provided, the service provider SHOULD respond with HTTP status code 403 (Forbidden)
+        // RFC 7644 §3.12 Table 8 — 403 Forbidden SCIM error response
+        when: "GET discovery endpoints with filter query parameter"
+        def spcResp = scimRequest().get("/ServiceProviderConfig?filter=userName+eq+%22test%22")
+        def rtResp = scimRequest().get("/ResourceTypes?filter=name+eq+%22User%22")
+        def schemasResp = scimRequest().get("/Schemas?filter=id+eq+%22urn:ietf:params:scim:schemas:core:2.0:User%22")
+
+        then: "All discovery endpoints respond with 403 Forbidden"
+        assert spcResp.statusCode() == 403 : "GET /ServiceProviderConfig with filter must return 403 Forbidden (RFC 7644 §4), got ${spcResp.statusCode()}"
+        assertScimError(spcResp, 403)
+
+        assert rtResp.statusCode() == 403 : "GET /ResourceTypes with filter must return 403 Forbidden (RFC 7644 §4), got ${rtResp.statusCode()}"
+        assertScimError(rtResp, 403)
+
+        assert schemasResp.statusCode() == 403 : "GET /Schemas with filter must return 403 Forbidden (RFC 7644 §4), got ${schemasResp.statusCode()}"
+        assertScimError(schemasResp, 403)
     }
 }

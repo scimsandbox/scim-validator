@@ -37,12 +37,13 @@ class SpecTraceabilitySpec extends Specification {
         given: "Spec matrix generator"
         Path projectRoot = Paths.get("").toAbsolutePath()
         SpecMatrixGenerator generator = new SpecMatrixGenerator(projectRoot)
+        boolean verifyOnly = !Boolean.getBoolean("scim.spec.regenerate")
 
         expect: "Generated docs match current specs"
-        generator.run(true)
+        generator.run(verifyOnly)
     }
 
-    def "all 254 test methods are scanned including those with nested quotes"() {
+    def "all 274 test methods are scanned including those with nested quotes and class-level capabilities"() {
         given: "Spec matrix generator"
         Path projectRoot = Paths.get("").toAbsolutePath()
         SpecMatrixGenerator generator = new SpecMatrixGenerator(projectRoot)
@@ -53,8 +54,8 @@ class SpecTraceabilitySpec extends Specification {
         generator.linkTestsToRequirements(requirements, tests)
         def testIds = tests.collect { it.id }
 
-        then: "All 254 test methods are found"
-        tests.size() == 254
+        then: "All 274 test methods are found"
+        tests.size() == 274
 
         and: "Methods with nested quotes are detected"
         testIds.contains("PAT_19")
@@ -67,5 +68,20 @@ class SpecTraceabilitySpec extends Specification {
         grp16 != null
         grp16.specRefs.contains("RFC7643-4.2-R3")
         requirements.get("RFC7643-4.2-R3")?.tests?.contains("GRP_16")
+
+        and: "Class-level @RequiresCapability is inherited and composite capabilities are tracked"
+        tests.find { it.id == "BLK_01" }?.capabilities == ["bulk"]
+        tests.find { it.id == "PAT_01" }?.capabilities == ["patch"]
+        tests.find { it.id == "FLT_01" }?.capabilities == ["filter"]
+        tests.find { it.id == "SRT_01" }?.capabilities == ["sort"]
+        tests.find { it.id == "CUR_01" }?.capabilities == ["cursorPagination"]
+        tests.find { it.id == "CUR_05" }?.capabilities == ["cursorPagination", "search"]
+        tests.find { it.id == "ASY_01" }?.capabilities == ["async"]
+
+        and: "Generated markdown contains clickable IETF RFC section links"
+        String mapMd = generator.generateTestSpecMap(tests, requirements)
+        String covMd = generator.generateSpecCoverage(requirements)
+        mapMd.contains("[§4](https://www.rfc-editor.org/rfc/rfc7644#section-4)")
+        covMd.contains("[§2.1](https://www.rfc-editor.org/rfc/rfc7643#section-2.1)")
     }
 }

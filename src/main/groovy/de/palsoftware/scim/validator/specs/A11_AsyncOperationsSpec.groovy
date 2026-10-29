@@ -1,5 +1,6 @@
 package de.palsoftware.scim.validator.specs
 
+import de.palsoftware.scim.validator.base.CapabilityState
 import de.palsoftware.scim.validator.base.ScimBaseSpec
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
@@ -51,9 +52,17 @@ class A11_AsyncOperationsSpec extends ScimBaseSpec {
             .header("Prefer", "respond-async")
             .body(JsonOutput.toJson(payload))
             .post("/Users")
-        asyncLocation = response.header("Location")
+        asyncLocation = response.statusCode() == 202 ? response.header("Location") : null
 
         then: "Server returns HTTP 202 Accepted (or normal SCIM response if asyncRequest is 'long')"
+        if (response.statusCode() == 201) {
+            String uid = response.jsonPath().getString("id")
+            if (uid) createdUserIds << uid
+            if (getCapabilityState("async") == CapabilityState.UNKNOWN) {
+                setCapabilityState("async", CapabilityState.UNSUPPORTED)
+                throw new TestAbortedException("Server does not support async operations; responded synchronously with 201 Created")
+            }
+        }
         String mode = getAsyncRequestMode()
         if (mode == "long") {
             assert response.statusCode() in [200, 201, 202] :
@@ -75,9 +84,6 @@ class A11_AsyncOperationsSpec extends ScimBaseSpec {
 
             assert asyncLocation != null && !asyncLocation.trim().isEmpty() :
                 "202 Accepted response MUST include Location header (RFC 9967 §2.5.1.1)"
-        } else if (response.statusCode() == 201) {
-            String uid = response.jsonPath().getString("id")
-            if (uid) createdUserIds << uid
         }
 
         and: "Preference-Applied header contains respond-async if returned"
@@ -110,11 +116,26 @@ class A11_AsyncOperationsSpec extends ScimBaseSpec {
         URI baseUri = URI.create(BASE_URL)
         boolean isSameOrigin = !locUri.isAbsolute() || (locUri.host == null || locUri.host.equalsIgnoreCase(baseUri.host))
         if (isSameOrigin) {
-            Response locResp = scimRequestQuiet()
-                .accept("application/scim+json, application/secevent+json, application/json")
-                .get(asyncLocation)
-            assert locResp.statusCode() in [200, 202, 404] :
-                "GET on Location header returned unexpected status ${locResp.statusCode()}"
+            String targetUri
+            def req = scimRequestQuiet()
+                .accept("application/scim+json, application/secevent+jwt, application/secevent+json, application/json")
+
+            if (locUri.isAbsolute()) {
+                targetUri = locUri.toString()
+                req = req.baseUri(targetUri).basePath("")
+            } else if (asyncLocation.startsWith("/")) {
+                URI origin = URI.create("${baseUri.scheme}://${baseUri.rawAuthority}")
+                targetUri = origin.resolve(locUri).toString()
+                req = req.baseUri(targetUri).basePath("")
+            } else {
+                URI baseWithSlash = URI.create(BASE_URL.endsWith("/") ? BASE_URL : BASE_URL + "/")
+                targetUri = baseWithSlash.resolve(locUri).toString()
+                req = req.baseUri(targetUri).basePath("")
+            }
+
+            Response locResp = req.get("")
+            assert locResp.statusCode() in [200, 202] :
+                "GET on Location header returned unexpected status ${locResp.statusCode()} (RFC 9967 §2.5.1.1)"
             if (locResp.statusCode() == 200 && locResp.contentType()?.contains("scim+json")) {
                 String uid = locResp.jsonPath().getString("id")
                 if (uid) createdUserIds << uid
@@ -133,12 +154,18 @@ class A11_AsyncOperationsSpec extends ScimBaseSpec {
         then: "Status is 200 OK"
         assert response.statusCode() == 200
 
-        and: "securityEvents attribute contains valid asyncRequest configuration"
+        and: "securityEvents attribute contains valid asyncRequest configuration when present (OPTIONAL per RFC 9967 §4)"
         def secEvents = response.jsonPath().get("securityEvents")
-        assert secEvents != null : "ServiceProviderConfig must contain 'securityEvents' per RFC 9967 §4"
-        String asyncReq = (secEvents.asyncRequest as String)?.toLowerCase()
-        assert asyncReq in ["request", "long", "none"] :
-            "securityEvents.asyncRequest must be 'request', 'long', or 'none' (RFC 9967 §4)"
+        if (secEvents == null) {
+            throw new TestAbortedException("ServiceProviderConfig omits OPTIONAL 'securityEvents' discovery attribute (RFC 9967 §4)")
+        } else {
+            String asyncReq = (secEvents.asyncRequest as String)?.toLowerCase()
+            assert asyncReq in ["request", "long", "none"] :
+                "securityEvents.asyncRequest must be 'request', 'long', or 'none' (RFC 9967 §4)"
+            if (secEvents.eventUris != null) {
+                assert secEvents.eventUris instanceof List : "securityEvents.eventUris must be a JSON array when present (RFC 9967 §4)"
+            }
+        }
     }
 
     def cleanupSpec() {

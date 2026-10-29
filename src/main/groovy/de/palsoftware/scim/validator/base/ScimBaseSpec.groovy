@@ -156,14 +156,6 @@ abstract class ScimBaseSpec extends Specification {
         }
     }
 
-    static boolean isStrictScimType() {
-        String strictProp = System.getProperty("scim.strictScimType")
-        if (strictProp != null) {
-            return Boolean.parseBoolean(strictProp)
-        }
-        return false // default lenient per RFC 7644 §3.12 (scimType is OPTIONAL)
-    }
-
 
     // ─── Dynamic data generator ──────────────────────────────────────────
     @Shared Faker faker = new Faker()
@@ -526,8 +518,18 @@ abstract class ScimBaseSpec extends Specification {
         String fakeEmail = "work_${uniqueSuffix}@${faker.internet().domainName()}"
         String homeEmail = "home_${uniqueSuffix}@${faker.internet().domainName()}"
 
+        Object explicitInclude = overrides.remove("includeEnterprise")
+        boolean includeEnterprise = (explicitInclude != null) ?
+            Boolean.valueOf(explicitInclude.toString()) :
+            (getCapabilityState("enterprise") == CapabilityState.SUPPORTED)
+
+        List<String> schemas = [USER_SCHEMA]
+        if (includeEnterprise) {
+            schemas << ENTERPRISE_USER_SCHEMA
+        }
+
         Map payload = [
-            schemas     : [USER_SCHEMA, ENTERPRISE_USER_SCHEMA],
+            schemas     : schemas,
             userName    : overrides.userName ?: "fulluser_${uniqueSuffix}_${faker.name().username()}@test.com",
             displayName : overrides.displayName ?: faker.name().fullName(),
             active      : overrides.containsKey('active') ? overrides.active : true,
@@ -538,15 +540,18 @@ abstract class ScimBaseSpec extends Specification {
             emails      : overrides.emails ?: [
                 [value: fakeEmail, type: "work", primary: true],
                 [value: homeEmail, type: "home", primary: false]
-            ],
-            ("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"): overrides.enterprise ?: [
-                employeeNumber: faker.number().digits(6),
-                department    : faker.commerce().department()
             ]
         ]
 
+        if (includeEnterprise) {
+            payload[ENTERPRISE_USER_SCHEMA] = overrides.enterprise ?: [
+                employeeNumber: faker.number().digits(6),
+                department    : faker.commerce().department()
+            ]
+        }
+
         overrides.each { k, v ->
-            if (k != 'enterprise' && k != 'schemas') {
+            if (k != 'enterprise' && k != 'schemas' && k != 'includeEnterprise') {
                 payload[k] = v
             }
         }
@@ -626,59 +631,107 @@ abstract class ScimBaseSpec extends Specification {
     }
 
     /**
+     * Assert that a PATCH response conforms to RFC 7644 §3.5.2:
+     * When no attributes/excludedAttributes projection is requested,
+     * the server MAY return 200 (OK) with updated resource representation or 204 (No Content).
+     */
+    protected void assertPatchSuccess(Response response) {
+        assert response.statusCode() in [200, 204] :
+            "Expected HTTP 200 or 204 for unprojected PATCH response, but got ${response.statusCode()} (RFC 7644 §3.5.2)"
+        if (response.statusCode() == 200) {
+            assert response.body().asString()?.trim() :
+                "PATCH 200 OK response MUST contain updated resource representation in body (RFC 7644 §3.5.2)"
+        }
+    }
+
+    /**
+     * Resolve resource representation after an unprojected PATCH response (RFC 7644 §3.5.2).
+     * If response is 200 OK, returns response.
+     * If response is 204 No Content, issues a GET to the specified resourcePath and returns that Response.
+     */
+    protected Response resolvePatchRepresentation(Response patchResponse, String resourcePath) {
+        assert patchResponse.statusCode() in [200, 204] :
+            "Expected HTTP 200 or 204 for PATCH, but got ${patchResponse.statusCode()} (RFC 7644 §3.5.2)"
+        if (patchResponse.statusCode() == 200) {
+            return patchResponse
+        }
+        return scimRequestQuiet().get(resourcePath)
+    }
+
+    /**
      * Assert standard SCIM error response body structure.
      * RFC 7644 §3.12:
      * - HTTP status code matches expectedStatus
      * - schemas MUST contain "urn:ietf:params:scim:api:messages:2.0:Error"
-     * - status attribute MUST match HTTP status code as string
-     * - scimType is OPTIONAL; when the server supplies one it MUST match
-     *   expectedScimType, when it omits one a deviation is logged instead
+     * - status attribute MUST match HTTP status code as a JSON String
+     * - When expectedScimTypes varargs are provided, scimType MUST be non-null and match one of them.
      */
-    protected void assertScimError(Response response, int expectedStatus, String expectedScimType = null) {
+    protected void assertScimError(Response response, int expectedStatus, String... expectedScimTypes) {
         assert response.statusCode() == expectedStatus :
             "HTTP status ${response.statusCode()} != expected ${expectedStatus}"
         def schemas = response.jsonPath().getList("schemas")
         assert schemas != null && schemas.contains(ERROR_SCHEMA) :
             "Response schemas ${schemas} must contain ${ERROR_SCHEMA} (RFC 7644 §3.12)"
-        String statusAttr = response.jsonPath().getString("status")
-        assert statusAttr == String.valueOf(expectedStatus) :
-            "SCIM error status attribute '${statusAttr}' must equal '${expectedStatus}' (RFC 7644 §3.12)"
-        if (expectedScimType != null) {
-            assertScimType(response, expectedScimType)
+        def rawStatus = response.jsonPath().get("status")
+        assert rawStatus instanceof String :
+            "SCIM error status attribute '${rawStatus}' must be a JSON String, but was ${rawStatus?.getClass()?.name} (RFC 7644 §3.12)"
+        assert rawStatus == expectedStatus as String :
+            "SCIM error status attribute '${rawStatus}' must equal '${expectedStatus}' (RFC 7644 §3.12)"
+        if (expectedScimTypes != null && expectedScimTypes.length > 0) {
+            assertScimType(response, expectedScimTypes)
         }
     }
 
     /**
-     * Assert the SCIM detail error keyword when the server supplies one.
-     *
-     * In strict mode (default for validator runs), an omitted scimType is a failure
-     * when the test expects a specific keyword. In lenient mode (-Dscim.lenient=true),
-     * an omitted keyword is recorded as a structured deviation.
-     * A keyword that is present but not among the expected values is always a failure.
+     * Assert required SCIM detail error keyword(s) per RFC 7644 §3.12.
+     * scimType MUST be non-null, non-blank, and match one of expectedScimTypes.
      */
-     protected void assertScimType(Response response, String... expectedScimTypes) {
-         List<String> expected = expectedScimTypes as List<String>
-         String scimType = response.jsonPath().getString("scimType")
-         if (scimType == null || scimType.isBlank()) {
-             String msg = "HTTP ${response.statusCode()} omits optional scimType (expected one of ${expected}) (RFC 7644 §3.12)"
-             ScimOutput.deviation(msg, null, "RFC7644-3.12-R1", "omitted", expected.toString(), getBASE_URL())
-             if (isStrictScimType()) {
-                 assert false : "Strict mode: ${msg}"
-             }
-             return
-         }
-         assert expected.contains(scimType) :
-             "Expected scimType one of ${expected} but got '${scimType}' (RFC 7644 §3.12)"
-     }
+    protected void assertScimType(Response response, String... expectedScimTypes) {
+        List<String> expected = expectedScimTypes as List<String>
+        String scimType = response.jsonPath().getString("scimType")
+        assert scimType != null && !scimType.isBlank() :
+            "Required scimType is missing; expected one of ${expected} (RFC 7644 §3.12)"
+        assert expected.contains(scimType) :
+            "Expected scimType one of ${expected} but got '${scimType}' (RFC 7644 §3.12)"
+    }
 
     /**
-     * Record a structured specification deviation.
+     * Assert optional SCIM detail error keyword(s) per RFC 7644 §3.12.
+     * When present, scimType must match one of allowedScimTypes. When omitted, check passes.
      */
-    protected void recordDeviation(String requirementId, String specClause, String message) {
-        String testId = null
-        try {
-            testId = specificationContext?.currentIteration?.name ?: specificationContext?.currentFeature?.name
-        } catch (Exception ignored) {}
-        ScimOutput.deviation("[${specClause}] ${message}", testId, requirementId, null, null, getBASE_URL())
+    protected void assertOptionalScimType(Response response, String... allowedScimTypes) {
+        List<String> allowed = allowedScimTypes as List<String>
+        String scimType = response.jsonPath().getString("scimType")
+        if (scimType != null && !scimType.isBlank()) {
+            assert allowed.contains(scimType) :
+                "Expected scimType one of ${allowed} or omitted, but got '${scimType}' (RFC 7644 §3.12)"
+        }
+    }
+
+    /**
+     * Assert standard SCIM error with optional scimType per RFC 7644 §3.12.
+     * When allowedScimTypes are specified, scimType MAY be omitted or MUST match one of allowedScimTypes.
+     */
+    protected void assertScimErrorWithOptionalType(Response response, int expectedStatus, String... allowedScimTypes) {
+        assert response.statusCode() == expectedStatus :
+            "HTTP status ${response.statusCode()} != expected ${expectedStatus}"
+        def schemas = response.jsonPath().getList("schemas")
+        assert schemas != null && schemas.contains(ERROR_SCHEMA) :
+            "Response schemas ${schemas} must contain ${ERROR_SCHEMA} (RFC 7644 §3.12)"
+        def rawStatus = response.jsonPath().get("status")
+        assert rawStatus instanceof String :
+            "SCIM error status attribute '${rawStatus}' must be a JSON String, but was ${rawStatus?.getClass()?.name} (RFC 7644 §3.12)"
+        assert rawStatus == expectedStatus as String :
+            "SCIM error status attribute '${rawStatus}' must equal '${expectedStatus}' (RFC 7644 §3.12)"
+        if (allowedScimTypes != null && allowedScimTypes.length > 0) {
+            assertOptionalScimType(response, allowedScimTypes)
+        }
+    }
+
+    /**
+     * Alias for assertScimErrorWithOptionalType.
+     */
+    protected void assertScimErrorOptionalType(Response response, int expectedStatus, String... allowedScimTypes) {
+        assertScimErrorWithOptionalType(response, expectedStatus, allowedScimTypes)
     }
 }

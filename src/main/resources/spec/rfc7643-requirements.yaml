@@ -67,20 +67,20 @@
   section: "2.2"
   title: "Attribute caseExact definition is honored in filtering and matching"
   level: MUST
-  capability: none
+  capability: filter
   observability: behavior
-  disposition: tested
+  disposition: optional
   note: "caseExact false matches case-insensitively; caseExact true requires exact case match"
 
 - id: RFC7643-2.2-R7
   rfc: "7643"
   section: "2.2"
-  title: "Attribute canonicalValues restriction rejects or validates unrecognized values"
+  title: "Schema attribute canonicalValues declares applicable canonical types; server MAY restrict values"
   level: MAY
   capability: none
-  observability: behavior
+  observability: response
   disposition: tested
-  note: "Server restricts or suggests values from canonical list"
+  note: "When applicable, schemas specify canonicalValues (e.g. work, home, other); servers MAY restrict values to canonical list"
 
 - id: RFC7643-2.3-R1
   rfc: "7643"
@@ -155,12 +155,12 @@
 - id: RFC7643-2.4-R2
   rfc: "7643"
   section: "2.4"
-  title: "Multi-valued complex attribute display sub-attribute is human-readable and readOnly"
+  title: "Multi-valued complex attribute display sub-attribute is a human-readable string with immutable, readOnly, or readWrite mutability"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "display sub-attribute describes the item and is not intended for client modification"
+  note: "RFC 7643 §2.4 defines display with mutability 'immutable'; §8.7.1 schemas also declare 'readOnly' or 'readWrite'"
 
 - id: RFC7643-2.4-R3
   rfc: "7643"
@@ -225,32 +225,32 @@
 - id: RFC7643-3.1-R3
   rfc: "7643"
   section: "3.1"
-  title: "meta.location MUST match Content-Location HTTP response header"
+  title: "meta.location is the resource URI (readOnly) and MUST match Content-Location (or 201 Location) header when present"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "meta.location URI matches response Content-Location header"
+  note: "meta.location contains resource URI and matches Content-Location / Location response header when returned"
 
 - id: RFC7643-3.1-R4
   rfc: "7643"
   section: "3.1"
-  title: "meta.version matches ETag HTTP response header and uses weak entity-tag format"
+  title: "meta.version matches ETag HTTP response header and marks non-strong validators as weak with case-sensitive 'W/'"
   level: MUST
   capability: etag
   observability: response
   disposition: optional
-  note: "meta.version mirrors ETag header"
+  note: "meta.version mirrors ETag header; weak entity-tags use case-sensitive W/ prefix"
 
 - id: RFC7643-3.1-R5
   rfc: "7643"
   section: "3.1"
-  title: "meta.created and meta.lastModified are assigned by service provider and readOnly"
+  title: "meta.created and meta.lastModified are readOnly DateTimes assigned by service provider; initial lastModified MUST equal created"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "Timestamps assigned by server; client values ignored"
+  note: "Timestamps assigned by server and equal on initial creation; client values ignored"
 
 - id: RFC7643-4.1.1-R1
   rfc: "7643"
@@ -275,7 +275,7 @@
 - id: RFC7643-4.1.1-R3
   rfc: "7643"
   section: "4.1.1"
-  title: "User name complex attribute contains familyName, givenName, middleName, honorifics"
+  title: "User name complex attribute defines formatted, familyName, givenName, middleName, and honorific sub-attributes"
   level: MUST
   capability: none
   observability: response
@@ -319,7 +319,7 @@
   level: MUST
   capability: changePassword
   observability: response
-  disposition: tested
+  disposition: optional
   note: "Password can be updated via PUT or PATCH and is never returned in response"
 
 - id: RFC7643-4.1.2-R1
@@ -365,7 +365,7 @@
 - id: RFC7643-4.1.2-R5
   rfc: "7643"
   section: "4.1.2"
-  title: "User addresses country MUST be in two-letter ISO 3166-1 alpha-2 format"
+  title: "User addresses country (when specified) MUST be in two-letter ISO 3166-1 alpha-2 format"
   level: MUST
   capability: none
   observability: response

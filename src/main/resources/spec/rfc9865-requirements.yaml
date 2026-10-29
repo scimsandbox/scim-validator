@@ -9,7 +9,7 @@
   level: MAY
   capability: cursorPagination
   observability: response
-  disposition: tested
+  disposition: optional
   note: "cursor parameter value MUST be empty or omitted for the first page (RFC 9865 §2 Table 1)"
 
 - id: RFC9865-2-R2
@@ -19,7 +19,7 @@
   level: MUST
   capability: cursorPagination
   observability: response
-  disposition: tested
+  disposition: optional
   note: "nextCursor opaque string provided when additional results exist (RFC 9865 §2 Table 2)"
 
 - id: RFC9865-2-R3
@@ -29,7 +29,7 @@
   level: MUST
   capability: cursorPagination
   observability: response
-  disposition: tested
+  disposition: optional
   note: "previousCursor is only returned when previous results exist (RFC 9865 §2 Table 2)"
 
 - id: RFC9865-2-R4
@@ -39,7 +39,7 @@
   level: MUST
   capability: cursorPagination
   observability: response
-  disposition: tested
+  disposition: optional
   note: "Client uses nextCursor value from previous page to obtain subsequent resources (RFC 9865 §2)"
 
 - id: RFC9865-2-R5
@@ -49,7 +49,7 @@
   level: MUST
   capability: cursorPagination
   observability: response
-  disposition: tested
+  disposition: optional
   note: "When no more results remain, nextCursor is omitted from ListResponse (RFC 9865 §2 Table 2)"
 
 - id: RFC9865-2.1-R1
@@ -59,7 +59,7 @@
   level: SHOULD
   capability: cursorPagination
   observability: response
-  disposition: tested
+  disposition: optional
   note: "Invalid cursor values return HTTP 400 with detail error type invalidCursor (RFC 9865 §2.1 Table 3)"
 
 - id: RFC9865-3-R1
@@ -69,7 +69,7 @@
   level: MAY
   capability: cursorPagination
   observability: response
-  disposition: tested
+  disposition: optional
   note: "cursor parameter may be provided in POST /.search JSON payload (RFC 9865 §3)"
 
 - id: RFC9865-4-R1
@@ -79,5 +79,5 @@
   level: SHOULD
   capability: cursorPagination
   observability: response
-  disposition: tested
+  disposition: optional
   note: "pagination complex attribute in ServiceProviderConfig defines cursor and index booleans (RFC 9865 §4)"
