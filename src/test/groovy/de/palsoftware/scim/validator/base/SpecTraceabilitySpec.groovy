@@ -1,6 +1,9 @@
 package de.palsoftware.scim.validator.base
 
+import de.palsoftware.scim.validator.ScimValidatorSuite
 import de.palsoftware.scim.validator.base.spec.SpecMatrixGenerator
+import org.junit.platform.suite.api.SelectClasses
+import org.spockframework.runtime.model.FeatureMetadata
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -43,10 +46,13 @@ class SpecTraceabilitySpec extends Specification {
         generator.run(verifyOnly)
     }
 
-    def "all 274 test methods are scanned including those with nested quotes and class-level capabilities"() {
+    def "all feature methods across suite specs are scanned including those with nested quotes and class-level capabilities"() {
         given: "Spec matrix generator"
         Path projectRoot = Paths.get("").toAbsolutePath()
         SpecMatrixGenerator generator = new SpecMatrixGenerator(projectRoot)
+        int expectedFeatureCount = ScimValidatorSuite.getAnnotation(SelectClasses).value().sum { Class<?> specClass ->
+            specClass.declaredMethods.count { it.isAnnotationPresent(FeatureMetadata) }
+        } as int
 
         when: "Test specs are scanned and requirements linked"
         def requirements = generator.loadCatalog()
@@ -54,8 +60,9 @@ class SpecTraceabilitySpec extends Specification {
         generator.linkTestsToRequirements(requirements, tests)
         def testIds = tests.collect { it.id }
 
-        then: "All 274 test methods are found"
-        tests.size() == 274
+        then: "All compiled feature methods across suite specs are found with unique IDs"
+        tests.size() == expectedFeatureCount
+        testIds.size() == testIds.unique().size()
 
         and: "Methods with nested quotes are detected"
         testIds.contains("PAT_19")

@@ -337,12 +337,19 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
             assert enterpriseSchema != null : "Enterprise User extension schema (${ENTERPRISE_USER_SCHEMA}) must be present in /Schemas when enterprise capability is supported (RFC 7643 §4.3)"
         }
 
-        and: "Enterprise schema contains employeeNumber attribute"
+        and: "Enterprise schema declares at least one standard RFC 7643 §4.3 attribute (RFC 7644 §3.1 allows schema subsets)"
         def attributes = enterpriseSchema.attributes
-        attributes != null
+        assert attributes != null && !attributes.isEmpty() : "Enterprise schema must declare attributes"
+        def declaredEnterpriseAttrs = ["employeeNumber", "costCenter", "organization", "division", "department", "manager"].findAll { attrName ->
+            attributes.any { it.name == attrName }
+        }
+        assert !declaredEnterpriseAttrs.isEmpty() :
+            "Enterprise schema must declare at least one standard RFC 7643 §4.3 attribute (employeeNumber, costCenter, organization, division, department, or manager)"
+
         def empNumAttr = attributes.find { it.name == "employeeNumber" }
-        empNumAttr != null
-        empNumAttr.type == "string"
+        if (empNumAttr != null) {
+            assert empNumAttr.type == "string" : "employeeNumber type should be string"
+        }
 
         and: "Enterprise schema contains valid department, costCenter, organization, division if present"
         ["department", "costCenter", "organization", "division"].each { attrName ->
@@ -352,20 +359,21 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
             }
         }
 
-        and: "Enterprise schema manager attribute is present and valid complex type (RFC 7643 §4.3)"
+        and: "Enterprise schema manager attribute is valid complex type if declared (RFC 7643 §4.3, RFC 7644 §3.1)"
         def mgrAttr = attributes.find { it.name == "manager" }
-        assert mgrAttr != null : "Enterprise schema missing 'manager' attribute (RFC 7643 §4.3)"
-        assert mgrAttr.type == "complex" : "manager should be complex type"
-        if (mgrAttr.subAttributes != null) {
-            def valSub = mgrAttr.subAttributes.find { it.name == "value" }
-            assert valSub != null && valSub.type == "string" : "manager.value should be string"
-            def refSub = mgrAttr.subAttributes.find { it.name == '$ref' }
-            if (refSub != null) {
-                assert refSub.type == "reference" : "manager.\$ref should be reference"
-            }
-            def dispSub = mgrAttr.subAttributes.find { it.name in ["displayName", "display"] }
-            if (dispSub != null && dispSub.mutability != null) {
-                assert dispSub.mutability in ["readOnly", "immutable"] : "manager.${dispSub.name} should be readOnly"
+        if (mgrAttr != null) {
+            assert mgrAttr.type == "complex" : "manager should be complex type"
+            if (mgrAttr.subAttributes != null) {
+                def valSub = mgrAttr.subAttributes.find { it.name == "value" }
+                assert valSub != null && valSub.type == "string" : "manager.value should be string"
+                def refSub = mgrAttr.subAttributes.find { it.name == '$ref' }
+                if (refSub != null) {
+                    assert refSub.type == "reference" : "manager.\$ref should be reference"
+                }
+                def dispSub = mgrAttr.subAttributes.find { it.name in ["displayName", "display"] }
+                if (dispSub != null && dispSub.mutability != null) {
+                    assert dispSub.mutability in ["readOnly", "immutable"] : "manager.${dispSub.name} should be readOnly"
+                }
             }
         }
     }
@@ -575,14 +583,21 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
             }
         }
 
+        def declaredMultiValuedFamilies = ["phoneNumbers", "ims", "photos", "addresses", "roles", "entitlements", "x509Certificates"].findAll { fam ->
+            attributes.any { it.name == fam }
+        }
+        assert !declaredMultiValuedFamilies.isEmpty() :
+            "User schema must declare at least one multi-valued attribute family (RFC 7643 §4.1.2)"
+
         def x509Certificates = attributes.find { it.name == "x509Certificates" }
-        assert x509Certificates != null : "User schema must declare x509Certificates attribute (RFC 7643 §4.1.2)"
-        assert x509Certificates.multiValued == true
-        assert x509Certificates.type == "complex"
-        def certVal = x509Certificates.subAttributes?.find { it.name == "value" }
-        assert certVal != null : "x509Certificates must declare value sub-attribute (RFC 7643 §4.1.2)"
-        assert certVal.type == "binary" : "x509Certificates.value type must be 'binary' (RFC 7643 §2.3.6, §4.1.2)"
-        assert certVal.caseExact == true : "binary attribute x509Certificates.value must have caseExact=true (RFC 7643 §2.3.6, Erratum 6000)"
+        if (x509Certificates != null) {
+            assert x509Certificates.multiValued == true
+            assert x509Certificates.type == "complex"
+            def certVal = x509Certificates.subAttributes?.find { it.name == "value" }
+            assert certVal != null : "x509Certificates must declare value sub-attribute (RFC 7643 §4.1.2)"
+            assert certVal.type == "binary" : "x509Certificates.value type must be 'binary' (RFC 7643 §2.3.6, §4.1.2)"
+            assert certVal.caseExact == true : "binary attribute x509Certificates.value must have caseExact=true (RFC 7643 §2.3.6, Erratum 6000)"
+        }
     }
 
     @SpecRef("RFC7643-2.2-R2")

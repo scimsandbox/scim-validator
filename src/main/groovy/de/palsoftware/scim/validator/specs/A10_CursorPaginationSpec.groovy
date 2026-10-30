@@ -185,17 +185,23 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
 
     @SpecRef("RFC9865-4-R1")
     def "CUR_06: ServiceProviderConfig advertises pagination configuration schema"() {
-        // RFC 9865 §4 — pagination discovery attribute
+        // RFC 9865 §4 — pagination discovery attribute.
+        // A10_CursorPaginationSpec is gated by @RequiresCapability("cursorPagination"), and setupSpec()
+        // marks cursorPagination UNSUPPORTED if cursor probing fails.
+        given: "Cursor pagination capability is supported by the target server"
+        requireCapability("cursorPagination")
+
         when: "Fetch /ServiceProviderConfig"
         Response response = scimRequest().get("/ServiceProviderConfig")
 
         then: "Status is 200 OK"
         assert response.statusCode() == 200
 
-        and: "pagination complex attribute SHOULD be present per RFC 9865 §4"
+        and: "pagination complex attribute SHOULD be present per RFC 9865 §4 with cursor=true"
         def pag = response.jsonPath().get("pagination")
         assert pag != null : "ServiceProviderConfig SHOULD include 'pagination' configuration attribute (RFC 9865 §4)"
         assert pag.cursor instanceof Boolean : "'pagination.cursor' must be a Boolean"
+        assert pag.cursor == true : "'pagination.cursor' must be true when cursor pagination is supported (RFC 9865 §4)"
         assert pag.index instanceof Boolean : "'pagination.index' must be a Boolean"
     }
 
