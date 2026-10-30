@@ -6,8 +6,6 @@ import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
 import groovy.json.JsonOutput
-import spock.lang.Shared
-import spock.lang.Stepwise
 import org.opentest4j.TestAbortedException
 
 /**
@@ -17,13 +15,15 @@ import org.opentest4j.TestAbortedException
  * Covers bulk POST, PUT, PATCH, DELETE, bulkId cross-referencing in data and paths,
  * operation error isolation, failOnErrors threshold, maxOperations enforcement,
  * unsupported methods, and schema validation.
+ *
+ * Each feature method is self-contained and cleans up any created or leaked resources
+ * so individual failures do not cascade or skip subsequent bulk compliance checks.
+ * References:
+ *   - RFC 7644 §3.7 (Bulk Operations)
+ *   - RFC 7643 §5 (ServiceProviderConfig bulk capability)
  */
 @RequiresCapability("bulk")
-@Stepwise
 class A7_BulkOperationsSpec extends ScimBaseSpec {
-
-    @Shared String bulkCreatedUserId1
-    @Shared String bulkCreatedUserId2
 
     def setupSpec() {
         loadServiceProviderConfig()
@@ -38,6 +38,8 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         given:
         String suffix1 = UUID.randomUUID().toString().substring(0, 8)
         String suffix2 = UUID.randomUUID().toString().substring(0, 8)
+        String id1 = null
+        String id2 = null
 
         Map bulkPayload = [
             schemas   : [BULK_REQUEST_SCHEMA],
@@ -79,23 +81,21 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         operations.size() == 2
         operations.every { Map op -> (op.status as String) == "201" }
 
-        when: "Capture created user IDs for subsequent tests"
+        when: "Capture created user IDs"
         operations.each { Map op ->
             String location = op.location as String
             if (location) {
                 String id = location.tokenize("/").last()
                 if (op.bulkId == "user1") {
-                    bulkCreatedUserId1 = id
-                } else if (op.bulkId == "user2") {
-                    bulkCreatedUserId2 = id
-                }
+                    id1 = id
+                } else if (op.bulkId == "user2") id2 = id
                 createdUserIds << id
             }
         }
 
         then: "Both user IDs were resolved and returned in location"
-        bulkCreatedUserId1 != null
-        bulkCreatedUserId2 != null
+        id1 != null
+        id2 != null
     }
 
     // ─── BLK_02: Bulk DELETE removes multiple users ─────────────────────────
@@ -104,19 +104,19 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
     def "BLK_02: Bulk DELETE removes multiple users in a single request"() {
         // RFC 7644 §3.7 — Bulk Operations
         given:
-        assert bulkCreatedUserId1 != null : "BLK_01 must pass first"
-        assert bulkCreatedUserId2 != null : "BLK_01 must pass first"
+        Response u1 = createUser()
+        Response u2 = createUser()
+        assert u1.statusCode() == 201 && u2.statusCode() == 201
+        String delId1 = u1.jsonPath().getString("id")
+        String delId2 = u2.jsonPath().getString("id")
 
         Map bulkPayload = [
             schemas   : [BULK_REQUEST_SCHEMA],
             Operations: [
+                [method: "DELETE", path: "/Users/${delId1}"],
                 [
                     method: "DELETE",
-                    path  : "/Users/${bulkCreatedUserId1}"
-                ],
-                [
-                    method: "DELETE",
-                    path  : "/Users/${bulkCreatedUserId2}"
+                    path  : "/Users/${delId2}"
                 ]
             ]
         ]
@@ -133,11 +133,11 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         operations.every { Map op -> (op.status as String) == "204" }
 
         when: "Remove from cleanup since already deleted and verify via GET"
-        createdUserIds.remove(bulkCreatedUserId1)
-        createdUserIds.remove(bulkCreatedUserId2)
+        createdUserIds.remove(delId1)
+        createdUserIds.remove(delId2)
 
-        Response get1 = scimRequestQuiet().get("/Users/${bulkCreatedUserId1}")
-        Response get2 = scimRequestQuiet().get("/Users/${bulkCreatedUserId2}")
+        Response get1 = scimRequestQuiet().get("/Users/${delId1}")
+        Response get2 = scimRequestQuiet().get("/Users/${delId2}")
 
         then: "Both users are confirmed deleted (404)"
         get1.statusCode() == 404
@@ -1041,19 +1041,9 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         // unique within a bulk request and created by the client. The bulkId attribute is
         // mandatory for 'POST' operations."
         given:
-        Map bulkPayload = [
-            schemas   : [BULK_REQUEST_SCHEMA],
-            Operations: [
-                [
-                    method: "POST",
-                    path  : "/Users",
-                    data  : [
-                        schemas : [USER_SCHEMA],
-                        userName: "nobulkid_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
-                    ]
-                ]
-            ]
-        ]
+        String noBulkIdUserName = "nobulkid_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        List<String> leakedUserIds = []
+        Map bulkPayload = [schemas: [BULK_REQUEST_SCHEMA], Operations: [[method: "POST", path: "/Users", data: [schemas: [USER_SCHEMA], userName: noBulkIdUserName]]]]
 
         when:
         Response response = scimRequest()
@@ -1067,10 +1057,20 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         } else {
             def ops = response.jsonPath().getList("Operations")
             assert ops != null && ops.size() == 1
+            String createdId = (ops[0].location as String)?.tokenize("/")?.last() ?: (ops[0].response?.id as String)
+            if (createdId) leakedUserIds << createdId
             assert (ops[0].status as String) == "400"
             assert ops[0].response != null
             assert (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
         }
+        cleanup:
+        if (leakedUserIds.isEmpty() && isFilterSupported()) {
+            try {
+                Response r = scimRequestQuiet().queryParam("filter", "userName eq \"${noBulkIdUserName}\"").get("/Users")
+                if (r.statusCode() == 200) leakedUserIds.addAll(r.jsonPath().getList("Resources.id")?.findAll { it != null } ?: [])
+            } catch (Exception ignored) {}
+        }
+        leakedUserIds.unique().each { String id -> try { deleteUser(id) } catch (Exception ignored) {} }
     }
 
     // ─── BLK_21: Per-operation version attribute for conditional updates ────
@@ -1260,6 +1260,8 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                         .queryParam("filter", "displayName eq \"${g1}\" or displayName eq \"${g2}\"")
                         .get("/Groups")
                     assert checkResp.statusCode() == 200
+                    List<String> leakedIds = checkResp.jsonPath().getList("Resources.id")?.findAll { it != null } ?: []
+                    createdGroupIds.addAll(leakedIds)
                     assert checkResp.jsonPath().getInt("totalResults") == 0 :
                         "Failed circular bulkId operations must not persist group resources"
                 }
@@ -1267,7 +1269,18 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         }
 
         cleanup:
-        createdGroupIds.each { String id ->
+        if (createdGroupIds.isEmpty() && isFilterSupported()) {
+            try {
+                Response cleanupResp = scimRequestQuiet()
+                    .queryParam("filter", "displayName eq \"${g1}\" or displayName eq \"${g2}\"")
+                    .get("/Groups")
+                if (cleanupResp.statusCode() == 200) {
+                    List<String> leakedIds = cleanupResp.jsonPath().getList("Resources.id")?.findAll { it != null } ?: []
+                    createdGroupIds.addAll(leakedIds)
+                }
+            } catch (Exception ignored) {}
+        }
+        createdGroupIds.unique().each { String id ->
             try { scimRequestQuiet().delete("/Groups/${id}") } catch (Exception ignored) {}
         }
     }
