@@ -1,6 +1,7 @@
 package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.A5_BaseSpec
+import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
 
@@ -11,6 +12,22 @@ import io.restassured.response.Response
  */
 class A5_PaginationSpec extends A5_BaseSpec {
 
+    protected def userPageRequest(String prefix = PREFIX) {
+        def req = scimRequest()
+        if (isFilterSupported() && prefix) {
+            req.queryParam("filter", "userName sw \"${prefix}\"")
+        }
+        return req
+    }
+
+    protected def groupPageRequest(String prefix = PREFIX) {
+        def req = scimRequest()
+        if (isFilterSupported() && prefix) {
+            req.queryParam("filter", "displayName sw \"${prefix}\"")
+        }
+        return req
+    }
+
     // ─── PAG_01: Pagination traversal with startIndex and count ─────────────
 
     @SpecRef("RFC7644-3.4.2.4-R1")
@@ -20,8 +37,7 @@ class A5_PaginationSpec extends A5_BaseSpec {
     def "PAG_01: Pagination with startIndex and count returns correct page"() {
         // RFC 7644 §3.4.2.4 — Pagination
         when: "Request page of 2 starting at index 1"
-        Response page1 = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response page1 = userPageRequest()
             .queryParam("startIndex", 1)
             .queryParam("count", 2)
             .get("/Users")
@@ -36,8 +52,7 @@ class A5_PaginationSpec extends A5_BaseSpec {
         page1.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
 
         when: "Request second page starting at index 3"
-        Response page2 = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response page2 = userPageRequest()
             .queryParam("startIndex", 3)
             .queryParam("count", 2)
             .get("/Users")
@@ -51,8 +66,7 @@ class A5_PaginationSpec extends A5_BaseSpec {
         page2.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
 
         when: "Request third page starting at index 5"
-        Response page3 = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response page3 = userPageRequest()
             .queryParam("startIndex", 5)
             .queryParam("count", 2)
             .get("/Users")
@@ -78,8 +92,7 @@ class A5_PaginationSpec extends A5_BaseSpec {
     def "PAG_02: Requesting count=0 returns totalResults but no resources"() {
         // RFC 7644 §3.4.2.4 — count of zero indicates a request for no Resources
         when:
-        Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response = userPageRequest()
             .queryParam("count", 0)
             .get("/Users")
 
@@ -97,15 +110,13 @@ class A5_PaginationSpec extends A5_BaseSpec {
     def "PAG_03: startIndex=0 is interpreted as 1"() {
         // RFC 7644 §3.4.2.4: "A value less than 1 SHALL be interpreted as 1."
         when: "Query with startIndex=0"
-        Response response0 = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response0 = userPageRequest()
             .queryParam("startIndex", 0)
             .queryParam("count", 2)
             .get("/Users")
 
         and: "Query with startIndex=1 for comparison"
-        Response response1 = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response1 = userPageRequest()
             .queryParam("startIndex", 1)
             .queryParam("count", 2)
             .get("/Users")
@@ -121,13 +132,13 @@ class A5_PaginationSpec extends A5_BaseSpec {
     // ─── PAG_04: Out-of-bounds startIndex returns empty Resources ───────────
 
     @SpecRef("RFC7644-3.4.2.4-R1")
+    @SpecRef("RFC7644-3.4.2-R2")
     def "PAG_04: startIndex greater than totalResults returns empty Resources"() {
-        // RFC 7644 §3.4.2.4: "If the specified startIndex is greater than the number of items of results,
-        // the service provider MUST return no results (empty "Resources" element) and the "totalResults"
-        // MUST be the number of items that match the specified filter."
+        // RFC 7644 §3.4.2.4 Table 6: startIndex: "The 1-based index of the first query result. A value less than 1 SHALL be interpreted as 1."
+        // RFC 7644 §3.4.2.4 Table 7: totalResults: "Specifies the total number of results matching the client query, e.g., 1000."
+        // RFC 7644 §3.4.2: Resources: "A multi-valued list of complex objects containing the requested resources. This MAY be a subset of the full set of resources if pagination (Section 3.4.2.4) is requested."
         when: "Query with very high startIndex"
-        Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response = userPageRequest()
             .queryParam("startIndex", 9999)
             .queryParam("count", 10)
             .get("/Users")
@@ -135,7 +146,8 @@ class A5_PaginationSpec extends A5_BaseSpec {
         then:
         response.statusCode() == 200
         response.jsonPath().getInt("totalResults") >= 5
-        response.jsonPath().getInt("startIndex") == 9999
+        def startIndex = response.jsonPath().get("startIndex")
+        startIndex == null || startIndex == 9999
         def resources = response.jsonPath().getList("Resources")
         resources == null || resources.isEmpty()
         def itemsPerPage = response.jsonPath().get("itemsPerPage")
@@ -148,8 +160,7 @@ class A5_PaginationSpec extends A5_BaseSpec {
     def "PAG_05: Negative count is interpreted as 0"() {
         // RFC 7644 §3.4.2.4: "A negative value SHALL be interpreted as '0'."
         when: "Query with count=-1"
-        Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response = userPageRequest()
             .queryParam("count", -1)
             .get("/Users")
 
@@ -181,8 +192,7 @@ class A5_PaginationSpec extends A5_BaseSpec {
         String gid3 = r3.jsonPath().getString("id")
 
         when: "Request first page of 2 groups"
-        Response page1 = scimRequest()
-            .queryParam("filter", "displayName sw \"${PREFIX}GrpPage\"")
+        Response page1 = groupPageRequest("${PREFIX}GrpPage")
             .queryParam("startIndex", 1)
             .queryParam("count", 2)
             .get("/Groups")
@@ -196,8 +206,7 @@ class A5_PaginationSpec extends A5_BaseSpec {
         page1.jsonPath().getList("Resources").size() == page1.jsonPath().getInt("itemsPerPage")
 
         when: "Request second page of groups"
-        Response page2 = scimRequest()
-            .queryParam("filter", "displayName sw \"${PREFIX}GrpPage\"")
+        Response page2 = groupPageRequest("${PREFIX}GrpPage")
             .queryParam("startIndex", 3)
             .queryParam("count", 2)
             .get("/Groups")
@@ -224,16 +233,19 @@ class A5_PaginationSpec extends A5_BaseSpec {
 
     // ─── PAG_07: Pagination via POST /.search ───────────────────────────────
 
+    @RequiresCapability("search")
     @SpecRef("RFC7644-3.4.3-R1")
     def "PAG_07: Pagination via POST /.search conforms to SearchRequest specification"() {
         // RFC 7644 §3.4.3: POST /.search (or /Users/.search) with SearchRequest
         when: "POST search request with pagination"
         Map searchReq = [
             schemas   : ["urn:ietf:params:scim:api:messages:2.0:SearchRequest"],
-            filter    : "userName sw \"${PREFIX}\"".toString(),
             startIndex: 1,
             count     : 2
         ]
+        if (isFilterSupported()) {
+            searchReq.filter = "userName sw \"${PREFIX}\"".toString()
+        }
         Response response = scimRequest()
             .body(groovy.json.JsonOutput.toJson(searchReq))
             .post("/Users/.search")
@@ -244,7 +256,9 @@ class A5_PaginationSpec extends A5_BaseSpec {
         }
         assert response.statusCode() == 200
         assert response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
+        assert response.jsonPath().getInt("totalResults") >= 5
         assert response.jsonPath().getInt("startIndex") == 1
+        assert response.jsonPath().getInt("itemsPerPage") >= 1
         assert response.jsonPath().getInt("itemsPerPage") <= 2
         assert response.jsonPath().getList("Resources").size() == response.jsonPath().getInt("itemsPerPage")
     }

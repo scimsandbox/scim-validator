@@ -21,25 +21,25 @@ abstract class A5_BaseSpec extends ScimBaseSpec {
         loadServiceProviderConfig()
         String p = getPREFIX()
 
-        // Create 5 users with distinct, predictable attributes
+        // Create 5 users with distinct, predictable attributes (non-alphabetical insertion order prevents vacuous passes)
         def users = [
             [userName: "${p}alice@test.com",   externalId: "${p}EXT-A", active: true,
-             name: [givenName: "Alice", familyName: "Anderson"]],
-            [userName: "${p}bob@test.com",     externalId: "${p}EXT-B", active: true,
-             name: [givenName: "Bob", familyName: "Baker"]],
-            [userName: "${p}charlie@test.com", externalId: "${p}EXT-C", active: false,
-             name: [givenName: "Charlie", familyName: "Clark"]],
+             name: [givenName: "Alice", familyName: "Zimmerman"]],
             [userName: "${p}diana@test.com",   externalId: "${p}EXT-D", active: true,
              name: [givenName: "Diana", familyName: "Davis"]],
+            [userName: "${p}charlie@test.com", externalId: "${p}EXT-C", active: false,
+             name: [givenName: "Charlie", familyName: "Xander"]],
+            [userName: "${p}bob@test.com",     externalId: "${p}EXT-B", active: true,
+             name: [givenName: "Bob", familyName: "Baker"]],
             [userName: "${p}eve@test.com",     externalId: "${p}EXT-E", active: false,
-             name: [givenName: "Eve", familyName: "Evans"]],
+             name: [givenName: "Eve", familyName: "Anderson"]],
         ]
 
         users.each { u ->
             Response response = createUser(u)
             assert response.statusCode() == 201 : "Setup: could not create user ${u.userName}: ${response.body().asString()}"
             String id = response.jsonPath().getString("id")
-            userData << [userName: u.userName, externalId: u.externalId, active: u.active, id: id]
+            userData << [userName: u.userName.toString(), externalId: u.externalId.toString(), active: u.active, id: id]
         }
     }
 

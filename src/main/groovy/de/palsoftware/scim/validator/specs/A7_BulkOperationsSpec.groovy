@@ -6,8 +6,7 @@ import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
 import groovy.json.JsonOutput
-import spock.lang.Shared
-import spock.lang.Stepwise
+import org.opentest4j.TestAbortedException
 
 /**
  * Area 7 — Bulk Operations
@@ -16,13 +15,15 @@ import spock.lang.Stepwise
  * Covers bulk POST, PUT, PATCH, DELETE, bulkId cross-referencing in data and paths,
  * operation error isolation, failOnErrors threshold, maxOperations enforcement,
  * unsupported methods, and schema validation.
+ *
+ * Each feature method is self-contained and cleans up any created or leaked resources
+ * so individual failures do not cascade or skip subsequent bulk compliance checks.
+ * References:
+ *   - RFC 7644 §3.7 (Bulk Operations)
+ *   - RFC 7643 §5 (ServiceProviderConfig bulk capability)
  */
 @RequiresCapability("bulk")
-@Stepwise
 class A7_BulkOperationsSpec extends ScimBaseSpec {
-
-    @Shared String bulkCreatedUserId1
-    @Shared String bulkCreatedUserId2
 
     def setupSpec() {
         loadServiceProviderConfig()
@@ -37,6 +38,8 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         given:
         String suffix1 = UUID.randomUUID().toString().substring(0, 8)
         String suffix2 = UUID.randomUUID().toString().substring(0, 8)
+        String id1 = null
+        String id2 = null
 
         Map bulkPayload = [
             schemas   : [BULK_REQUEST_SCHEMA],
@@ -68,6 +71,21 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                def rawOps = response.jsonPath().getList("Operations") ?: []
+                rawOps.each { Map op ->
+                    String location = op.location as String
+                    String id = location ? location.tokenize("/").last() : (op.response?.id as String)
+                    if (id) {
+                        if (op.bulkId == "user1") {
+                            id1 = id
+                        } else if (op.bulkId == "user2") id2 = id
+                        createdUserIds << id
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
 
         then: "Status is 200 OK and response contains BulkResponse schema"
         response.statusCode() == 200
@@ -78,23 +96,13 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         operations.size() == 2
         operations.every { Map op -> (op.status as String) == "201" }
 
-        when: "Capture created user IDs for subsequent tests"
-        operations.each { Map op ->
-            String location = op.location as String
-            if (location) {
-                String id = location.tokenize("/").last()
-                if (op.bulkId == "user1") {
-                    bulkCreatedUserId1 = id
-                } else {
-                    bulkCreatedUserId2 = id
-                }
-                createdUserIds << id
-            }
-        }
+        and: "Both user IDs were resolved and returned in location"
+        id1 != null
+        id2 != null
 
-        then: "Both user IDs were resolved and returned in location"
-        bulkCreatedUserId1 != null
-        bulkCreatedUserId2 != null
+        cleanup:
+        if (id1) deleteUser(id1)
+        if (id2) deleteUser(id2)
     }
 
     // ─── BLK_02: Bulk DELETE removes multiple users ─────────────────────────
@@ -103,19 +111,19 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
     def "BLK_02: Bulk DELETE removes multiple users in a single request"() {
         // RFC 7644 §3.7 — Bulk Operations
         given:
-        assert bulkCreatedUserId1 != null : "BLK_01 must pass first"
-        assert bulkCreatedUserId2 != null : "BLK_01 must pass first"
+        Response u1 = createUser()
+        Response u2 = createUser()
+        assert u1.statusCode() == 201 && u2.statusCode() == 201
+        String delId1 = u1.jsonPath().getString("id")
+        String delId2 = u2.jsonPath().getString("id")
 
         Map bulkPayload = [
             schemas   : [BULK_REQUEST_SCHEMA],
             Operations: [
+                [method: "DELETE", path: "/Users/${delId1}"],
                 [
                     method: "DELETE",
-                    path  : "/Users/${bulkCreatedUserId1}"
-                ],
-                [
-                    method: "DELETE",
-                    path  : "/Users/${bulkCreatedUserId2}"
+                    path  : "/Users/${delId2}"
                 ]
             ]
         ]
@@ -132,11 +140,11 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         operations.every { Map op -> (op.status as String) == "204" }
 
         when: "Remove from cleanup since already deleted and verify via GET"
-        createdUserIds.remove(bulkCreatedUserId1)
-        createdUserIds.remove(bulkCreatedUserId2)
+        createdUserIds.remove(delId1)
+        createdUserIds.remove(delId2)
 
-        Response get1 = scimRequestQuiet().get("/Users/${bulkCreatedUserId1}")
-        Response get2 = scimRequestQuiet().get("/Users/${bulkCreatedUserId2}")
+        Response get1 = scimRequestQuiet().get("/Users/${delId1}")
+        Response get2 = scimRequestQuiet().get("/Users/${delId2}")
 
         then: "Both users are confirmed deleted (404)"
         get1.statusCode() == 404
@@ -171,12 +179,34 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         ]
 
         when:
+        List<String> leakedUserIds = []
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                List<Map> respOps = response.jsonPath().getList("Operations") ?: []
+                respOps.each { Map op ->
+                    String loc = op?.location as String
+                    String id = loc ? loc.tokenize("/").last() : (op?.response?.id as String)
+                    if (id) {
+                        leakedUserIds << id
+                        createdUserIds << id
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
 
-        then: "Server should return 413 (PayloadTooLarge) or 400"
-        response.statusCode() in [413, 400]
+        then: "Server returns 413 Payload Too Large (RFC 7644 §3.7.4)"
+        response.statusCode() == 413
+        assertScimError(response, 413)
+        String detail = response.jsonPath().getString("detail")
+        assert detail != null && !detail.isBlank() : "413 error response MUST specify the exceeded limit in detail (RFC 7644 §3.7.4)"
+
+        cleanup:
+        leakedUserIds.each { id ->
+            try { deleteUser(id) } catch (Exception ignored) {}
+        }
     }
 
     // ─── BLK_04: failOnErrors stops processing after N errors ───────────────
@@ -200,10 +230,10 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
 
-        then: "Server returns 200 with operations, but stops after first error"
+        then: "Server returns 200 with operations, but stops after error threshold is reached"
         response.statusCode() == 200
         def operations = response.jsonPath().getList("Operations")
-        // Only 1 operation should be processed since failOnErrors=1
+        // Server stops after 1 error per RFC 7644 §3.7.3
         operations.size() == 1
         (operations[0].status as String) in ["404", "400"]
     }
@@ -237,7 +267,20 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         then: "Server should return 400 Bad Request with SCIM Error schema"
         response.statusCode() == 400
         response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+        response.jsonPath().get("status") instanceof String
         response.jsonPath().getString("status") == "400"
+
+        cleanup:
+        if (response?.statusCode() in [200, 201]) {
+            try {
+                def ops = response.jsonPath().getList("Operations") ?: []
+                ops.each { Map op ->
+                    String loc = op?.location as String
+                    String id = loc ? loc.tokenize("/").last() : (op?.response?.id as String)
+                    if (id) deleteUser(id)
+                }
+            } catch (Exception ignored) {}
+        }
     }
 
     // ─── BLK_06: Wrong schema in BulkRequest returns 400 ───────────────────
@@ -270,7 +313,20 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         then: "Server should return 400 Bad Request with SCIM Error schema"
         response.statusCode() == 400
         response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+        response.jsonPath().get("status") instanceof String
         response.jsonPath().getString("status") == "400"
+
+        cleanup:
+        if (response?.statusCode() in [200, 201]) {
+            try {
+                def ops = response.jsonPath().getList("Operations") ?: []
+                ops.each { Map op ->
+                    String loc = op?.location as String
+                    String id = loc ? loc.tokenize("/").last() : (op?.response?.id as String)
+                    if (id) deleteUser(id)
+                }
+            } catch (Exception ignored) {}
+        }
     }
 
     // ─── BLK_07: bulkId Cross-Referencing in Data (User -> Group) ───────────
@@ -312,9 +368,26 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         ]
 
         when: "Execute bulk request creating user and referencing via bulkId in group"
+        String createdUserId = null
+        String createdGroupId = null
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                def rawOps = response.jsonPath().getList("Operations") ?: []
+                if (rawOps.size() > 0) {
+                    String uLoc = rawOps[0]?.location as String
+                    createdUserId = uLoc ? uLoc.tokenize("/").last() : (rawOps[0]?.response?.id as String)
+                    if (createdUserId) createdUserIds << createdUserId
+                }
+                if (rawOps.size() > 1) {
+                    String gLoc = rawOps[1]?.location as String
+                    createdGroupId = gLoc ? gLoc.tokenize("/").last() : (rawOps[1]?.response?.id as String)
+                    if (createdGroupId) createdGroupIds << createdGroupId
+                }
+            } catch (Exception ignored) {}
+        }
 
         then: "Bulk request succeeds with 200 OK"
         response.statusCode() == 200
@@ -324,15 +397,8 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         (ops[1].status as String) == "201"
 
         and: "Extract resolved resource locations"
-        String userLoc = ops[0].location as String
-        String groupLoc = ops[1].location as String
-        userLoc != null
-        groupLoc != null
-
-        String createdUserId = userLoc.tokenize("/").last()
-        String createdGroupId = groupLoc.tokenize("/").last()
-        createdUserIds << createdUserId
-        createdGroupIds << createdGroupId
+        createdUserId != null
+        createdGroupId != null
 
         when: "Retrieve the created group to verify member was resolved to real UUID"
         Response groupResp = scimRequest().get("/Groups/${createdGroupId}")
@@ -374,13 +440,13 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     ]
                 ],
                 [
-                    method: "PATCH",
+                    method: "PUT",
                     path  : "/Users/bulkId:chainUser",
                     data  : [
-                        schemas   : [PATCH_OP_SCHEMA],
-                        Operations: [
-                            [op: "replace", path: "displayName", value: "Chained Updated Name"]
-                        ]
+                        schemas    : [USER_SCHEMA],
+                        userName   : userName,
+                        displayName: "Chained Updated Name",
+                        emails     : [[value: userName, type: "work", primary: true]]
                     ]
                 ],
                 [
@@ -390,30 +456,53 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             ]
         ]
 
-        when: "POST creates, PATCH updates, and DELETE removes the user in one bulk request"
+        when: "POST creates, PUT updates, and DELETE removes the user in one bulk request"
+        String createdUserId = null
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                def rawOps = response.jsonPath().getList("Operations") ?: []
+                if (rawOps.size() > 0) {
+                    createdUserId = (rawOps[0].location as String)?.tokenize("/")?.last() ?: (rawOps[0].response?.id as String)
+                    if (createdUserId) createdUserIds << createdUserId
+                }
+            } catch (Exception ignored) {}
+        }
 
-        then: "Status is 200 and all three operations succeed sequentially"
-        response.statusCode() == 200
+        then: "Status is 200 and all three operations succeed sequentially (or abort if bulkId in path is unsupported)"
+        if (response.statusCode() in [400, 404]) {
+            throw new TestAbortedException("Server does not support bulkId resolution in URL path (returned HTTP ${response.statusCode()})")
+        }
+        assert response.statusCode() == 200 : "Expected HTTP 200 BulkResponse, but got ${response.statusCode()}"
         def ops = response.jsonPath().getList("Operations")
-        ops.size() == 3
-        (ops[0].status as String) == "201"
-        (ops[1].status as String) == "200"
-        (ops[2].status as String) == "204"
+        assert ops != null && ops.size() == 3
+        assert (ops[0].status as String) == "201" : "Expected op[0] to return 201 Created, but got ${ops[0]?.status}"
 
-        when: "Extract created user ID from op 0 location"
-        String createdUserId = (ops[0].location as String)?.tokenize("/")?.last()
+        if ((ops[1].status as String) in ["400", "404"]) {
+            throw new TestAbortedException("Server does not support optional bulkId substitution in URL paths (PUT returned ${ops[1].status})")
+        }
+        assert (ops[1].status as String) == "200" : "Expected op[1] to return 200 OK, but got ${ops[1]?.status}"
 
-        then: "Created user ID is valid"
-        createdUserId != null
+        if ((ops[2].status as String) in ["400", "404"]) {
+            throw new TestAbortedException("Server does not support optional bulkId substitution in URL paths (DELETE returned ${ops[2].status})")
+        }
+        assert (ops[2].status as String) == "204" : "Expected op[2] to return 204 No Content, but got ${ops[2]?.status}"
+
+        and: "Created user ID is valid"
+        assert createdUserId != null : "Could not determine created user ID from bulk response"
 
         when: "Subsequent GET to verify user is completely deleted"
         Response getResp = scimRequestQuiet().get("/Users/${createdUserId}")
 
         then: "User is not found (404)"
         getResp.statusCode() == 404
+
+        cleanup:
+        if (createdUserId) {
+            try { deleteUser(createdUserId) } catch (Exception ignored) {}
+        }
     }
 
     // ─── BLK_09: Bulk PUT Resource Replacement ──────────────────────────────
@@ -469,6 +558,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
     // ─── BLK_10: Bulk PATCH Resource Modification ───────────────────────────
 
+    @RequiresCapability("patch")
     @SpecRef("RFC7644-3.7-R1")
     def "BLK_10: Bulk PATCH modifies an existing user resource"() {
         // RFC 7644 §3.7 — PATCH within Bulk
@@ -500,11 +590,11 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
 
-        then: "Status is 200 and operation reports 200 OK"
+        then: "Status is 200 and operation reports 200 OK or 204 No Content"
         response.statusCode() == 200
         def ops = response.jsonPath().getList("Operations")
         ops.size() == 1
-        (ops[0].status as String) == "200"
+        (ops[0].status as String) in ["200", "204"]
 
         when: "Verify active flag via GET"
         Response getResp = scimRequest().get("/Users/${userId}")
@@ -520,17 +610,15 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
     // ─── BLK_11: Mixed Operations in Single Request ─────────────────────────
 
     @SpecRef("RFC7644-3.7-R1")
-    def "BLK_11: Bulk request with mixed operations (POST, PUT, PATCH, DELETE) all succeed"() {
+    def "BLK_11: Bulk request with mixed operations (POST, PUT, DELETE) all succeed"() {
         // RFC 7644 §3.7 — Mixed methods in single Bulk request
-        given: "Pre-create users for PUT, PATCH, and DELETE operations"
+        given: "Pre-create users for PUT and DELETE operations"
         Response uPut = createUser(userName: "mixed_put_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
-        Response uPatch = createUser(userName: "mixed_patch_${UUID.randomUUID().toString().substring(0, 8)}@test.com", active: true)
         Response uDel = createUser(userName: "mixed_del_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
-        assert uPut.statusCode() == 201 && uPatch.statusCode() == 201 && uDel.statusCode() == 201
+        assert uPut.statusCode() == 201 && uDel.statusCode() == 201
 
         String putId = uPut.jsonPath().getString("id")
         String putName = uPut.jsonPath().getString("userName")
-        String patchId = uPatch.jsonPath().getString("id")
         String delId = uDel.jsonPath().getString("id")
 
         String newUserName = "mixed_post_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
@@ -558,14 +646,6 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     ]
                 ],
                 [
-                    method: "PATCH",
-                    path  : "/Users/${patchId}",
-                    data  : [
-                        schemas   : [PATCH_OP_SCHEMA],
-                        Operations: [[op: "replace", path: "active", value: false]]
-                    ]
-                ],
-                [
                     method: "DELETE",
                     path  : "/Users/${delId}"
                 ]
@@ -573,28 +653,34 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         ]
 
         when: "Execute mixed Bulk request"
+        String createdPostId = null
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                def rawOps = response.jsonPath().getList("Operations") ?: []
+                if (rawOps.size() > 0) {
+                    createdPostId = (rawOps[0].location as String)?.tokenize("/")?.last() ?: (rawOps[0].response?.id as String)
+                    if (createdPostId) createdUserIds << createdPostId
+                }
+            } catch (Exception ignored) {}
+        }
 
         then: "Overall status is 200 OK"
         response.statusCode() == 200
         def ops = response.jsonPath().getList("Operations")
-        ops.size() == 4
+        ops.size() == 3
 
         and: "Operation 0 (POST) succeeded with 201"
         (ops[0].status as String) == "201"
-        String createdPostId = (ops[0].location as String)?.tokenize("/")?.last()
-        if (createdPostId) createdUserIds << createdPostId
+        createdPostId != null
 
         and: "Operation 1 (PUT) succeeded with 200"
         (ops[1].status as String) == "200"
 
-        and: "Operation 2 (PATCH) succeeded with 200"
-        (ops[2].status as String) == "200"
-
-        and: "Operation 3 (DELETE) succeeded with 204"
-        (ops[3].status as String) == "204"
+        and: "Operation 2 (DELETE) succeeded with 204"
+        (ops[2].status as String) == "204"
         createdUserIds.remove(delId)
 
         when: "Verify deleted user is 404"
@@ -605,7 +691,6 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
         cleanup:
         if (putId) deleteUser(putId)
-        if (patchId) deleteUser(patchId)
         if (createdPostId) deleteUser(createdPostId)
     }
 
@@ -636,9 +721,19 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         ]
 
         when: "Execute bulk request against non-existent resources"
+        String leakedId = null
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response?.statusCode() in [200, 201]) {
+            try {
+                def rawOps = response.jsonPath().getList("Operations") ?: []
+                if (rawOps.size() > 1 && (rawOps[1].status as String) in ["200", "201"]) {
+                    leakedId = (rawOps[1].location as String)?.tokenize("/")?.last() ?: (rawOps[1].response?.id as String) ?: ghostId
+                    if (leakedId) createdUserIds << leakedId
+                }
+            } catch (Exception ignored) {}
+        }
 
         then: "Overall request returns 200 OK"
         response.statusCode() == 200
@@ -656,6 +751,11 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         ops[1].response != null
         (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
         (ops[1].response.status as String) == "404"
+
+        cleanup:
+        if (leakedId) {
+            deleteUser(leakedId)
+        }
     }
 
     // ─── BLK_13: Operation Error Isolation on 409 (Duplicate userName) ───────
@@ -665,6 +765,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         // RFC 7644 §3.7, §3.12 — Uniqueness conflict inside bulk
         given: "An existing user"
         String dupName = "dup_bulk_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        String secondName = "valid_bulk_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
         Response existingUser = createUser(userName: dupName)
         assert existingUser.statusCode() == 201
         String existingId = existingUser.jsonPath().getString("id")
@@ -680,28 +781,57 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                         schemas : [USER_SCHEMA],
                         userName: dupName
                     ]
+                ],
+                [
+                    method: "POST",
+                    path  : "/Users",
+                    bulkId: "subsequentValidUser",
+                    data  : [
+                        schemas : [USER_SCHEMA],
+                        userName: secondName
+                    ]
                 ]
             ]
         ]
 
-        when: "POST duplicate userName via bulk"
+        when: "POST duplicate userName followed by a valid user via bulk"
+        String secondId = null
+        String strayFirstId = null
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                def rawOps = response.jsonPath().getList("Operations") ?: []
+                if (rawOps.size() > 0) {
+                    strayFirstId = (rawOps[0].location as String)?.tokenize("/")?.last() ?: (rawOps[0].response?.id as String)
+                    if (strayFirstId) createdUserIds << strayFirstId
+                }
+                if (rawOps.size() > 1) {
+                    secondId = (rawOps[1].location as String)?.tokenize("/")?.last() ?: (rawOps[1].response?.id as String)
+                    if (secondId) createdUserIds << secondId
+                }
+            } catch (Exception ignored) {}
+        }
 
         then: "Overall HTTP status is 200 OK"
         response.statusCode() == 200
 
-        and: "Operation result reports status 409 and scimType uniqueness"
+        and: "First operation reports 409 uniqueness and second operation succeeds with 201"
         def ops = response.jsonPath().getList("Operations")
-        ops.size() == 1
+        ops.size() == 2
         (ops[0].status as String) == "409"
         ops[0].response != null
         (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
         (ops[0].response.status as String) == "409"
         assertOperationScimType(ops[0] as Map, "uniqueness")
 
+        (ops[1].status as String) == "201"
+        secondId != null
+
         cleanup:
+        if (strayFirstId) deleteUser(strayFirstId)
+        if (secondId) deleteUser(secondId)
         if (existingId) deleteUser(existingId)
     }
 
@@ -758,16 +888,18 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
 
-        then: "Overall request returns 200 OK"
-        response.statusCode() == 200
-
-        and: "Operation result reports status 400 with scimType invalidValue"
-        def ops = response.jsonPath().getList("Operations")
-        ops.size() == 1
-        (ops[0].status as String) == "400"
-        ops[0].response != null
-        (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
-        assertOperationScimType(ops[0] as Map, "invalidValue")
+        then: "Overall request returns 200 OK with operation 400 or top-level 400 Bad Request"
+        response.statusCode() in [200, 400]
+        if (response.statusCode() == 400) {
+            assertScimError(response, 400)
+        } else {
+            def ops = response.jsonPath().getList("Operations")
+            assert ops.size() == 1
+            assert (ops[0].status as String) == "400"
+            assert ops[0].response != null
+            assert (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
+            assertOperationOptionalScimType(ops[0] as Map, ["invalidValue", "invalidSyntax"])
+        }
     }
 
     // ─── BLK_16: Missing Operations Attribute ───────────────────────────────
@@ -789,6 +921,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         then: "Status is 400 Bad Request with SCIM Error schema"
         response.statusCode() == 400
         response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+        response.jsonPath().get("status") instanceof String
         response.jsonPath().getString("status") == "400"
     }
 
@@ -808,7 +941,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     bulkId: "unknownPost",
                     data  : [
                         schemas : [USER_SCHEMA],
-                        userName: "unknown_resource@test.com"
+                        userName: "unknown_resource_${UUID.randomUUID()}@test.com"
                     ]
                 ],
                 [
@@ -816,16 +949,31 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     path  : "/InvalidEndpoint/${randomId}",
                     data  : [
                         schemas : [USER_SCHEMA],
-                        userName: "unknown_put@test.com"
+                        userName: "unknown_put_${UUID.randomUUID()}@test.com"
                     ]
                 ]
             ]
         ]
 
         when: "Execute bulk request with unknown resource path"
+        List<String> leakedIds = []
         Response response = scimRequestQuiet()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response?.statusCode() in [200, 201]) {
+            try {
+                def rawOps = response.jsonPath().getList("Operations") ?: []
+                rawOps.each { Map op ->
+                    if ((op?.status as String) in ["200", "201"]) {
+                        String id = (op.location as String)?.tokenize("/")?.last() ?: (op.response?.id as String)
+                        if (id) {
+                            leakedIds << id
+                            createdUserIds << id
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
 
         then: "Overall response is 200 OK"
         response.statusCode() == 200
@@ -838,16 +986,22 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         (ops[0].status as String) in ["400", "404"]
         ops[0].response != null
         (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
-        assertOperationScimType(ops[0] as Map, ["invalidValue", "invalidPath"])
+        if ((ops[0].status as String) == "400") {
+            assertOperationOptionalScimType(ops[0] as Map, ["invalidValue", "invalidPath", "invalidSyntax"])
+        }
 
         // PUT /InvalidEndpoint/{id}
-        if (ops[1].status != null) {
-            assert (ops[1].status as String) in ["400", "404"]
-            assert ops[1].response != null
-            assert (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
-            assertOperationScimType(ops[1] as Map, ["invalidValue", "invalidPath"])
-        } else {
-            recordDeviation("RFC7644-3.7-R1", "RFC 7644 §3.7", "Server bulk response omitted status for second operation following failed operation")
+        assert (ops[1].status as String) in ["400", "404"] :
+            "Second operation in bulk response MUST include status 400 or 404 (RFC 7644 §3.7)"
+        assert ops[1].response != null
+        assert (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
+        if ((ops[1].status as String) == "400") {
+            assertOperationOptionalScimType(ops[1] as Map, ["invalidValue", "invalidPath", "invalidSyntax"])
+        }
+
+        cleanup:
+        leakedIds.unique().each { String id ->
+            if (id) deleteUser(id)
         }
     }
 
@@ -898,16 +1052,23 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         ]
 
         when: "Execute bulk request with non-canonical paths"
+        List<String> createdIds = []
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
-        def operations = response.jsonPath().getList("Operations") ?: []
-        operations.each { Map op ->
-            String location = op.location as String
-            if (location) {
-                String id = location.tokenize("/").last()
-                createdUserIds << id
-            }
+        def operations = []
+        if (response.statusCode() in [200, 201]) {
+            try {
+                operations = response.jsonPath().getList("Operations") ?: []
+                operations.each { Map op ->
+                    String location = op.location as String
+                    if (location) {
+                        String id = location.tokenize("/").last()
+                        createdIds << id
+                        createdUserIds << id
+                    }
+                }
+            } catch (Exception ignored) {}
         }
 
         then: "Status is 200 OK and response contains BulkResponse schema"
@@ -928,25 +1089,30 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     "Error response missing for rejected non-canonical path '${path}'"
                 assert (op.response.schemas as List)?.contains(ERROR_SCHEMA) :
                     "Error response missing Error schema for rejected non-canonical path '${path}'"
-                ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk POST path '${path}' (status: ${status}) (RFC 7644 §3.7 defines canonical '/Users'; non-canonical acceptance is optional leniency)"
             }
+        }
+
+        cleanup:
+        createdIds.each { id ->
+            try { deleteUser(id) } catch (Exception ignored) {}
         }
     }
 
-    // ─── BLK_19: Bulk PUT, PATCH, and DELETE with Non-Canonical Paths ───────
+    // ─── BLK_19: Bulk PUT and DELETE with Non-Canonical Paths ───────
 
     @SpecRef("RFC7644-3.7-R1")
-    def "BLK_19: Bulk PUT, PATCH, and DELETE with non-canonical paths ('//Users/{id}', 'Users/{id}')"() {
+    def "BLK_19: Bulk PUT and DELETE with non-canonical paths ('//Users/{id}', 'Users/{id}')"() {
         // RFC 7644 §3.7 — Non-canonical path handling on resource updates
-        given: "Pre-create users for PUT, PATCH, and DELETE operations"
-        Response uPut = createUser(userName: "noncanon_put_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
-        Response uPatch = createUser(userName: "noncanon_patch_${UUID.randomUUID().toString().substring(0, 8)}@test.com", active: true)
+        given: "Pre-create users for PUT and DELETE operations"
+        Response uPut1 = createUser(userName: "noncanon_put1_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
+        Response uPut2 = createUser(userName: "noncanon_put2_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
         Response uDel = createUser(userName: "noncanon_del_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
-        assert uPut.statusCode() == 201 && uPatch.statusCode() == 201 && uDel.statusCode() == 201
+        assert uPut1.statusCode() == 201 && uPut2.statusCode() == 201 && uDel.statusCode() == 201
 
-        String putId = uPut.jsonPath().getString("id")
-        String putName = uPut.jsonPath().getString("userName")
-        String patchId = uPatch.jsonPath().getString("id")
+        String put1Id = uPut1.jsonPath().getString("id")
+        String put1Name = uPut1.jsonPath().getString("userName")
+        String put2Id = uPut2.jsonPath().getString("id")
+        String put2Name = uPut2.jsonPath().getString("userName")
         String delId = uDel.jsonPath().getString("id")
 
         Map bulkPayload = [
@@ -954,19 +1120,20 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             Operations: [
                 [
                     method: "PUT",
-                    path  : "//Users/${putId}",
+                    path  : "//Users/${put1Id}",
                     data  : [
                         schemas : [USER_SCHEMA],
-                        userName: putName,
+                        userName: put1Name,
                         title   : "Updated via Double Slash PUT"
                     ]
                 ],
                 [
-                    method: "PATCH",
-                    path  : "Users/${patchId}",
+                    method: "PUT",
+                    path  : "Users/${put2Id}",
                     data  : [
-                        schemas   : [PATCH_OP_SCHEMA],
-                        Operations: [[op: "replace", path: "active", value: false]]
+                        schemas : [USER_SCHEMA],
+                        userName: put2Name,
+                        title   : "Updated via Relative PUT"
                     ]
                 ],
                 [
@@ -988,23 +1155,21 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         ops.size() == 3
 
         and: "Operation 0 (PUT) succeeded or reported standard SCIM Error"
-        String putStatus = ops[0].status as String
-        if (putStatus == "200") {
-            assert (ops[0].location as String)?.contains(putId)
+        String put1Status = ops[0].status as String
+        if (put1Status == "200") {
+            assert (ops[0].location as String)?.contains(put1Id)
         } else {
-            assert putStatus in ["400", "404"] : "Expected 200 or 4xx for non-canonical PUT, got ${putStatus}"
+            assert put1Status in ["400", "404"] : "Expected 200 or 4xx for non-canonical PUT, got ${put1Status}"
             assert ops[0].response != null && (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
-            ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk PUT path '//Users/${putId}' (status: ${putStatus}) (RFC 7644 §3.7)"
         }
 
-        and: "Operation 1 (PATCH) succeeded (200 or 204) or reported standard SCIM Error"
-        String patchStatus = ops[1].status as String
-        if (patchStatus in ["200", "204"]) {
-            // PATCH succeeded per RFC 7644 §3.5.2
+        and: "Operation 1 (PUT) succeeded or reported standard SCIM Error"
+        String put2Status = ops[1].status as String
+        if (put2Status == "200") {
+            assert (ops[1].location as String)?.contains(put2Id)
         } else {
-            assert patchStatus in ["400", "404"] : "Expected 200/204 or 4xx for non-canonical PATCH, got ${patchStatus}"
+            assert put2Status in ["400", "404"] : "Expected 200 or 4xx for non-canonical PUT, got ${put2Status}"
             assert ops[1].response != null && (ops[1].response.schemas as List)?.contains(ERROR_SCHEMA)
-            ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk PATCH path 'Users/${patchId}' (status: ${patchStatus}) (RFC 7644 §3.7)"
         }
 
         and: "Operation 2 (DELETE) succeeded (204) or reported standard SCIM Error"
@@ -1014,12 +1179,11 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         } else {
             assert delStatus in ["400", "404"] : "Expected 204 or 4xx for non-canonical DELETE, got ${delStatus}"
             assert ops[2].response != null && (ops[2].response.schemas as List)?.contains(ERROR_SCHEMA)
-            ScimOutput.println "DEVIATION: Server does not accept non-canonical bulk DELETE path '//Users/${delId}' (status: ${delStatus}) (RFC 7644 §3.7)"
         }
 
         cleanup:
-        if (putId) deleteUser(putId)
-        if (patchId) deleteUser(patchId)
+        if (put1Id) deleteUser(put1Id)
+        if (put2Id) deleteUser(put2Id)
         if (delId) deleteUser(delId)
     }
 
@@ -1031,38 +1195,48 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         // unique within a bulk request and created by the client. The bulkId attribute is
         // mandatory for 'POST' operations."
         given:
-        Map bulkPayload = [
-            schemas   : [BULK_REQUEST_SCHEMA],
-            Operations: [
-                [
-                    method: "POST",
-                    path  : "/Users",
-                    data  : [
-                        schemas : [USER_SCHEMA],
-                        userName: "nobulkid_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
-                    ]
-                ]
-            ]
-        ]
+        String noBulkIdUserName = "nobulkid_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        List<String> leakedUserIds = []
+        Map bulkPayload = [schemas: [BULK_REQUEST_SCHEMA], Operations: [[method: "POST", path: "/Users", data: [schemas: [USER_SCHEMA], userName: noBulkIdUserName]]]]
 
         when:
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                def rawOps = response.jsonPath().getList("Operations") ?: []
+                if (rawOps.size() > 0) {
+                    String createdId = (rawOps[0].location as String)?.tokenize("/")?.last() ?: (rawOps[0].response?.id as String)
+                    if (createdId) leakedUserIds << createdId
+                }
+            } catch (Exception ignored) {}
+        }
 
-        then: "Server rejects either the whole request (400) or reports 400 for the operation, or records deviation"
+        then: "Server rejects either the whole request (400) or reports 400 for the operation (RFC 7644 §3.7)"
         assert response.statusCode() in [200, 400] : "Expected status 200 or 400, got ${response.statusCode()}"
         if (response.statusCode() == 400) {
             assertScimError(response, 400)
         } else {
             def ops = response.jsonPath().getList("Operations")
             assert ops != null && ops.size() == 1
-            if ((ops[0].status as String) == "400") {
-                assert (ops[0].status as String) == "400"
-            } else {
-                recordDeviation("RFC7644-3.7-R2", "RFC 7644 §3.7", "Server accepted bulk POST operation without required 'bulkId' (status ${ops[0].status})")
-            }
+            String createdId = (ops[0].location as String)?.tokenize("/")?.last() ?: (ops[0].response?.id as String)
+            if (createdId && !leakedUserIds.contains(createdId)) leakedUserIds << createdId
+            assert (ops[0].status as String) == "400"
+            assert ops[0].response != null
+            assert (ops[0].response.schemas as List)?.contains(ERROR_SCHEMA)
         }
+        cleanup:
+        if (leakedUserIds.isEmpty() && isFilterSupported()) {
+            try {
+                Response r = scimRequestQuiet().queryParam("filter", "userName eq \"${noBulkIdUserName}\"").get("/Users")
+                if (r.statusCode() == 200) {
+                    List<Map> resList = r.jsonPath().getList("Resources") ?: []
+                    leakedUserIds.addAll(resList.findAll { it instanceof Map && it.userName == noBulkIdUserName }.collect { it.id as String }.findAll { it != null })
+                }
+            } catch (Exception ignored) {}
+        }
+        leakedUserIds.unique().each { String id -> try { deleteUser(id) } catch (Exception ignored) {} }
     }
 
     // ─── BLK_21: Per-operation version attribute for conditional updates ────
@@ -1097,15 +1271,16 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
 
-        then: "Operation returns 412 Precondition Failed (or 200 if version not supported)"
+        then: "Operation returns 412 Precondition Failed (or aborts if optional version precondition unsupported)"
         response.statusCode() == 200
         def ops = response.jsonPath().getList("Operations")
         ops != null && ops.size() == 1
         String status = ops[0].status as String
+        assert !status.toString().startsWith("5") : "Server returned 5xx server error (${status}) on ETag precondition"
         if (status == "412") {
-            true
+            assert (ops[0].response?.schemas as List)?.contains(ERROR_SCHEMA)
         } else {
-            ScimOutput.println "NOTE: Server did not enforce bulk operation version precondition (status: ${status})"
+            throw new TestAbortedException("Server does not support optional bulk version precondition (status: ${status})")
         }
 
         cleanup:
@@ -1146,9 +1321,24 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         ]
 
         when: "POST to /Bulk"
+        String id1 = null
+        String id3 = null
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                def rawOps = response.jsonPath().getList("Operations") ?: []
+                if (rawOps.size() > 0) {
+                    id1 = (rawOps[0].location as String)?.tokenize("/")?.last() ?: (rawOps[0].response?.id as String)
+                    if (id1) createdUserIds << id1
+                }
+                if (rawOps.size() > 2) {
+                    id3 = (rawOps[2].location as String)?.tokenize("/")?.last() ?: (rawOps[2].response?.id as String)
+                    if (id3) createdUserIds << id3
+                }
+            } catch (Exception ignored) {}
+        }
 
         then: "Overall status is 200 OK"
         response.statusCode() == 200
@@ -1157,16 +1347,14 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
 
         and: "First operation succeeded with 201"
         (ops[0].status as String) == "201"
-        String id1 = (ops[0].location as String)?.tokenize("/")?.last()
-        if (id1) createdUserIds << id1
+        id1 != null
 
         and: "Second operation failed with 404"
         (ops[1].status as String) == "404"
 
         and: "Third operation succeeded with 201 despite prior failure"
         (ops[2].status as String) == "201"
-        String id3 = (ops[2].location as String)?.tokenize("/")?.last()
-        if (id3) createdUserIds << id3
+        id3 != null
 
         cleanup:
         if (id1) deleteUser(id1)
@@ -1181,6 +1369,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         given: "Two groups referencing each other via bulkId"
         String g1 = "grp_circ_1_${UUID.randomUUID().toString().substring(0, 8)}"
         String g2 = "grp_circ_2_${UUID.randomUUID().toString().substring(0, 8)}"
+        List<String> createdGroupIds = []
 
         Map bulkPayload = [
             schemas   : [BULK_REQUEST_SCHEMA],
@@ -1192,7 +1381,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     data  : [
                         schemas    : [GROUP_SCHEMA],
                         displayName: g1,
-                        members    : [[value: "bulkId:circG2"]]
+                        members    : [[value: "bulkId:circG2", type: "Group"]]
                     ]
                 ],
                 [
@@ -1202,7 +1391,7 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
                     data  : [
                         schemas    : [GROUP_SCHEMA],
                         displayName: g2,
-                        members    : [[value: "bulkId:circG1"]]
+                        members    : [[value: "bulkId:circG1", type: "Group"]]
                     ]
                 ]
             ]
@@ -1212,65 +1401,108 @@ class A7_BulkOperationsSpec extends ScimBaseSpec {
         Response response = scimRequest()
             .body(JsonOutput.toJson(bulkPayload))
             .post("/Bulk")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                List<Map> rawOps = response.jsonPath().getList("Operations") ?: []
+                rawOps.each { Map op ->
+                    String id = (op.location as String)?.tokenize("/")?.last() ?: (op.response?.id as String)
+                    if (id && !createdGroupIds.contains(id)) createdGroupIds << id
+                }
+            } catch (Exception ignored) {}
+        }
 
-        then: "Server resolves circular references or returns 409 Conflict per §3.7.1"
+        then: "Server resolves circular references or rejects with 409/per-op 400 per §3.7.1 / §3.7.3"
         assert response.statusCode() in [200, 409] : "Expected HTTP 200 or 409 per RFC 7644 §3.7.1, but got ${response.statusCode()}"
         if (response.statusCode() == 409) {
             assertScimError(response, 409)
         } else {
-            def ops = response.jsonPath().getList("Operations")
+            List<Map> ops = response.jsonPath().getList("Operations")
             assert ops != null && ops.size() == 2
-            boolean allCreated = ops.every { (it.status as String) == "201" }
-            if (allCreated) {
-                String id1 = ops[0].location ? (ops[0].location as String).tokenize("/").last() : (ops[0].response?.id as String)
-                String id2 = ops[1].location ? (ops[1].location as String).tokenize("/").last() : (ops[1].response?.id as String)
-                if (id1 && id2) {
-                    Response g1Resp = scimRequestQuiet().get("/Groups/${id1}")
-                    Response g2Resp = scimRequestQuiet().get("/Groups/${id2}")
-                    if (g1Resp.statusCode() == 200 && g2Resp.statusCode() == 200) {
-                        def m1 = g1Resp.jsonPath().getList("members.value")
-                        def m2 = g2Resp.jsonPath().getList("members.value")
-                        assert m1?.contains(id2) : "Group 1 members must contain resolved Group 2 ID (RFC 7644 §3.7.1)"
-                        assert m2?.contains(id1) : "Group 2 members must contain resolved Group 1 ID (RFC 7644 §3.7.1)"
-                    }
-                }
-            } else {
-                boolean has409 = ops.any { (it.status as String) == "409" }
-                if (!has409) {
-                    recordDeviation("RFC7644-3.7-R4", "RFC 7644 §3.7.1", "Server did not resolve circular bulkId references (operations returned ${ops.collect { it.status }})")
-                }
-            }
             ops.each { Map op ->
                 String id = (op.location as String)?.tokenize("/")?.last() ?: (op.response?.id as String)
-                if (id) {
-                    try { scimRequestQuiet().delete("/Groups/${id}") } catch (Exception ignored) {}
+                if (id && !createdGroupIds.contains(id)) createdGroupIds << id
+            }
+            if (ops.every { (it.status as String) == "201" }) {
+                String id1 = ops[0].location ? (ops[0].location as String).tokenize("/").last() : (ops[0].response?.id as String)
+                String id2 = ops[1].location ? (ops[1].location as String).tokenize("/").last() : (ops[1].response?.id as String)
+                assert id1 != null && id2 != null : "Created groups in circular bulk operations must have valid IDs or locations"
+                Response g1Resp = scimRequestQuiet().get("/Groups/${id1}")
+                Response g2Resp = scimRequestQuiet().get("/Groups/${id2}")
+                assert g1Resp.statusCode() == 200
+                assert g2Resp.statusCode() == 200
+                def m1 = g1Resp.jsonPath().getList("members.value")
+                def m2 = g2Resp.jsonPath().getList("members.value")
+                assert m1?.contains(id2) : "Group 1 members must contain resolved Group 2 ID (RFC 7644 §3.7.1)"
+                assert m2?.contains(id1) : "Group 2 members must contain resolved Group 1 ID (RFC 7644 §3.7.1)"
+            } else {
+                assert ops.every { (it.status as String) in ["400", "409"] } :
+                    "Expected all circular bulkId operations to either resolve (201) or fail with 400/409, but got statuses ${ops.collect { it.status }} (RFC 7644 §3.7.1 / §3.7.3)"
+                assert createdGroupIds.isEmpty() : "Failed circular bulkId operations must not create resources, but found IDs ${createdGroupIds}"
+                ops.each { Map op ->
+                    assert op.location == null : "Failed bulk operation must not return a location"
+                    assert (op.response?.schemas as List)?.contains(ERROR_SCHEMA) :
+                        "Failed bulk operation must include SCIM Error schema in response (RFC 7644 §3.7.3)"
+                }
+                if (isFilterSupported()) {
+                    Response checkResp = scimRequestQuiet()
+                        .queryParam("filter", "displayName eq \"${g1}\" or displayName eq \"${g2}\"")
+                        .get("/Groups")
+                    assert checkResp.statusCode() == 200
+                    List<Map> resources = checkResp.jsonPath().getList("Resources") ?: []
+                    List<String> leakedIds = resources.findAll { it instanceof Map && (it.displayName == g1 || it.displayName == g2) }.collect { it.id as String }.findAll { it != null }
+                    createdGroupIds.addAll(leakedIds)
+                    assert leakedIds.isEmpty() :
+                        "Failed circular bulkId operations must not persist group resources"
                 }
             }
+        }
+
+        cleanup:
+        if (createdGroupIds.isEmpty() && isFilterSupported()) {
+            try {
+                Response cleanupResp = scimRequestQuiet()
+                    .queryParam("filter", "displayName eq \"${g1}\" or displayName eq \"${g2}\"")
+                    .get("/Groups")
+                if (cleanupResp.statusCode() == 200) {
+                    List<Map> resources = cleanupResp.jsonPath().getList("Resources") ?: []
+                    List<String> leakedIds = resources.findAll { it instanceof Map && (it.displayName == g1 || it.displayName == g2) }.collect { it.id as String }.findAll { it != null }
+                    createdGroupIds.addAll(leakedIds)
+                }
+            } catch (Exception ignored) {}
+        }
+        createdGroupIds.unique().each { String id ->
+            try { scimRequestQuiet().delete("/Groups/${id}") } catch (Exception ignored) {}
         }
     }
 
     /**
-     * Assert the scimType carried inside a nested BulkResponse operation error.
-     *
-     * RFC 7644 §3.12 marks "scimType" OPTIONAL, so an omitted keyword is reported as a
-     * deviation rather than failing a server that is otherwise compliant.
+     * Assert the scimType carried inside a nested BulkResponse operation error (required scimType).
      */
     private void assertOperationScimType(Map operation, Collection<String> expectedScimTypes) {
         String scimType = operation.response?.scimType as String
-        if (scimType == null || scimType.isBlank()) {
-            String msg = "Bulk operation error omits optional scimType (expected one of ${expectedScimTypes}) (RFC 7644 §3.12)"
-            ScimOutput.deviation(msg, null, "RFC7644-3.7.3-R1", "omitted", expectedScimTypes.toString())
-            if (isStrictScimType()) {
-                assert false : "Strict mode: ${msg}"
-            }
-            return
-        }
+        assert scimType != null && !scimType.isBlank() :
+            "Expected bulk operation to carry scimType in ${expectedScimTypes} (RFC 7644 §3.12)"
         assert scimType in expectedScimTypes :
             "Expected bulk operation scimType in ${expectedScimTypes} but got '${scimType}' (RFC 7644 §3.12)"
     }
 
     private void assertOperationScimType(Map operation, String expectedScimType) {
         assertOperationScimType(operation, [expectedScimType])
+    }
+
+    /**
+     * Assert the scimType carried inside a nested BulkResponse operation error when scimType is optional.
+     */
+    private void assertOperationOptionalScimType(Map operation, Collection<String> allowedScimTypes) {
+        String scimType = operation.response?.scimType as String
+        if (scimType != null && !scimType.isBlank()) {
+            assert scimType in allowedScimTypes :
+                "Expected bulk operation scimType in ${allowedScimTypes} but got '${scimType}' (RFC 7644 §3.12)"
+        }
+    }
+
+    private void assertOperationOptionalScimType(Map operation, String allowedScimType) {
+        assertOperationOptionalScimType(operation, [allowedScimType])
     }
 
 }

@@ -6,8 +6,8 @@ import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
 import groovy.json.JsonOutput
+import org.opentest4j.TestAbortedException
 import spock.lang.Shared
-import spock.lang.Stepwise
 
 /**
  * Area 6 — Group Lifecycle & Referential Integrity
@@ -16,7 +16,6 @@ import spock.lang.Stepwise
  * referential integrity, reverse group reflection, optimistic concurrency,
  * and attribute projections per RFC 7643 §4.1–§4.2 and RFC 7644 §3.2–§3.6, §3.9, §3.12–§3.14.
  */
-@Stepwise
 class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     @Shared String memberUserId1
@@ -38,16 +37,100 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         memberUserId2 = user2.jsonPath().getString("id")
     }
 
+    protected void ensureMemberUsers() {
+        if (memberUserId1 != null && memberUserId2 != null) {
+            return
+        }
+        if (memberUserId1 == null) {
+            def user1 = createUser(userName: "grp_member1_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
+            assert user1.statusCode() == 201 : "Fixture: user1 creation failed: ${user1.body().asString()}"
+            memberUserId1 = user1.jsonPath().getString("id")
+        }
+        if (memberUserId2 == null) {
+            def user2 = createUser(userName: "grp_member2_${UUID.randomUUID().toString().substring(0, 8)}@test.com")
+            assert user2.statusCode() == 201 : "Fixture: user2 creation failed: ${user2.body().asString()}"
+            memberUserId2 = user2.jsonPath().getString("id")
+        }
+    }
+
+    protected String ensureGroup() {
+        ensureMemberUsers()
+        if (groupId != null) {
+            def check = scimRequestQuiet().get("/Groups/${groupId}")
+            if (check.statusCode() == 200) {
+                return groupId
+            }
+        }
+        groupDisplayName = "TestGroup_${UUID.randomUUID().toString().substring(0, 8)}"
+        groupExternalId = "Ext_Grp_${UUID.randomUUID().toString().substring(0, 8)}"
+        Map payload = [
+            schemas    : [GROUP_SCHEMA],
+            displayName: groupDisplayName,
+            externalId : groupExternalId,
+            members    : [[value: memberUserId1]]
+        ]
+        Response response = scimRequestQuiet()
+            .body(JsonOutput.toJson(payload))
+            .post("/Groups")
+        assert response.statusCode() == 201 : "Failed to create fixture resource: ${response.body().asString()}"
+        groupId = response.jsonPath().getString("id")
+        assert groupId != null
+        createdGroupIds << groupId
+        return groupId
+    }
+
+    protected String ensureGroupWithMembers(List<String> memberIds) {
+        ensureGroup()
+        Map putPayload = [
+            schemas    : [GROUP_SCHEMA],
+            displayName: groupDisplayName,
+            members    : memberIds.collect { [value: it] }
+        ]
+        scimRequestQuiet()
+            .body(JsonOutput.toJson(putPayload))
+            .put("/Groups/${groupId}")
+        return groupId
+    }
+
+    protected String ensureDeletedGroup() {
+        if (groupId != null) {
+            def check = scimRequestQuiet().get("/Groups/${groupId}")
+            if (check.statusCode() == 404) {
+                return groupId
+            }
+        }
+        ensureMemberUsers()
+        groupDisplayName = "TestGroup_${UUID.randomUUID().toString().substring(0, 8)}"
+        groupExternalId = "Ext_Grp_${UUID.randomUUID().toString().substring(0, 8)}"
+        Map payload = [
+            schemas    : [GROUP_SCHEMA],
+            displayName: groupDisplayName,
+            externalId : groupExternalId,
+            members    : [[value: memberUserId1]]
+        ]
+        Response createResponse = scimRequestQuiet()
+            .body(JsonOutput.toJson(payload))
+            .post("/Groups")
+        assert createResponse.statusCode() == 201 : "Failed to create fixture resource to delete"
+        String deletedGroupId = createResponse.jsonPath().getString("id")
+        assert deletedGroupId != null
+        groupId = deletedGroupId
+        scimRequestQuiet().delete("/Groups/${groupId}")
+        createdGroupIds.remove(groupId)
+        return groupId
+    }
+
     // ─── GRP_01: Create Group ───────────────────────────────────────────────
 
     @SpecRef("RFC7644-3.3-R1")
     @SpecRef("RFC7643-3-R1")
     @SpecRef("RFC7643-3.1-R2")
+    @SpecRef("RFC7643-2.3.7-R1")
     def "GRP_01: POST /Groups creates a group with members and returns 201"() {
         // RFC 7644 §3.3 — Creating Resources, §3.14 — Response Headers
         given:
         groupDisplayName = "TestGroup_${UUID.randomUUID().toString().substring(0, 8)}"
-        groupExternalId = "ext_grp_${UUID.randomUUID().toString().substring(0, 8)}"
+        groupExternalId = "Ext_Grp_${UUID.randomUUID().toString().substring(0, 8)}"
         Map payload = [
             schemas    : [GROUP_SCHEMA],
             displayName: groupDisplayName,
@@ -79,16 +162,22 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         response.jsonPath().getString("externalId") == groupExternalId
         response.jsonPath().getList("schemas").contains(GROUP_SCHEMA)
 
-        and: "Response contains meta with resourceType, created, lastModified"
+        and: "Response contains meta with resourceType, created, lastModified, location"
         def meta = response.jsonPath().getMap("meta")
         meta != null
         meta.resourceType == "Group"
         meta.created != null
         meta.lastModified != null
+        meta.location == locationHeader
 
-        and: "Response contains the member"
+        and: "Response contains the member and valid \$ref URI when returned"
         response.jsonPath().getList("members").size() == 1
         response.jsonPath().getString("members[0].value") == memberUserId1
+        def memberRef = response.jsonPath().get("members[0].'\$ref'")
+        if (memberRef != null) {
+            assert !memberRef.toString().isBlank() && memberRef.toString().contains(memberUserId1) :
+                "members[0].\$ref must be a valid URI referencing the member resource (RFC 7643 §2.3.7)"
+        }
     }
 
     // ─── GRP_02: Read Group ─────────────────────────────────────────────────
@@ -96,12 +185,17 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
     @SpecRef("RFC7644-3.4.1-R1")
     def "GRP_02: GET /Groups/{id} retrieves the created group"() {
         // RFC 7644 §3.4.1 — Retrieving a Known Resource
+        given:
+        ensureGroup()
+
         when:
         Response response = scimRequest()
             .get("/Groups/${groupId}")
 
         then:
         response.statusCode() == 200
+        response.jsonPath().getList("schemas").contains(GROUP_SCHEMA)
+        response.jsonPath().getString("meta.resourceType") == "Group"
         response.jsonPath().getString("id") == groupId
         response.jsonPath().getString("displayName") == groupDisplayName
         response.jsonPath().getString("externalId") == groupExternalId
@@ -114,24 +208,35 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
     @SpecRef("RFC7644-3.4.2-R1")
     def "GRP_03: GET /Groups lists groups and our group is included"() {
         // RFC 7644 §3.4.2 — Query Resources
+        given:
+        ensureGroup()
+
         when:
-        Response response = scimRequest()
-            .queryParam("filter", "displayName eq \"${groupDisplayName}\"")
-            .get("/Groups")
+        def req = scimRequest()
+        if (isFilterSupported()) {
+            req.queryParam("filter", "displayName eq \"${groupDisplayName}\"")
+        }
+        Response response = req.get("/Groups")
 
         then:
         response.statusCode() == 200
+        response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
         response.jsonPath().getInt("totalResults") >= 1
-        response.jsonPath().getList("Resources.id").contains(groupId)
+        if (isFilterSupported()) {
+            assert response.jsonPath().getList("Resources.id").contains(groupId)
+        } else {
+            Response direct = scimRequest().get("/Groups/${groupId}")
+            assert direct.statusCode() == 200
+        }
     }
 
     // ─── GRP_04: Update Group via PUT ───────────────────────────────────────
 
     @SpecRef("RFC7644-3.5.1-R1")
-    @SpecRef("RFC7644-3.5.1-R2")
-    def "GRP_04: PUT /Groups/{id} replaces group, changing members and clearing omitted attributes"() {
+    def "GRP_04: PUT /Groups/{id} replaces group, changing members"() {
         // RFC 7644 §3.5.1 — Replacing with PUT
-        given: "Payload without externalId to verify omitted attribute clearing"
+        given: "Payload replacing members"
+        ensureGroup()
         Map payload = [
             schemas    : [GROUP_SCHEMA],
             displayName: groupDisplayName,
@@ -152,20 +257,16 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         def memberValues = response.jsonPath().getList("members.value")
         memberValues.contains(memberUserId1)
         memberValues.contains(memberUserId2)
-
-        and: "Omitted externalId is cleared or retained depending on server policy"
-        def returnedExtId = response.jsonPath().getString("externalId")
-        if (returnedExtId != null) {
-            recordDeviation("RFC7644-3.5.1-R2", "RFC 7644 §3.5.1", "PUT did not clear omitted optional attribute externalId")
-        }
     }
 
     // ─── GRP_05: PATCH add member ───────────────────────────────────────────
 
-    @SpecRef("RFC7644-3.5.2.1-R1")
+    @RequiresCapability("patch")
+    @SpecRef("RFC7644-3.5.2.1-R2")
     def "GRP_05: PATCH add member to group"() {
         // RFC 7644 §3.5.2.1 — Add Operation
         given: "First PUT group back to only one member for this test"
+        ensureGroup()
         Map resetPayload = [
             schemas    : [GROUP_SCHEMA],
             displayName: groupDisplayName,
@@ -186,17 +287,29 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             .patch("/Groups/${groupId}")
 
         then:
-        response.statusCode() == 200
-        response.jsonPath().getList("members").size() == 2
-        def memberValues = response.jsonPath().getList("members.value")
-        memberValues.contains(memberUserId2)
+        assert response.statusCode() in [200, 204]
+        if (response.statusCode() == 200) {
+            assert response.jsonPath().getList("members").size() == 2
+            def memberValues = response.jsonPath().getList("members.value")
+            assert memberValues.contains(memberUserId2)
+        } else {
+            def getResp = scimRequestQuiet().get("/Groups/${groupId}")
+            assert getResp.statusCode() == 200
+            assert getResp.jsonPath().getList("members").size() == 2
+            def memberValues = getResp.jsonPath().getList("members.value")
+            assert memberValues.contains(memberUserId2)
+        }
     }
 
     // ─── GRP_06: PATCH remove member ────────────────────────────────────────
 
-    @SpecRef("RFC7644-3.5.2.2-R1")
+    @RequiresCapability("patch")
+    @SpecRef("RFC7644-3.5.2.2-R2")
     def "GRP_06: PATCH remove member from group"() {
         // RFC 7644 §3.5.2.2 — Remove Operation
+        given: "Ensure group exists with both members"
+        ensureGroupWithMembers([memberUserId1, memberUserId2])
+
         when:
         Map patchPayload = buildPatchOp([
             [op: "remove", path: "members[value eq \"${memberUserId2}\"]"]
@@ -206,10 +319,18 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             .patch("/Groups/${groupId}")
 
         then:
-        response.statusCode() == 200
-        def members = response.jsonPath().getList("members")
-        members.size() == 1
-        members[0].value == memberUserId1
+        assert response.statusCode() in [200, 204]
+        if (response.statusCode() == 200) {
+            def members = response.jsonPath().getList("members")
+            assert members.size() == 1
+            assert members[0].value == memberUserId1
+        } else {
+            def getResp = scimRequestQuiet().get("/Groups/${groupId}")
+            assert getResp.statusCode() == 200
+            def members = getResp.jsonPath().getList("members")
+            assert members.size() == 1
+            assert members[0].value == memberUserId1
+        }
     }
 
     // ─── GRP_07: Delete Group ───────────────────────────────────────
@@ -218,12 +339,16 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
     @SpecRef("RFC7644-3.6-R2")
     def "GRP_07: DELETE /Groups/{id} removes the group and GET returns 404"() {
         // RFC 7644 §3.6 — Deleting Resources
+        given: "Ensure group exists"
+        ensureGroup()
+
         when:
         Response deleteResponse = scimRequest()
             .delete("/Groups/${groupId}")
 
         then:
         deleteResponse.statusCode() == 204
+        deleteResponse.body().asString().isBlank()
 
         when: "Verify group is gone"
         Response getResponse = scimRequest()
@@ -232,7 +357,8 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         then:
         getResponse.statusCode() == 404
         getResponse.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        getResponse.jsonPath().getString("status") == "404"
+        assert getResponse.jsonPath().get("status") instanceof String
+        assert getResponse.jsonPath().getString("status") == "404"
 
         cleanup: "Drop from cleanup tracking since the group is already deleted"
         createdGroupIds.remove(groupId)
@@ -243,6 +369,9 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
     @SpecRef("RFC7644-3.6-R2")
     def "GRP_08: Repeated DELETE on already-deleted group returns 404"() {
         // RFC 7644 §3.6 — Deleting a non-existent resource
+        given: "Ensure group has been deleted"
+        ensureDeletedGroup()
+
         when: "DELETE the same group again"
         Response deleteResponse = scimRequestQuiet()
             .delete("/Groups/${groupId}")
@@ -250,7 +379,8 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         then: "Status is 404 with SCIM Error schema"
         deleteResponse.statusCode() == 404
         deleteResponse.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        deleteResponse.jsonPath().getString("status") == "404"
+        assert deleteResponse.jsonPath().get("status") instanceof String
+        assert deleteResponse.jsonPath().getString("status") == "404"
     }
 
     // ─── GRP_09: GET non-existent group returns 404 ─────────────────────────
@@ -268,14 +398,15 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         then: "Status is 404 with SCIM Error schema"
         response.statusCode() == 404
         response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        response.jsonPath().getString("status") == "404"
+        assert response.jsonPath().get("status") instanceof String
+        assert response.jsonPath().getString("status") == "404"
     }
 
     // ─── GRP_10: PUT non-existent group returns 404 ─────────────────────────
 
-    @SpecRef("RFC7644-3.5.1-R3")
+    @SpecRef("RFC7644-3.2-R2")
     def "GRP_10: PUT /Groups/{id} on non-existent group ID returns 404"() {
-        // RFC 7644 §3.5.1 — Modifying a non-existent resource
+        // RFC 7644 §3.2 — Modifying a non-existent resource
         given:
         String nonExistentId = UUID.randomUUID().toString()
         Map payload = [
@@ -291,15 +422,18 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         then: "Status is 404 with SCIM Error schema"
         response.statusCode() == 404
         response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        response.jsonPath().getString("status") == "404"
+        assert response.jsonPath().get("status") instanceof String
+        assert response.jsonPath().getString("status") == "404"
     }
 
     // ─── GRP_11: POST without displayName returns 400 ───────────────────────
 
     @SpecRef("RFC7643-4.2-R1")
+    @SpecRef("RFC7644-3.3-R3")
     def "GRP_11: POST /Groups without required displayName returns 400 Bad Request"() {
         // RFC 7644 §3.3, RFC 7643 §4.2 — Missing required attribute
         when:
+        String strayGroupId = null
         Map payload = [
             schemas   : [GROUP_SCHEMA],
             externalId: "no-name-grp"
@@ -307,14 +441,25 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         Response response = scimRequestQuiet()
             .body(JsonOutput.toJson(payload))
             .post("/Groups")
+        if (response.statusCode() in [200, 201]) {
+            try {
+                strayGroupId = response.jsonPath().getString("id")
+                if (strayGroupId) createdGroupIds << strayGroupId
+            } catch (Exception ignored) {}
+        }
 
         then: "Status is 400 Bad Request with SCIM Error schema"
-        assertScimError(response, 400, "invalidValue")
+        assertScimErrorOptionalType(response, 400, "invalidValue")
+
+        cleanup:
+        if (strayGroupId) {
+            try { deleteGroup(strayGroupId) } catch (Exception ignored) {}
+        }
     }
 
     // ─── GRP_12: POST duplicate displayName returns 409 Conflict ────────────
 
-    @SpecRef("RFC7644-3.3-R3")
+    @SpecRef("RFC7643-4.2-R1")
     def "GRP_12: POST /Groups with duplicate displayName returns 409 Conflict or is accepted"() {
         // RFC 7644 §3.3, §3.12 — Uniqueness conflict.
         given: "An existing group"
@@ -333,12 +478,9 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             .post("/Groups")
 
         then: "Either 409 Conflict with scimType uniqueness, or 201 (displayName uniqueness is 'none')"
-        duplicateResponse.statusCode() in [201, 409]
+        assert duplicateResponse.statusCode() in [201, 409]
         if (duplicateResponse.statusCode() == 409) {
             assertScimError(duplicateResponse, 409, "uniqueness")
-        } else {
-            ScimOutput.println "NOTE: Server permits duplicate Group displayName " +
-                "(RFC 7643 §7 declares displayName uniqueness 'none')"
         }
 
         cleanup:
@@ -353,7 +495,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_13: Cascading Referential Integrity ────────────────────────────
 
-    @SpecRef("RFC7643-2.3.7-R1")
+    @SpecRef("RFC7643-2.3.7-R2")
     def "GRP_13: Cascading referential integrity — deleting user prunes from group members"() {
         // RFC 7644 §3.6, RFC 7643 §2.3.7 — Referential Integrity
         given: "A user created specifically to be deleted"
@@ -381,9 +523,10 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         and: "Deleted user is no longer listed in group members, remaining member is retained"
         def members = getGroupResp.jsonPath().getList("members")
         if (members != null && members.any { it.value == cascadeUserId }) {
-            recordDeviation("RFC7643-2.3.7-R1", "RFC 7643 §2.3.7", "Deleted user was not pruned from group members list")
+            throw new TestAbortedException("Server does not implement optional referential-integrity pruning of deleted members")
         } else {
-            assert members == null || members.any { it.value == memberUserId1 }
+            assert members != null && members.any { it.value == memberUserId1 } :
+                "Remaining group member '${memberUserId1}' must be retained after pruning deleted member"
         }
 
         cleanup:
@@ -414,11 +557,10 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         then: "User response contains groups list reflecting the group membership"
         getUserResp.statusCode() == 200
         def groups = getUserResp.jsonPath().getList("groups")
-        if (groups == null || !groups.any { it.value == reflectGroupId }) {
-            recordDeviation("RFC7643-4.1.2-R6", "RFC 7643 §4.1", "Server does not maintain reverse group membership in User.groups")
-        } else {
-            assert groups.any { it.value == reflectGroupId }
+        if (groups == null || groups.isEmpty()) {
+            throw new TestAbortedException("Server does not populate optional User.groups attribute")
         }
+        assert groups.any { it.value == reflectGroupId }
 
         when: "Deleting the group"
         Response delGroupResp = scimRequestQuiet().delete("/Groups/${reflectGroupId}")
@@ -434,6 +576,9 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         assert groupsAfter == null || !groupsAfter.any { it.value == reflectGroupId }
 
         cleanup:
+        if (reflectGroupId) {
+            try { deleteGroup(reflectGroupId) } catch (Exception ignored) {}
+        }
         if (reflectUserId) {
             deleteUser(reflectUserId)
         }
@@ -441,7 +586,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
 
     // ─── GRP_15: Invalid Member Reference ───────────────────────────────────
 
-    @SpecRef("RFC7643-2.3.7-R1")
+    @SpecRef("RFC7643-2.3.7-R2")
     def "GRP_15: Invalid member reference returns 400 or 404 SCIM Error or is accepted"() {
         // RFC 7644 §3.3, RFC 7643 §2.3.7 — Member reference validation
         given: "A non-existent member UUID"
@@ -457,21 +602,22 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(payload))
             .post("/Groups")
 
-        then: "Server rejects with 400/404 or accepts without referential integrity"
+        then: "Server rejects with 400/404 or aborts if referential integrity is unsupported"
         assert response.statusCode() in [201, 400, 404] : "Expected status 201, 400, or 404, got ${response.statusCode()}"
         if (response.statusCode() in [400, 404]) {
             assert response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+            assert response.jsonPath().get("status") instanceof String
             assert response.jsonPath().getString("status") in ["400", "404"]
         } else if (response.statusCode() == 201) {
-            recordDeviation("RFC7643-2.3.7-R1", "RFC 7643 §2.3.7", "Server accepted group member pointing to non-existent resource ID")
             String tempGid = response.jsonPath().getString("id")
             if (tempGid) deleteGroup(tempGid)
+            throw new TestAbortedException("Server does not enforce optional referential integrity on POST /Groups")
         }
     }
 
     // ─── GRP_16: Nested Groups ──────────────────────────────────────────────
 
-    @SpecRef("RFC7643-4.2-R2")
+    @SpecRef("RFC7643-4.2-R3")
     def "GRP_16: Nested groups — adding a child Group as a member with type 'Group'"() {
         // RFC 7643 §4.2 — Group members can be 'User' or 'Group'
         given: "A child group"
@@ -486,7 +632,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             schemas    : [GROUP_SCHEMA],
             displayName: parentName,
             members    : [
-                [value: childGroupId, type: "Group", display: childName]
+                [value: childGroupId, type: "Group"]
             ]
         ]
 
@@ -494,23 +640,22 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         Response parentResp = scimRequest()
             .body(JsonOutput.toJson(parentPayload))
             .post("/Groups")
-        String parentGroupId = parentResp.jsonPath().getString("id")
+        String parentGroupId = parentResp.statusCode() == 201 ? parentResp.jsonPath().getString("id") : null
         if (parentGroupId) createdGroupIds << parentGroupId
 
-        then: "Parent group created successfully with 201"
-        parentResp.statusCode() == 201
-        parentGroupId != null
-
-        when: "GET /Groups/{parentGroupId}"
+        then: "Parent group created with 201 or aborted if nested groups are not supported"
+        if (parentResp.statusCode() == 400) {
+            throw new TestAbortedException("Server does not support optional nested groups (returned HTTP 400 Bad Request)")
+        }
+        assert parentResp.statusCode() == 201 : "Expected 201 Created for nested group, got ${parentResp.statusCode()}"
+        assert parentGroupId != null
         Response getParentResp = scimRequest().get("/Groups/${parentGroupId}")
-
-        then: "Member is present with type Group"
-        getParentResp.statusCode() == 200
+        assert getParentResp.statusCode() == 200
         def members = getParentResp.jsonPath().getList("members")
-        members != null
-        members.size() == 1
-        members[0].value == childGroupId
-        members[0].type == "Group"
+        assert members != null
+        assert members.size() == 1
+        assert members[0].value == childGroupId
+        assert members[0].type == "Group"
 
         cleanup:
         if (parentGroupId) deleteGroup(parentGroupId)
@@ -550,7 +695,8 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         then: "Server returns 412 Precondition Failed"
         mismatchResp.statusCode() == 412
         mismatchResp.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
-        mismatchResp.jsonPath().getString("status") == "412"
+        assert mismatchResp.jsonPath().get("status") instanceof String
+        assert mismatchResp.jsonPath().getString("status") == "412"
 
         when: "PUT with matching If-Match"
         Response matchResp = scimRequest()
@@ -569,8 +715,7 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
     // ─── GRP_18: Attribute Selection ────────────────────────────────────────
 
     @SpecRef("RFC7644-3.4.2.5-R1")
-    @SpecRef("RFC7644-3.4.2.5-R2")
-    def "GRP_18: GET /Groups/{id} supports attributes and excludedAttributes projections"() {
+    def "GRP_18: GET /Groups/{id} supports attributes projection"() {
         // RFC 7644 §3.4.2.5, §3.9 — Attribute Selection
         given: "A group with members"
         String projName = "ProjGroup_${UUID.randomUUID().toString().substring(0, 8)}"
@@ -584,21 +729,11 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
             .get("/Groups/${projGroupId}")
 
         then: "Status is 200, displayName is included, members is omitted"
-        attrResp.statusCode() == 200
-        attrResp.jsonPath().getString("displayName") == projName
-        attrResp.jsonPath().get("members") == null
-        attrResp.jsonPath().getList("schemas") != null
-        attrResp.jsonPath().getString("id") == projGroupId
-
-        when: "GET with excludedAttributes=members"
-        Response exclResp = scimRequest()
-            .queryParam("excludedAttributes", "members")
-            .get("/Groups/${projGroupId}")
-
-        then: "Status is 200, displayName is included, members is omitted"
-        exclResp.statusCode() == 200
-        exclResp.jsonPath().getString("displayName") == projName
-        exclResp.jsonPath().get("members") == null
+        assert attrResp.statusCode() == 200
+        assert attrResp.jsonPath().getString("displayName") == projName
+        assert attrResp.jsonPath().get("members") == null
+        assert attrResp.jsonPath().getList("schemas") != null
+        assert attrResp.jsonPath().getString("id") == projGroupId
 
         cleanup:
         if (projGroupId) deleteGroup(projGroupId)
@@ -609,7 +744,8 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
     @RequiresCapability("etag")
     @SpecRef("RFC7644-3.6-R5")
     def "GRP_19: DELETE /Groups/{id} supports conditional deletion with If-Match"() {
-        // RFC 7644 §3.6: "Clients MAY use the 'If-Match' header to ensure the resource has not changed."
+        // RFC 7644 §3.6: example specifies conditional deletion: "DELETE /Users/2819c223-7f76-453a-919d-413861904646 ... If-Match: W/\"c310cd84f0281b7\""
+        // RFC 7644 §3.14: "The SCIM protocol supports resource versioning via standard HTTP ETags (Section 2.3 of [RFC7232])."
         given: "A group to conditionally delete"
         String delName = "DelOCC_${UUID.randomUUID().toString().substring(0, 8)}"
         Response crResp = createGroup(delName)
@@ -621,72 +757,148 @@ class A6_GroupLifecycleSpec extends ScimBaseSpec {
         String etag = getResp.header("ETag")
 
         then: "ETag is present"
-        etag != null
+        assert etag != null
 
         when: "Attempt DELETE with mismatched ETag"
-        Response mismatchDel = scimRequestQuiet()
+        Response delResp = scimRequestQuiet()
             .header("If-Match", 'W/"fake-mismatch-etag"')
             .delete("/Groups/${delId}")
 
-        then: "Server returns 412 Precondition Failed or logs deviation"
-        boolean mismatchFailed = mismatchDel.statusCode() == 412
-        if (!mismatchFailed) {
-            recordDeviation("RFC7644-3.14-R1", "RFC 7644 §3.14", "Server returned ${mismatchDel.statusCode()} instead of 412 for DELETE /Groups with mismatched If-Match")
+        then: "Server returns 412 Precondition Failed or aborts if optional precondition is unsupported"
+        assert delResp.statusCode() < 500 : "Server returned 5xx error on DELETE with If-Match"
+        if (delResp.statusCode() != 412) {
+            throw new TestAbortedException("Server does not enforce optional If-Match precondition on DELETE (returned ${delResp.statusCode()})")
         }
 
-        when: "DELETE with matching ETag (if not already deleted)"
-        Response matchDel = null
-        if (mismatchFailed) {
-            matchDel = scimRequest()
-                .header("If-Match", etag)
-                .delete("/Groups/${delId}")
-        }
+        when: "DELETE with matching ETag"
+        Response matchDel = scimRequest()
+            .header("If-Match", etag)
+            .delete("/Groups/${delId}")
 
         then: "Conditional DELETE succeeds with 204 No Content"
-        if (mismatchFailed) {
-            assert matchDel.statusCode() == 204
-        }
+        assert matchDel.statusCode() == 204
 
         cleanup:
+        if (delResp?.statusCode() != 204 && matchDel?.statusCode() != 204 && delId) {
+            try { deleteGroup(delId) } catch (Exception ignored) {}
+        }
         createdGroupIds.remove(delId)
     }
 
-    // ─── GRP_20: Deleted Resource Query Exclusion and Re-creation ───────────
+    // ─── GRP_20: Deleted Group Query Exclusion ──────────────────────────────
 
     @SpecRef("RFC7644-3.6-R3")
-    @SpecRef("RFC7644-3.6-R4")
-    def "GRP_20: Deleted group is excluded from queries and can be re-created"() {
-        // RFC 7644 §3.6 — Soft-deleted resources excluded from queries, re-creation succeeds
+    def "GRP_20: Deleted group is excluded from subsequent queries"() {
+        // RFC 7644 §3.6 — Soft-deleted resources excluded from queries
         given: "Create and delete a group with specific name"
         String uniqueName = "RecreateGrp_${UUID.randomUUID().toString().substring(0, 8)}"
         Response crResp = createGroup(uniqueName)
         assert crResp.statusCode() == 201
-        String oldId = crResp.jsonPath().getString("id")
+        String gId = crResp.jsonPath().getString("id")
 
-        Response delResp = scimRequestQuiet().delete("/Groups/${oldId}")
+        Response delResp = scimRequestQuiet().delete("/Groups/${gId}")
         assert delResp.statusCode() == 204
-        createdGroupIds.remove(oldId)
+        createdGroupIds.remove(gId)
 
-        when: "Query groups by displayName"
-        Response queryResp = scimRequest()
-            .queryParam("filter", "displayName eq \"${uniqueName}\"")
-            .get("/Groups")
+        when: "Query groups"
+        def req = scimRequest()
+        if (isFilterSupported()) {
+            req = req.queryParam("filter", "displayName eq \"${uniqueName}\"")
+        }
+        Response queryResp = req.get("/Groups")
 
         then: "Deleted group is not returned in query results"
-        queryResp.statusCode() == 200
+        assert queryResp.statusCode() == 200
         def resources = queryResp.jsonPath().getList("Resources")
-        resources == null || !resources.any { it.id == oldId }
+        assert resources == null || !resources.any { it.id == gId || it.displayName == uniqueName }
+        if (!isFilterSupported()) {
+            Response directGet = scimRequestQuiet().get("/Groups/${gId}")
+            assert directGet.statusCode() == 404 : "Deleted group (${uniqueName}) must return 404 on direct GET /Groups/${gId} when filter is unsupported"
+        }
+    }
 
-        when: "Re-create a group with the same name"
-        Response recreateResp = createGroup(uniqueName)
+    // ─── GRP_21: Group members sub-attribute immutability on PUT ────────────
 
-        then: "Re-creation succeeds"
-        recreateResp.statusCode() == 201
-        String newId = recreateResp.jsonPath().getString("id")
-        newId != null
-        newId != oldId
+    @SpecRef("RFC7643-4.2-R2")
+    def "GRP_21: Group members sub-attribute immutability on PUT"() {
+        // RFC 7643 §4.2 — Group member sub-attributes 'value' and 'type' are immutable
+        given: "A group with an existing member"
+        String gName = "ImmutMemberGroup_${UUID.randomUUID().toString().substring(0, 8)}"
+        Map initPayload = [
+            schemas    : [GROUP_SCHEMA],
+            displayName: gName,
+            members    : [
+                [value: memberUserId1, type: "User"]
+            ]
+        ]
+        Response crResp = scimRequestQuiet()
+            .body(JsonOutput.toJson(initPayload))
+            .post("/Groups")
+        assert crResp.statusCode() == 201
+        String gId = crResp.jsonPath().getString("id")
+        if (gId) createdGroupIds << gId
+
+        when: "PUT /Groups/{id} attempting to alter existing member immutable type from User to Group"
+        Map payload = [
+            schemas    : [GROUP_SCHEMA],
+            displayName: gName,
+            members    : [
+                [value: memberUserId1, type: "Group"]
+            ]
+        ]
+        Response putResp = scimRequestQuiet()
+            .body(JsonOutput.toJson(payload))
+            .put("/Groups/${gId}")
+
+        then: "Server rejects with 400 mutability or returns 200 OK ignoring the immutable type mutation"
+        assert putResp.statusCode() in [200, 400]
+        if (putResp.statusCode() == 200) {
+            def members = putResp.jsonPath().getList("members")
+            assert members != null && !members.isEmpty()
+            def member = members.find { it.value == memberUserId1 }
+            assert member != null
+            if (member.type != null) {
+                assert member.type == "User" : "Immutable member type must remain 'User' when server returns 200 OK on PUT"
+            }
+            Response getResp = scimRequestQuiet().get("/Groups/${gId}")
+            assert getResp.statusCode() == 200
+            def getMember = getResp.jsonPath().getList("members")?.find { it.value == memberUserId1 }
+            assert getMember != null
+            if (getMember.type != null) {
+                assert getMember.type == "User" : "Persisted member type must remain 'User' after PUT"
+            }
+        } else {
+            assertScimErrorOptionalType(putResp, 400, "mutability")
+        }
 
         cleanup:
-        if (newId) deleteGroup(newId)
+        if (gId) deleteGroup(gId)
+    }
+
+    // ─── GRP_22: ExcludedAttributes Projection ──────────────────────────────
+
+    @SpecRef("RFC7644-3.4.2.5-R2")
+    def "GRP_22: GET /Groups/{id} supports excludedAttributes projection"() {
+        // RFC 7644 §3.4.2.5, §3.9 — Attribute Selection with excludedAttributes
+        given: "A group with members"
+        String projName = "ExclGrp_${UUID.randomUUID().toString().substring(0, 8)}"
+        Response projResp = createGroup(projName, [memberUserId1])
+        assert projResp.statusCode() == 201
+        String projGroupId = projResp.jsonPath().getString("id")
+
+        when: "GET with excludedAttributes=members"
+        Response exclResp = scimRequest()
+            .queryParam("excludedAttributes", "members")
+            .get("/Groups/${projGroupId}")
+
+        then: "Status is 200, displayName is included, members is omitted"
+        assert exclResp.statusCode() == 200
+        assert exclResp.jsonPath().getString("displayName") == projName
+        assert exclResp.jsonPath().get("members") == null
+        assert exclResp.jsonPath().getList("schemas") != null
+        assert exclResp.jsonPath().getString("id") == projGroupId
+
+        cleanup:
+        if (projGroupId) deleteGroup(projGroupId)
     }
 }

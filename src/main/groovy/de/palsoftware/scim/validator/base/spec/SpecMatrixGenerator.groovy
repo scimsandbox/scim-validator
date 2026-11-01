@@ -42,7 +42,7 @@ class SpecMatrixGenerator {
         String fileName
         int lineNumber
         List<String> specRefs = []
-        String capability
+        List<String> capabilities = []
     }
 
     static void main(String[] args) {
@@ -124,6 +124,8 @@ class SpecMatrixGenerator {
                         if (n2.startsWith("rfc7644")) return 1
                         if (n1.startsWith("rfc7643")) return -1
                         if (n2.startsWith("rfc7643")) return 1
+                        if (n1.startsWith("rfc9865")) return -1
+                        if (n2.startsWith("rfc9865")) return 1
                         return n1.compareTo(n2)
                     }
                     .toList()
@@ -164,21 +166,59 @@ class SpecMatrixGenerator {
             return tests
         }
 
-        Pattern methodPattern = Pattern.compile('^\\s*def\\s+["\']([^"\']+)["\']\\s*\\(.*')
+        Pattern classPattern = Pattern.compile('^\\s*class\\s+\\w+.*')
+        Pattern methodPattern = Pattern.compile('^\\s*def\\s+(?:"([^"]+)"|\'([^\']+)\')\\s*\\(.*')
         Pattern specRefPattern = Pattern.compile('@SpecRef\\s*\\(\\s*["\']([^"\']+)["\'](?:\\s*,\\s*note\\s*=\\s*["\']([^"\']*)["\'])?\\s*\\)')
         Pattern capPattern = Pattern.compile('@RequiresCapability\\s*\\(\\s*["\']([^"\']+)["\']\\s*\\)')
+        Pattern runtimeCapPattern = Pattern.compile('\\brequireCapability\\s*\\(\\s*["\']([^"\']+)["\']\\s*\\)')
 
-        Files.list(specsDir).filter { it.toString().endsWith(".groovy") }.sorted().forEach { file ->
+        Pattern specPrefixPattern = Pattern.compile('^A(\\d+)')
+        Comparator<Path> naturalSpecComparator = new Comparator<Path>() {
+            @Override
+            int compare(Path p1, Path p2) {
+                String n1 = p1.fileName.toString()
+                String n2 = p2.fileName.toString()
+                Matcher m1 = specPrefixPattern.matcher(n1)
+                Matcher m2 = specPrefixPattern.matcher(n2)
+                boolean f1 = m1.find()
+                boolean f2 = m2.find()
+                if (f1 && f2) {
+                    int num1 = Integer.parseInt(m1.group(1))
+                    int num2 = Integer.parseInt(m2.group(1))
+                    if (num1 != num2) {
+                        return Integer.compare(num1, num2)
+                    }
+                } else if (f1) {
+                    return -1
+                } else if (f2) {
+                    return 1
+                }
+                return n1.compareTo(n2)
+            }
+        }
+
+        Files.list(specsDir).filter { it.toString().endsWith(".groovy") }.sorted(naturalSpecComparator).forEach { file ->
             List<String> lines = Files.readAllLines(file)
             String fileName = file.fileName.toString()
             List<String> pendingSpecRefs = []
+            String classCap = null
             String pendingCap = null
+            boolean inClassBody = false
+            TestMethod currentTest = null
 
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i)
+                if (!inClassBody && classPattern.matcher(line).matches()) {
+                    inClassBody = true
+                }
+
                 Matcher capMatcher = capPattern.matcher(line)
                 while (capMatcher.find()) {
-                    pendingCap = capMatcher.group(1).trim()
+                    if (!inClassBody) {
+                        classCap = capMatcher.group(1).trim()
+                    } else {
+                        pendingCap = capMatcher.group(1).trim()
+                    }
                 }
 
                 Matcher refMatcher = specRefPattern.matcher(line)
@@ -188,7 +228,7 @@ class SpecMatrixGenerator {
 
                 Matcher methodMatcher = methodPattern.matcher(line)
                 if (methodMatcher.find()) {
-                    String fullTitle = methodMatcher.group(1).trim()
+                    String fullTitle = (methodMatcher.group(1) ?: methodMatcher.group(2)).trim()
                     String testId = extractTestId(fullTitle, fileName, tests.size() + 1)
                     TestMethod test = new TestMethod(
                         id: testId,
@@ -196,11 +236,20 @@ class SpecMatrixGenerator {
                         fileName: fileName,
                         lineNumber: i + 1,
                         specRefs: new ArrayList<>(pendingSpecRefs),
-                        capability: pendingCap
+                        capabilities: [classCap, pendingCap].findAll { it != null && it != 'none' }.unique()
                     )
                     tests.add(test)
+                    currentTest = test
                     pendingSpecRefs.clear()
                     pendingCap = null
+                } else if (currentTest != null) {
+                    Matcher runtimeCapMatcher = runtimeCapPattern.matcher(line)
+                    while (runtimeCapMatcher.find()) {
+                        String rtCap = runtimeCapMatcher.group(1).trim()
+                        if (rtCap && rtCap != 'none' && !currentTest.capabilities.contains(rtCap)) {
+                            currentTest.capabilities.add(rtCap)
+                        }
+                    }
                 }
             }
         }
@@ -209,7 +258,7 @@ class SpecMatrixGenerator {
     }
 
     static String extractTestId(String title, String fileName, int index) {
-        Matcher m = Pattern.compile('^([A-Z0-9_]+):\\s*(.*)').matcher(title)
+        Matcher m = Pattern.compile('^([A-Z0-9_]+[a-z]?):\\s*(.*)').matcher(title)
         if (m.find()) {
             return m.group(1)
         }
@@ -255,12 +304,10 @@ class SpecMatrixGenerator {
             }
         }
 
-        // 3. Every MUST or SHOULD requirement must be tested, optional (gated), or have na disposition
+        // 3. Every non-na requirement must have at least one mapped @SpecRef test
         requirements.values().each { req ->
-            if (req.level in ["MUST", "SHOULD"]) {
-                if (req.tests.isEmpty() && req.disposition == "tested") {
-                    errors.add("Normative requirement ${req.id} (RFC ${req.rfc} §${req.section} - '${req.title}') has no test and is not marked optional/na")
-                }
+            if (req.disposition in ["tested", "optional"] && req.tests.isEmpty()) {
+                errors.add("Requirement ${req.id} (RFC ${req.rfc} §${req.section} - '${req.title}', disposition=${req.disposition}) has no mapped @SpecRef test")
             }
         }
 
@@ -275,14 +322,14 @@ class SpecMatrixGenerator {
         sb.append("| :--- | :--- | :--- | :---: | :---: | :--- | :--- | :---: |\n")
 
         tests.each { test ->
-            String mode = test.capability ? "gated (${test.capability})" : "strict"
+            String mode = test.capabilities ? "gated (${test.capabilities.join(', ')})" : "strict"
             if (test.specRefs.isEmpty()) {
                 sb.append("| ${test.id} | ${escapePipes(test.name)} | [${test.fileName}:${test.lineNumber}](../src/main/groovy/de/palsoftware/scim/validator/specs/${test.fileName}#L${test.lineNumber}) | - | - | - | - | ${mode} |\n")
             } else {
                 test.specRefs.each { refId ->
                     Requirement req = requirements.get(refId)
                     String rfc = req ? req.rfc : "-"
-                    String sec = req ? req.section : "-"
+                    String sec = (req && req.rfc && req.section) ? "[§${req.section}](https://www.rfc-editor.org/rfc/rfc${req.rfc}#section-${req.section})" : "-"
                     String reqTitle = req ? escapePipes(req.title) : "-"
                     sb.append("| ${test.id} | ${escapePipes(test.name)} | [${test.fileName}:${test.lineNumber}](../src/main/groovy/de/palsoftware/scim/validator/specs/${test.fileName}#L${test.lineNumber}) | ${rfc} | ${sec} | ${refId} | ${reqTitle} | ${mode} |\n")
                 }
@@ -296,17 +343,19 @@ class SpecMatrixGenerator {
         StringBuilder sb = new StringBuilder()
         sb.append("# SCIM 2.0 Specification Coverage Matrix\n\n")
         sb.append("*Auto-generated by `SpecMatrixGenerator`. Do not edit by hand.*\n")
-        sb.append("*Specification Basis: RFC 7643, RFC 7644 + Verified Errata*\n\n")
+        sb.append("*Specification Basis: RFC 7643, RFC 7644, RFC 9865, RFC 9967 + Verified Errata*\n\n")
 
         int total = requirements.size()
         long covered = requirements.values().count { !it.tests.isEmpty() }
+        long coreTested = requirements.values().count { it.disposition == "tested" }
         long optional = requirements.values().count { it.disposition == "optional" }
         long na = requirements.values().count { it.disposition == "na" }
         long gap = requirements.values().count { it.disposition == "gap" }
 
         sb.append("### Coverage Summary\n\n")
         sb.append("- **Total Requirements Tracked**: ${total}\n")
-        sb.append("- **Tested / Covered Requirements**: ${covered}\n")
+        sb.append("- **Tested / Covered Requirements**: ${covered} (${coreTested} Core + ${optional} Optional)\n")
+        sb.append("- **Core Tested Requirements**: ${coreTested}\n")
         sb.append("- **Optional / Capability Gated**: ${optional}\n")
         sb.append("- **Non-Observable / NA**: ${na}\n")
         sb.append("- **Known Gaps**: ${gap}\n\n")
@@ -317,7 +366,12 @@ class SpecMatrixGenerator {
         requirements.values().each { req ->
             String status
             if (!req.tests.isEmpty()) {
-                status = req.capability != "none" ? "Gated (${req.capability})" : "Covered"
+                boolean isGated = req.disposition == "optional" || (req.capability && req.capability != "none")
+                if (isGated) {
+                    status = (req.capability && req.capability != "none") ? "Gated (${req.capability})" : "Gated (optional)"
+                } else {
+                    status = "Covered"
+                }
             } else if (req.disposition == "na") {
                 status = "N/A"
             } else if (req.disposition == "optional") {
@@ -326,8 +380,9 @@ class SpecMatrixGenerator {
                 status = "Gap"
             }
 
+            String secLink = (req.rfc && req.section) ? "[§${req.section}](https://www.rfc-editor.org/rfc/rfc${req.rfc}#section-${req.section})" : (req.section ?: "-")
             String testsStr = req.tests.isEmpty() ? "—" : req.tests.join(", ")
-            sb.append("| ${req.id} | ${req.rfc} | ${req.section} | ${escapePipes(req.title)} | ${req.level} | ${req.capability} | ${status} | ${testsStr} | ${escapePipes(req.note)} |\n")
+            sb.append("| ${req.id} | ${req.rfc} | ${secLink} | ${escapePipes(req.title)} | ${req.level} | ${req.capability} | ${status} | ${testsStr} | ${escapePipes(req.note)} |\n")
         }
 
         return sb.toString()

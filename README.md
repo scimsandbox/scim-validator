@@ -8,7 +8,7 @@ with Testcontainers.
 ## What Is In This Repo
 
 - `src/main/groovy/de/palsoftware/scim/validator/ScimValidatorSuite.groovy`
-  selects the full A1-A9 suite.
+  selects the full A1-A11 suite.
 - `src/main/groovy/de/palsoftware/scim/validator/base` contains shared request
   setup, configuration loading, capture, and the `ScimBootstrapProvider` SPI.
 - `src/main/groovy/de/palsoftware/scim/validator/specs` contains the compliance
@@ -33,6 +33,8 @@ with Testcontainers.
 - A7 Bulk operations
 - A8 Security and robustness
 - A9 Negative and edge cases
+- A10 Cursor-based pagination (RFC 9865)
+- A11 Asynchronous operations (RFC 9967)
 
 ## Using as a Library Dependency
 
@@ -149,6 +151,12 @@ Supported capability keys: `patch`, `bulk`, `sort`, `etag`, `filter`, `changepas
   `java.util.ServiceLoader<ScimBootstrapProvider>`.
 - The base helpers capture HTTP exchanges and remove `Authorization` from the
   recorded request headers.
+
+## Breaking Changes (0.0.6)
+
+- Removed `Deviation`, `DeviationCollector`, `ScimBaseSpec.recordDeviation(...)`, and `ScimOutput.deviation(...)`.
+- All `MUST` and `SHOULD` RFC requirements are now validated via direct assertions mapped to single-purpose `@SpecRef` tests.
+- Valid RFC alternative outcomes are asserted directly in the test logic, while unsupported `MAY` / `OPTIONAL` features abort cleanly via `TestAbortedException` (or `@RequiresCapability` gating).
 
 ## Versioning
 
