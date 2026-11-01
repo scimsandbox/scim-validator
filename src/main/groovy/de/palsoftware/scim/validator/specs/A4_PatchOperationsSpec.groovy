@@ -7,7 +7,6 @@ import de.palsoftware.scim.validator.base.spec.SpecRef
 import groovy.json.JsonOutput
 import io.restassured.response.Response
 import spock.lang.Shared
-import spock.lang.Stepwise
 
 /**
  * Area 4 — PATCH Operations
@@ -16,7 +15,6 @@ import spock.lang.Stepwise
  * Note: §3.5.2.1 is Add, §3.5.2.2 is Remove, §3.5.2.3 is Replace.
  */
 @RequiresCapability("patch")
-@Stepwise
 class A4_PatchOperationsSpec extends ScimBaseSpec {
 
     @Shared String testUserId
@@ -31,6 +29,77 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         assert response.statusCode() == 201 : "Setup failed: ${response.body().asString()}"
         testUserId = response.jsonPath().getString("id")
         testUserName = response.jsonPath().getString("userName")
+    }
+
+    protected String ensureTestUser() {
+        if (testUserId != null) {
+            def getResp = scimRequestQuiet().get("/Users/${testUserId}")
+            if (getResp.statusCode() == 200) {
+                return testUserId
+            }
+        }
+        def response = createFullUser(includeEnterprise: false)
+        if (response.statusCode() == 201) {
+            testUserId = response.jsonPath().getString("id")
+            testUserName = response.jsonPath().getString("userName")
+        }
+        return testUserId
+    }
+
+    protected String ensureMultiEmailUser() {
+        if (multiEmailUserId != null) {
+            def getResp = scimRequestQuiet().get("/Users/${multiEmailUserId}")
+            if (getResp.statusCode() == 200) {
+                return multiEmailUserId
+            }
+        }
+        String workEmail = "work_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        String homeEmail = "home_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        def createResponse = createFullUser(
+            emails: [
+                [value: workEmail, type: "work", primary: true],
+                [value: homeEmail, type: "home", primary: false]
+            ]
+        )
+        if (createResponse.statusCode() == 201) {
+            multiEmailUserId = createResponse.jsonPath().getString("id")
+        }
+        return multiEmailUserId
+    }
+
+    protected String ensureMultiEmailUserWithOther() {
+        if (multiEmailUserId != null) {
+            def getResp = scimRequestQuiet().get("/Users/${multiEmailUserId}")
+            if (getResp.statusCode() == 200) {
+                def emails = getResp.jsonPath().getList("emails")
+                if (emails?.any { it.type == "other" }) {
+                    return multiEmailUserId
+                }
+                String otherEmail = "extra_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+                patchUser(multiEmailUserId, [
+                    [op: "add", path: "emails", value: [[value: otherEmail, type: "other"]]]
+                ])
+                return multiEmailUserId
+            }
+        }
+        String workEmail = "work_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        String homeEmail = "home_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        String otherEmail = "extra_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+        def createResponse = createFullUser(
+            emails: [
+                [value: workEmail, type: "work", primary: true],
+                [value: homeEmail, type: "home", primary: false],
+                [value: otherEmail, type: "other"]
+            ]
+        )
+        if (createResponse.statusCode() == 201) {
+            multiEmailUserId = createResponse.jsonPath().getString("id")
+        }
+        return multiEmailUserId
+    }
+
+    def setup() {
+        ensureTestUser()
     }
 
     private Response patchUser(String userId, List<Map> operations) {
@@ -97,7 +166,7 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
 
         and:
         def getResponse = scimRequestQuiet().get("/Users/${testUserId}")
-        !getResponse.jsonPath().getBoolean("active")
+        assert getResponse.jsonPath().get("active") == false : "Expected 'active' to be false, got ${getResponse.jsonPath().get('active')}"
     }
 
     // ─── PAT_04: Remove attribute ───────────────────────────────────────────
@@ -164,6 +233,7 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
     def "PAT_06: PATCH add appends to multi-valued emails"() {
         // RFC 7644 §3.5.2.1 — Add to multi-valued
         given:
+        ensureMultiEmailUser()
         String newEmail = "extra_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
 
         when:
@@ -186,6 +256,9 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
     @SpecRef("RFC7644-3.5.2.2-R2")
     def "PAT_07: PATCH remove with filter removes only matching email"() {
         // RFC 7644 §3.5.2.2 — Remove with path filter
+        given: "Ensure multi-email user has other email"
+        ensureMultiEmailUserWithOther()
+
         when:
         def response = patchUser(multiEmailUserId, [
             [op: "remove", path: 'emails[type eq "other"]']
@@ -440,9 +513,11 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         def addResp = patchUser(userId, [
             [op: "Add", path: "nickName", value: "CaseNick"]
         ])
+        def afterAddResp = addResp.statusCode() == 200 ? addResp : (addResp.statusCode() == 204 ? scimRequestQuiet().get("/Users/${userId}") : null)
         def repResp = patchUser(userId, [
             [op: "REPLACE", path: "title", value: "Distinguished Engineer"]
         ])
+        def afterRepResp = repResp.statusCode() == 200 ? repResp : (repResp.statusCode() == 204 ? scimRequestQuiet().get("/Users/${userId}") : null)
         def remResp = patchUser(userId, [
             [op: "Remove", path: "nickName"]
         ])
@@ -450,9 +525,15 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         then: "Operations succeed or return 400"
         assert [200, 204, 400].contains(addResp.statusCode())
         if (addResp.statusCode() in [200, 204]) {
+            assert afterAddResp != null && afterAddResp.statusCode() == 200
+            assert afterAddResp.jsonPath().getString("nickName") == "CaseNick" :
+                "Mixed-case 'Add' operation must set nickName to 'CaseNick' before 'Remove' clears it"
             assert repResp.statusCode() in [200, 204]
+            assert afterRepResp != null && afterRepResp.statusCode() == 200
+            assert afterRepResp.jsonPath().getString("title") == "Distinguished Engineer"
             assert remResp.statusCode() in [200, 204]
             def getResp = scimRequestQuiet().get("/Users/${userId}")
+            assert getResp.statusCode() == 200
             assert getResp.jsonPath().getString("title") == "Distinguished Engineer"
             assert getResp.jsonPath().get("nickName") == null
         } else {
@@ -476,6 +557,8 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
         def user = createFullUser()
         assert user.statusCode() == 201
         def userId = user.jsonPath().getString("id")
+        String origGivenName = user.jsonPath().getString("name.givenName")
+        String origFamilyName = user.jsonPath().getString("name.familyName")
 
         when: "Pathless replace with dotted keys in value"
         def response = patchUser(userId, [
@@ -485,16 +568,27 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
             ]]
         ])
 
-        then: "The server either applies the dotted keys or rejects them cleanly"
+        then: "The server either applies the dotted keys or rejects/ignores them cleanly"
         assert response.statusCode() in [200, 204, 400]
 
-        and: "When accepted, the sub-attributes are actually updated"
-        def getResponse = scimRequestQuiet().get("/Users/${userId}")
+        and: "When accepted, the sub-attributes are actually updated (or preserved intact if ignored)"
         if (response.statusCode() == 400) {
             assertScimError(response, 400)
-        } else if (getResponse.jsonPath().getString("name.givenName") == "EntraFirst") {
-            assert getResponse.jsonPath().getString("name.familyName") == "EntraLast" :
-                "Dotted key 'name.familyName' was accepted but not applied"
+        } else {
+            def getResponse = scimRequestQuiet().get("/Users/${userId}")
+            assert getResponse.statusCode() == 200
+            if (response.statusCode() == 200 && response.jsonPath().getString("name.givenName") == "EntraFirst") {
+                assert response.jsonPath().getString("name.familyName") == "EntraLast"
+            }
+            String actualGiven = getResponse.jsonPath().getString("name.givenName")
+            String actualFamily = getResponse.jsonPath().getString("name.familyName")
+            if (actualGiven == "EntraFirst" || actualFamily == "EntraLast") {
+                assert actualGiven == "EntraFirst" && actualFamily == "EntraLast" :
+                    "Dotted keys in pathless PATCH must be applied consistently to both name.givenName and name.familyName"
+            } else {
+                assert actualGiven == origGivenName && actualFamily == origFamilyName :
+                    "When server ignores non-standard dotted keys in pathless PATCH, existing name sub-attributes must remain intact"
+            }
         }
 
         cleanup:
@@ -523,15 +617,19 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(patchPayload))
             .patch("/Groups/${grpId}")
 
-        then: "Status is 200 or 204"
-        assert patchResp.statusCode() in [200, 204]
+        then: "Status is 200, 204, or 400 (RFC 7644 §3.5.2.2 standard vs vendor interop)"
+        assert patchResp.statusCode() in [200, 204, 400]
 
-        and: "Specified member is removed (or all members cleared per RFC 7644 §3.5.2.2 when path has no filter)"
-        def getResponse = scimRequestQuiet().get("/Groups/${grpId}")
-        def members = getResponse.jsonPath().getList("members")
-        if (members != null && !members.isEmpty()) {
-            assert members.size() == 1
-            assert members[0].value == user2Id
+        and: "When accepted, specified member is removed (or all members cleared per RFC 7644 §3.5.2.2 when path has no filter)"
+        if (patchResp.statusCode() in [200, 204]) {
+            def getResponse = scimRequestQuiet().get("/Groups/${grpId}")
+            def members = getResponse.jsonPath().getList("members")
+            if (members != null && !members.isEmpty()) {
+                assert members.size() == 1
+                assert members[0].value == user2Id
+            }
+        } else {
+            assertScimError(patchResp, 400)
         }
 
         cleanup:
@@ -581,9 +679,8 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
 
         then: "Update succeeds"
         if (etag != null) {
-            List<Integer> allowedStatuses = etag.startsWith("W/") ? [200, 204, 412] : [200, 204]
-            assert matchResponse.statusCode() in allowedStatuses :
-                "If-Match with current ETag must return ${allowedStatuses}, got ${matchResponse.statusCode()}"
+            assert matchResponse.statusCode() in [200, 204] :
+                "If-Match with matching ETag must return 200 or 204, got ${matchResponse.statusCode()} (HTTP 412 rejected on matching weak ETag)"
             if (matchResponse.statusCode() == 200) {
                 assert matchResponse.jsonPath().getString("displayName") == "Stale Patch Name"
             } else if (matchResponse.statusCode() == 204) {
@@ -768,12 +865,16 @@ class A4_PatchOperationsSpec extends ScimBaseSpec {
             ])))
             .patch("/Users/${testUserId}")
 
-        then: "Status is 200 OK (server cannot return 204)"
+        then: "Status is 200 OK (server cannot return 204) and unrequested attributes are excluded"
         response.statusCode() == 200
         assert response.jsonPath().getList("schemas")?.contains(USER_SCHEMA)
         assert response.jsonPath().getString("id") == testUserId
         assert response.jsonPath().getString("userName") == testUserName
         assert response.jsonPath().getString("title") == "Architect"
+        assert response.jsonPath().get("emails") == null :
+            "Unrequested attribute 'emails' must be omitted when attributes=userName,title on PATCH (RFC 7644 §3.5.2, §3.9)"
+        assert response.jsonPath().get("active") == null :
+            "Unrequested attribute 'active' must be omitted when attributes=userName,title on PATCH (RFC 7644 §3.5.2, §3.9)"
     }
 
     // ─── PAT_29: Sub-attribute removal on complex attribute ──────────────────

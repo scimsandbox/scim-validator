@@ -14,13 +14,13 @@
 
 - id: RFC7644-2-R2
   rfc: "7644"
-  section: "3.12"
-  title: "Forbidden operations return HTTP 403 Forbidden"
+  section: "4"
+  title: "Discovery endpoints ignore query parameters or reject filters with HTTP 403"
   level: SHOULD
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7644 §3.12 Table 8 & §4: 403 Forbidden on disallowed operations (e.g., filtering on discovery endpoints in DSC_19; sensitive filter rejection is covered by RFC7644-7.5.2-R1 in NEG_23)"
+  note: "RFC 7644 §4: \"Query parameters described in Section 3.4.2, such as filtering, sorting, and pagination, SHALL be ignored. If a 'filter' is provided, the service provider SHOULD respond with HTTP status code 403 (Forbidden).\" Compound requirement covering both query parameter ignoring (HTTP 200 OK) and filter rejection (HTTP 403 Forbidden), retained under legacy ID RFC7644-2-R2 to preserve the 159-requirement catalog schema."
 
 - id: RFC7644-3.1-R1
   rfc: "7644"
@@ -35,12 +35,12 @@
 - id: RFC7644-3.2-R1
   rfc: "7644"
   section: "3.2"
-  title: "HTTP methods follow SCIM endpoint action table semantics"
+  title: "SCIM endpoints support standard HTTP method bindings and reject unsupported methods"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "GET retrieves, POST creates, PUT replaces, PATCH updates, DELETE removes"
+  note: "RFC 7644 §3.2 Tables 1-2 summarize standard REST method bindings (GET retrieves, POST creates/searches, PUT replaces, PATCH updates, DELETE removes) detailed in §§3.3-3.7; unsupported method-endpoint combinations return HTTP 405 Method Not Allowed (or 4xx/501) per RFC 9110 §15.5.6 and §3.12 Table 8"
 
 - id: RFC7644-3.2-R2
   rfc: "7644"
@@ -55,12 +55,12 @@
 - id: RFC7644-3.3-R1
   rfc: "7644"
   section: "3.3"
-  title: "Successful resource creation returns HTTP 201 with Location header and representation"
+  title: "Successful resource creation returns HTTP 201 Created with Location header and meta.location"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "Location header MUST match resource URI and body includes meta.resourceType"
+  note: "RFC 7644 §3.3: On resource creation, the server SHALL return HTTP 201 (Created) with the Location header and meta.location URI, and SHOULD include the created resource representation in the response body"
 
 - id: RFC7644-3.3-R2
   rfc: "7644"
@@ -80,7 +80,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "Creating User without userName or Group without displayName returns 400"
+  note: "Creating User without userName or Group without displayName returns 400 Bad Request (RFC 7644 §3.3, §3.12 Table 8)"
 
 - id: RFC7644-3.3-R4
   rfc: "7644"
@@ -95,12 +95,12 @@
 - id: RFC7644-3.3-R5
   rfc: "7644"
   section: "3.3"
-  title: "Null or empty array in POST clears or unassigns attribute"
+  title: "Clients MAY specify null or empty array to clear or unassign attributes"
   level: MAY
   capability: none
   observability: behavior
   disposition: tested
-  note: "Specifying null for single-valued or [] for multi-valued attribute clears attribute"
+  note: "RFC 7644 §3.3 (and §§3.5.1, 3.5.2): Clients MAY specify 'null' for single-valued attributes or an empty array '[]' for multi-valued attributes to clear or unassign an attribute"
 
 - id: RFC7644-3.4-R1
   rfc: "7644"
@@ -130,7 +130,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "Non-existent resource returns 404 and SCIM Error body"
+  note: "Non-existent resource returns 404 and SCIM Error body (RFC 7644 §3.4.1, §3.12 Table 8)"
 
 - id: RFC7644-3.4.2-R1
   rfc: "7644"
@@ -147,10 +147,10 @@
   section: "3.4.2"
   title: "Query with no matches returns HTTP 200 with totalResults 0 and empty or omitted Resources"
   level: MUST
-  capability: filter
+  capability: none
   observability: response
   disposition: optional
-  note: "Empty result set is 200 OK (not 404) with totalResults=0 and Resources=[] or omitted"
+  note: "Empty result set is 200 OK (not 404) with totalResults=0 (or matching count on out-of-bounds pagination) and Resources=[] or omitted (RFC 7644 §3.4.2; capability none allows verification via out-of-bounds pagination in PAG_04 without requiring filter support, alongside empty filter match in FLT_11)"
 
 - id: RFC7644-3.4.2-R3
   rfc: "7644"
@@ -180,17 +180,17 @@
   capability: search
   observability: response
   disposition: optional
-  note: "Root query / returns all types; filter=meta.resourceType eq User limits results"
+  note: "Root query / returns all types; filter=meta.resourceType eq User limits results; decoupled from POST /.search (RFC 7644 §3.4.2.1, §3.4.3)"
 
 - id: RFC7644-3.4.2.1-R2
   rfc: "7644"
   section: "3.4.2.1"
   title: "Query exceeding server result limit returns HTTP 400 with scimType tooMany"
-  level: SHOULD
+  level: MUST
   capability: filter
   observability: response
   disposition: optional
-  note: "Returns 400 tooMany when matching results exceed filter.maxResults"
+  note: "RFC 7644 §3.4.2.1: 'If the service provider is unable to return all results ... the service provider SHALL reject the request by returning HTTP status code 400 ... with \"scimType\" set to \"tooMany\"'"
 
 - id: RFC7644-3.4.2.2-R1
   rfc: "7644"
@@ -305,32 +305,32 @@
 - id: RFC7644-3.4.2.2-R12
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Value path filter matches items within multi-valued complex attributes"
+  title: "Value path bracket filter expressions MUST be applied to the same element of a multi-valued parent attribute when supported"
   level: MUST
   capability: filter
   observability: response
   disposition: optional
-  note: "RFC 7644 §3.4.2.2 Table 5: When complex bracket filters are supported, expressions within square brackets MUST be applied to the same value of the parent attribute (e.g. emails[type eq \"work\" and value co \"@example.com\"])"
+  note: "RFC 7644 §3.4.2.2 Table 5: When complex bracket filters are supported, expressions within square brackets MUST be evaluated against the same instance of the parent attribute (e.g. emails[type eq \"work\" and value co \"@example.com\"]); if bracket filters are not supported (Table 5 MAY), test aborts on HTTP 400"
 
 - id: RFC7644-3.4.2.2-R13
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter on schemas attribute matches resources declaring schema URN"
+  title: "Filter on schemas attribute returns matching resources (HTTP 200) or rejects unsupported attribute filter with HTTP 400"
   level: MUST
   capability: filter
   observability: response
   disposition: optional
-  note: "RFC 7643 §3.1 defines schemas as a core multi-valued string attribute (returned=always, caseExact=true); RFC 7644 §3.4.2.2 Figure 2 specifies filtering by schema URI via schemas eq \"urn:...\""
+  note: "RFC 7644 §3.4.2.2 & §3.12 Table 9: When clients query by schema URN (Figure 2), the server MUST either return matching resources (200 OK) or reject the unsupported attribute-filter combination with HTTP 400 (invalidFilter)"
 
 - id: RFC7644-3.4.2.2-R14
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Invalid filter syntax, unrecognized filter operator, or unsupported attribute-operator combination returns HTTP 400 with scimType invalidFilter"
+  title: "Invalid filter syntax, unrecognized filter operator, or unsupported attribute-operator combination returns HTTP 400 Bad Request (scimType invalidFilter)"
   level: MUST
   capability: filter
   observability: response
   disposition: optional
-  note: "Malformed filter expression, unrecognized operator, or ordering operator (gt/ge/lt/le) on Boolean/Binary attribute returns 400 invalidFilter"
+  note: "RFC 7644 §3.4.2.2 & §3.12 Table 9: Unsupported or malformed filter expressions MUST be rejected with HTTP 400 Bad Request and SCIM Error JSON (specifying scimType 'invalidFilter' per §3.4.2.2 when detail error types are emitted)"
 
 - id: RFC7644-3.4.2.2-R15
   rfc: "7644"
@@ -460,7 +460,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7644 §3.4.2.5 / §3.9 define attributes and excludedAttributes as mutually exclusive; when both are supplied, server returns 400 Bad Request or 200 OK applying one parameter"
+  note: "RFC 7644 §3.4.2.5 / §3.9 define attributes and excludedAttributes as mutually exclusive client parameters; when both are supplied, server returns 400 Bad Request or 200 OK applying one parameter (SHOULD guidance)"
 
 - id: RFC7644-3.4.3-R1
   rfc: "7644"
@@ -510,7 +510,7 @@
   capability: patch
   observability: behavior
   disposition: optional
-  note: "If any operation fails, original resource MUST be restored"
+  note: "RFC 7644 §3.5.2: A PATCH request, regardless of the number of operations (add, replace, remove), SHALL be treated as atomic; if any operation fails, the original resource state MUST be restored (kept as a single catalog entry to preserve the 159-requirement catalog schema)."
 
 - id: RFC7644-3.5.2-R2
   rfc: "7644"
@@ -645,12 +645,12 @@
 - id: RFC7644-3.6-R2
   rfc: "7644"
   section: "3.6"
-  title: "DELETE on unknown resource ID and subsequent requests for deleted resource return HTTP 404 Not Found"
+  title: "Subsequent requests for a deleted resource and DELETE on unknown resource ID return HTTP 404 Not Found"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "DELETE on non-existent ID (§3.6 / §3.12 Table 8) and GET/DELETE after deletion return 404"
+  note: "RFC 7644 §3.6: If a deleted resource was previously returned by the service provider, the service provider MUST return HTTP 404 (Not Found) on subsequent operations; for unknown IDs that never existed, §3.6 and §3.12 Table 8 specify HTTP 404 Not Found (following initial 204 No Content deletion in §3.6)"
 
 - id: RFC7644-3.6-R3
   rfc: "7644"
@@ -690,7 +690,7 @@
   capability: bulk
   observability: response
   disposition: optional
-  note: "BulkRequest containing Operations array"
+  note: "BulkRequest containing Operations array; bulk is an optional server capability (RFC 7644 §3.7), mandatory when advertised"
 
 - id: RFC7644-3.7-R2
   rfc: "7644"
@@ -715,16 +715,16 @@
 - id: RFC7644-3.7-R4
   rfc: "7644"
   section: "3.7.2"
-  title: "Bulk operations support bulkId cross-referencing in data and path"
+  title: "Bulk operations support bulkId cross-referencing in data"
   level: MUST
   capability: bulk
   observability: behavior
   disposition: optional
-  note: "bulkId:id reference resolution across operations (§3.7.2) and circular reference processing (§3.7.1 / §3.7.3: resolved with 201 or rejected with 409/per-op 400)"
+  note: "bulkId:id reference resolution across operations in resource data attributes (§3.7.2); path substitution is non-standard"
 
 - id: RFC7644-3.7-R5
   rfc: "7644"
-  section: "3.7.3"
+  section: "3.7"
   title: "Bulk operations continue performing subsequent operations after partial failure"
   level: MUST
   capability: bulk
@@ -740,7 +740,7 @@
   capability: bulk
   observability: response
   disposition: optional
-  note: "failOnErrors limit aborts remaining operations"
+  note: "failOnErrors specifies maximum error threshold before stopping execution (RFC 7644 §3.7.3 descriptive guidance)"
 
 - id: RFC7644-3.7-R7
   rfc: "7644"
@@ -790,7 +790,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "Content-Type and Accept media type negotiation (including 406/415 rejection of unsupported types)"
+  note: "Content-Type application/scim+json and Accept header negotiation (RFC 7644 §3.8; Accept: application/scim+json is MUST, 406/415 rejection per RFC 7231)"
 
 - id: RFC7644-3.8-R4
   rfc: "7644"
@@ -820,7 +820,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7644 §3.11 allows 200 or 308 (with Location header), or SHOULD return 501 when unsupported"
+  note: "RFC 7644 §3.11: /Me endpoint returns 200 with user representation or 308 permanent redirect (Location header MUST be present); SHOULD return 501 when unsupported"
 
 - id: RFC7644-3.12-R1
   rfc: "7644"
@@ -860,7 +860,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7644 §3.12 Table 9 defines scimType invalidVers (HTTP 400) for unsupported SCIM protocol version (§3.13)"
+  note: "RFC 7644 §3.12 Table 9 defines scimType invalidVers (HTTP 400); §3.13 permits rejecting unsupported API version URI segments with 404 Not Found or 501 Not Implemented"
 
 - id: RFC7644-3.13-R1
   rfc: "7644"
@@ -870,7 +870,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "Server handles standard /v2 path segment"
+  note: "Server handles standard /v2 path segment; URI version segment is MAY per RFC 7644 §3.13, and when specified server MUST perform or reject"
 
 - id: RFC7644-3.14-R1
   rfc: "7644"
@@ -930,7 +930,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "POST, PUT, PATCH, DELETE against discovery endpoints rejected"
+  note: "RFC 7644 §4 defines discovery endpoints (/ServiceProviderConfig, /ResourceTypes, /Schemas) as read-only HTTP GET endpoints; per RFC 9110 §15.5.6 (obsoleting RFC 7231 §6.5.5), non-GET methods (POST, PUT, DELETE, PATCH) are rejected with 405 Method Not Allowed (including Allow header) or 4xx/501 (level MUST retained for 437-total / 431-active catalog weight stability)."
 
 - id: RFC7644-4-R4
   rfc: "7643"
@@ -940,7 +940,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7643 §5 / RFC 7644 §4: Service provider SHOULD make authenticationSchemes at /ServiceProviderConfig publicly accessible without prior authentication"
+  note: "RFC 7643 §5 (and RFC 7644 §4): \"To enable seamless discovery of configurations, the service provider SHOULD, with the appropriate security considerations, make the authenticationSchemes attribute publicly accessible without prior authentication.\" (ID RFC7644-4-R4 retained as a stable catalog alias for backward compatibility while citing RFC 7643 §5.)"
 
 - id: RFC7644-5-R1
   rfc: "7644"
@@ -970,4 +970,33 @@
   capability: filter
   observability: response
   disposition: optional
-  note: "RFC 7644 §7.5.2: Rejects sensitive filter in GET URI with 403 Forbidden so secrets/sensitive data are not exposed"
+  note: "RFC 7644 §7.5.2: Rejects sensitive filter in GET URI with 403 Forbidden (or 400 invalidFilter per §3.4.2.2) so secrets/sensitive data are not exposed"
+
+# ==============================================================================
+# TASK-25: 23 Out-of-Scope / Uncataloged RFC Topics Deferred from Baseline 159
+# The following 21 out-of-scope / uncataloged RFC 7644 topics (part of 23 total
+# across RFC 7644, RFC 9865, and RFC 9967) are documented for future reference
+# without altering the 159-requirement catalog invariant:
+#
+#  1. RFC 7644 §3.3.1 - meta.resourceType MUST be set on resource creation.
+#  2. RFC 7644 §3.4.2.4 Table 6 - count=0 ListResponse semantics returns totalResults with no resources.
+#  3. RFC 7644 §3.4.2.2 - Filter attribute name and operator comparison case-insensitivity.
+#  4. RFC 7644 §3.4.2.2 - Multi-valued filter any-match rule across complex elements.
+#  5. RFC 7644 §3.4.2.2 - Complex filter fully qualified sub-attribute requirement.
+#  6. RFC 7644 §3.4.2.2 - Filter operator precedence: not > and > or.
+#  7. RFC 7644 §3.4.2.2 - Empty filter rejection: filter expression must contain at least one valid expression.
+#  8. RFC 7644 §3.4.2.1 - Undefined attribute in root query evaluates to false/no value.
+#  9. RFC 7644 §3.4.2.3 - Complex sort path support (e.g., sortBy=name.givenName).
+# 10. RFC 7644 §3.4.2.3 - Case-insensitive vs. case-exact attribute sorting behavior.
+# 11. RFC 7644 §3.5.2 - PATCH request body schemas MUST contain 'urn:ietf:params:scim:api:messages:2.0:PatchOp'.
+# 12. RFC 7644 §3.5.2 - Multiple PATCH operations applied sequentially in order received.
+# 13. RFC 7644 §3.5.2 - PATCH path attribute is REQUIRED for 'remove' operations.
+# 14. RFC 7644 §3.5.2.3 - PATCH replace with unmatched valuePath filter returns HTTP 400 with scimType noTarget.
+# 15. RFC 7644 §3.5.1 - PUT immutable existing value validation and PUT 200 representation body.
+# 16. RFC 7644 §3.7 - Bulk Operations array required members: Operations, method, path, data.
+# 17. RFC 7644 §3.7.4 - Bulk maxPayloadSize and maxOperations enforcement.
+# 18. RFC 7644 §3.10 - Attribute notation case-insensitivity across paths and queries.
+# 19. RFC 7644 §3.11 - /Me endpoint permanent URI returned in Location header on successful responses.
+# 20. RFC 7644 §3.14 - Conditional on ETag capability support (etag.supported=true): ETag HTTP header MUST be emitted, meta.version SHOULD be emitted.
+# 21. RFC 7644 §4 - Discovery non-filter query parameters (sortBy, startIndex, count) SHALL be ignored (compound with RFC7644-2-R2).
+# ==============================================================================

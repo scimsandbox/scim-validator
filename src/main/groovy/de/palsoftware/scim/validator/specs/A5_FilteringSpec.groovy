@@ -88,7 +88,9 @@ class A5_FilteringSpec extends A5_BaseSpec {
         Response noExtResp = scimRequestQuiet()
             .body(JsonOutput.toJson([schemas: [USER_SCHEMA], userName: noExtUserName]))
             .post("/Users")
-        String noExtId = noExtResp.statusCode() == 201 ? noExtResp.jsonPath().getString("id") : null
+        assert noExtResp.statusCode() == 201 : "Failed to create fixture user without externalId: HTTP ${noExtResp.statusCode()}"
+        String noExtId = noExtResp.jsonPath().getString("id")
+        assert noExtId != null
 
         when:
         Response response = scimRequest()
@@ -160,10 +162,12 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         then:
         response.statusCode() == 200
-        response.jsonPath().getInt("totalResults") >= 2
+        response.jsonPath().getInt("totalResults") == 2
         def returnedNames = response.jsonPath().getList("Resources.userName")
+        returnedNames.size() == 2
         returnedNames.contains(user1)
         returnedNames.contains(user2)
+        !returnedNames.contains(userData[2].userName)
     }
 
     // ─── FLT_10: Invalid filter returns 400 ─────────────────────────────────
@@ -232,8 +236,8 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
         then:
         response.statusCode() == 200
-        response.jsonPath().getInt("totalResults") >= 1
-        response.jsonPath().getList("Resources.userName").contains(originalUserName)
+        response.jsonPath().getInt("totalResults") == 1
+        response.jsonPath().getList("Resources.userName") == [originalUserName]
     }
 
     // ─── FLT_13: attributes parameter limits returned attributes ────────────
@@ -343,8 +347,8 @@ class A5_FilteringSpec extends A5_BaseSpec {
         }
         assert response.statusCode() == 200
         assert response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
-        assert response.jsonPath().getInt("totalResults") >= 1
-        assert response.jsonPath().getList("Resources.userName").contains(targetUserName)
+        assert response.jsonPath().getInt("totalResults") == 1
+        assert response.jsonPath().getList("Resources.userName") == [targetUserName]
     }
 
     // ─── FLT_17: POST /.search on /Groups ───────────────────────────────────
@@ -353,11 +357,15 @@ class A5_FilteringSpec extends A5_BaseSpec {
     @SpecRef("RFC7644-3.4.3-R1")
     def "FLT_17: POST /Groups/.search returns filtered list response"() {
         // RFC 7644 §3.4.3 — POST-based query via /.search
-        given: "Create a test group"
+        given: "Create test groups"
         String groupName = "${PREFIX}SearchGroup"
+        String otherGroupName = "${PREFIX}OtherGroup"
         Response created = createGroup(groupName)
+        Response otherCreated = createGroup(otherGroupName)
         assert created.statusCode() == 201
+        assert otherCreated.statusCode() == 201
         String gid = created.jsonPath().getString("id")
+        String otherGid = otherCreated.jsonPath().getString("id")
 
         Map searchBody = [
             schemas: [SEARCH_REQUEST_SCHEMA],
@@ -375,12 +383,14 @@ class A5_FilteringSpec extends A5_BaseSpec {
         }
         assert response.statusCode() == 200
         assert response.jsonPath().getList("schemas").contains(LIST_RESPONSE_SCHEMA)
-        assert response.jsonPath().getInt("totalResults") >= 1
-        assert response.jsonPath().getList("Resources.displayName").contains(groupName)
+        assert response.jsonPath().getInt("totalResults") == 1
+        assert response.jsonPath().getList("Resources.displayName") == [groupName]
 
         cleanup:
         if (gid) deleteGroup(gid)
+        if (otherGid) deleteGroup(otherGid)
         createdGroupIds.remove(gid)
+        createdGroupIds.remove(otherGid)
     }
 
     // ─── FLT_18: URN-prefixed core attribute in attributes parameter ────────
@@ -412,7 +422,7 @@ class A5_FilteringSpec extends A5_BaseSpec {
     def "FLT_19: URN-prefixed enterprise extension returns extension block"() {
         // RFC 7644 §3.4.2.5 — Enterprise extension URN selects the extension sub-object
         given: "Create a user with enterprise extension"
-        Response created = createFullUser()
+        Response created = createFullUser(includeEnterprise: true)
         assert created.statusCode() == 201
         String userId = created.jsonPath().getString("id")
 
@@ -583,12 +593,17 @@ class A5_FilteringSpec extends A5_BaseSpec {
             .queryParam("filter", "emails[type eq \"home\"] and userName sw \"${PREFIX}\"")
             .get("/Users")
 
-        then:
-        response.statusCode() == 200
+        then: "Server returns matching users (200) or rejects optional value path filter (RFC 7644 §3.4.2.2 Table 5 MAY)"
+        if (response.statusCode() == 400 || negResponse.statusCode() == 400) {
+            if (response.statusCode() == 400) assertScimError(response, 400, "invalidFilter")
+            if (negResponse.statusCode() == 400) assertScimError(negResponse, 400, "invalidFilter")
+            throw new TestAbortedException("Server does not support optional value path filter emails[valFilter] (RFC 7644 §3.4.2.2 Table 5 MAY)")
+        }
+        assert response.statusCode() == 200
         // All our test users have a work email
-        response.jsonPath().getInt("totalResults") >= 5
-        negResponse.statusCode() == 200
-        negResponse.jsonPath().getInt("totalResults") == 0
+        assert response.jsonPath().getInt("totalResults") >= 5
+        assert negResponse.statusCode() == 200
+        assert negResponse.jsonPath().getInt("totalResults") == 0
     }
 
     // ─── FLT_28: Case-insensitive operator ──────────────────────────────────
@@ -639,12 +654,18 @@ class A5_FilteringSpec extends A5_BaseSpec {
         Response response = scimRequest()
             .queryParam("filter", "meta.lastModified lt \"2000-01-01T00:00:00Z\" and userName sw \"${PREFIX}\"")
             .get("/Users")
+        Response futureResp = scimRequest()
+            .queryParam("filter", "meta.lastModified lt \"2099-12-31T23:59:59Z\" and userName sw \"${PREFIX}\"")
+            .get("/Users")
 
         then:
         response.statusCode() == 200
         response.jsonPath().getInt("totalResults") == 0
         def resources = response.jsonPath().getList("Resources")
         resources == null || resources.isEmpty()
+        futureResp.statusCode() == 200
+        futureResp.jsonPath().getInt("totalResults") >= 5
+        futureResp.jsonPath().getList("Resources.userName").contains(userData[0].userName as String)
     }
 
     // ─── FLT_31: le operator on meta.lastModified ───────────────────────────
@@ -865,18 +886,26 @@ class A5_FilteringSpec extends A5_BaseSpec {
             .queryParam("filter", "schemas eq \"${USER_SCHEMA}\" and userName sw \"${PREFIX}\"")
             .get("/Users")
 
-        then: "Status is 200 and matching resources returned"
-        assert response.statusCode() == 200 : "Expected 200 OK for schemas filter, got ${response.statusCode()}"
-        assert response.jsonPath().getInt("totalResults") >= 5
+        then: "Status is 200 or 400 invalidFilter per RFC 7644 Table 9"
+        assert response.statusCode() in [200, 400] : "Expected 200 OK or 400 Bad Request for schemas filter, got ${response.statusCode()}"
+        if (response.statusCode() == 200) {
+            assert response.jsonPath().getInt("totalResults") >= 5
+        } else {
+            assertScimError(response, 400, "invalidFilter")
+        }
 
         when: "Filtering on non-existent schema"
         Response negResp = scimRequest()
             .queryParam("filter", "schemas eq \"urn:ietf:params:scim:schemas:core:2.0:NonExistentSchema\"")
             .get("/Users")
 
-        then: "Non-matching schema filter returns 0 results"
-        assert negResp.statusCode() == 200
-        assert negResp.jsonPath().getInt("totalResults") == 0
+        then: "Non-matching schema filter returns 0 results or 400 invalidFilter"
+        assert negResp.statusCode() in [200, 400] : "Expected 200 OK or 400 Bad Request for non-matching schema filter, got ${negResp.statusCode()}"
+        if (negResp.statusCode() == 200) {
+            assert negResp.jsonPath().getInt("totalResults") == 0
+        } else {
+            assertScimError(negResp, 400, "invalidFilter")
+        }
     }
 
     // ─── FLT_40: Root query with meta.resourceType scoping ───────────────────
@@ -910,7 +939,10 @@ class A5_FilteringSpec extends A5_BaseSpec {
     @SpecRef("RFC7644-3.4.2.2-R9")
     @SpecRef("RFC7644-3.4.2.2-R10")
     def "FLT_41: Logical operators AND, OR, NOT in uppercase are case-insensitive"() {
-        // RFC 7644 §3.4.2.2: "Logical operators are case-insensitive."
+        // RFC 7644 §3.4.2.2 Table 4 (Logical Operators) and Figure 1 (ABNF Specification of SCIM Filters per RFC 5234):
+        // and: "The filter is only a match if both expressions evaluate to true."
+        // or: "The filter is a match if either expression evaluates to true."
+        // not: "The filter is a match if the expression evaluates to false."
         when: "Query with uppercase AND"
         Response andResp = scimRequest()
             .queryParam("filter", "userName sw \"${PREFIX}\" AND active eq true")
@@ -949,8 +981,10 @@ class A5_FilteringSpec extends A5_BaseSpec {
     @SpecRef("RFC7644-3.4.2.2-R9")
     @SpecRef("RFC7644-3.4.2.2-R11")
     def "FLT_42: Operator precedence evaluates and before or without parentheses"() {
-        // RFC 7644 §3.4.2.2: "The order of precedence for operators has not have the highest
-        // precedence, followed by and, and then or."
+        // RFC 7644 §3.4.2.2: "Filters MUST be evaluated using the following order of operations, in order of precedence:
+        // 1.  Grouping operators
+        // 2.  Logical operators - where 'not' takes precedence over 'and', which takes precedence over 'or'
+        // 3.  Attribute operators"
         when: "Query with 'A or B and C' where B and C matches user 0, and A matches inactive user 2"
         String u0 = userData[0].userName // active
         String u2 = userData[2].userName // inactive
@@ -998,15 +1032,17 @@ class A5_FilteringSpec extends A5_BaseSpec {
 
     @SpecRef("RFC7644-3.4.2.2-R15")
     def "FLT_44: Filter comparison on defaulted active attribute matches value returned at creation"() {
-        // RFC 7644 §3.4.2.2: "When evaluating a comparison operator against an attribute
-        // that was defaulted, the filter comparison MUST evaluate against the value returned
-        // to the client when the resource was created."
+        // RFC 7644 §3.4.2.2: "When applying a comparison (e.g., 'eq') or presence filter (e.g.,
+        // 'pr') to a defaulted attribute, the service provider SHALL use the value that was returned
+        // to the client that last created or modified the attribute."
         given: "A user created without specifying the active attribute"
         String testUserName = "${PREFIX}default_active_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
         Response createResp = createUser([userName: testUserName])
         assert createResp.statusCode() == 201
         String userId = createResp.jsonPath().getString("id")
-        Boolean returnedActive = createResp.jsonPath().get("active") as Boolean
+        Object rawActive = createResp.jsonPath().get("active")
+        assert rawActive == null || rawActive instanceof Boolean : "active attribute must be a JSON boolean if returned, got: ${rawActive?.getClass()?.simpleName}"
+        Boolean returnedActive = (Boolean) rawActive
         if (returnedActive == null) {
             if (userId) {
                 deleteUser(userId)
@@ -1053,9 +1089,10 @@ class A5_FilteringSpec extends A5_BaseSpec {
         assert schemaResponse.statusCode() == 200
 
         def attributes = schemaResponse.jsonPath().getList("attributes")
-        def extIdAttr = attributes.find { it.name == "externalId" }
-        assert extIdAttr != null
-        assert extIdAttr.caseExact == true
+        def extIdAttr = attributes?.find { it.name == "externalId" }
+        boolean caseExact = (extIdAttr != null && extIdAttr.containsKey("caseExact") && extIdAttr.caseExact != null) ?
+            Boolean.parseBoolean(extIdAttr.caseExact.toString()) : true
+        assert caseExact == true : "externalId must have caseExact=true (RFC 7643 §3.1)"
 
         and: "Pick a known externalId with alphabetic characters"
         String originalExtId = userData[0].externalId

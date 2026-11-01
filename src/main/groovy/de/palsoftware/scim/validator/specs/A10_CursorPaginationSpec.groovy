@@ -8,7 +8,6 @@ import groovy.json.JsonOutput
 import io.restassured.response.Response
 import org.opentest4j.TestAbortedException
 import spock.lang.Shared
-import spock.lang.Stepwise
 
 /**
  * Area 10 — Cursor-Based Pagination (RFC 9865)
@@ -16,7 +15,6 @@ import spock.lang.Stepwise
  * Validates cursor pagination semantics per RFC 9865 when supported
  * by the SCIM service provider (discovered via /ServiceProviderConfig pagination.cursor).
  */
-@Stepwise
 @RequiresCapability("cursorPagination")
 class A10_CursorPaginationSpec extends ScimBaseSpec {
 
@@ -42,6 +40,20 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
             if (probe.statusCode() != 200 || !probe.jsonPath().getString("nextCursor")) {
                 setCapabilityState("cursorPagination", CapabilityState.UNSUPPORTED)
             }
+        }
+    }
+
+    protected void ensureCursorInitialPage() {
+        if (firstNextCursor && !firstPageIds.isEmpty()) {
+            return
+        }
+        Response response = scimRequestQuiet()
+            .queryParam("cursor", "")
+            .queryParam("count", 1)
+            .get("/Users")
+        if (response.statusCode() == 200) {
+            firstNextCursor = response.jsonPath().getString("nextCursor")
+            firstPageIds = response.jsonPath().getList("Resources.id") ?: []
         }
     }
 
@@ -89,6 +101,7 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
     def "CUR_02: GET /Users passing cursor returns next page of distinct resources"() {
         // RFC 9865 §2 — Fetching subsequent page using opaque cursor value
         given: "Verify nextCursor availability from initial page"
+        ensureCursorInitialPage()
         if (!firstNextCursor) {
             throw new TestAbortedException("Skipped: no nextCursor obtained from CUR_01")
         }
@@ -115,25 +128,35 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
     def "CUR_03: Reaching final page of query results omits nextCursor"() {
         // RFC 9865 §2 & Table 2 — nextCursor omitted when no more results exist
         given: "Verify nextCursor availability"
+        ensureCursorInitialPage()
         if (!firstNextCursor) {
             throw new TestAbortedException("Skipped: no nextCursor obtained from CUR_01")
         }
 
-        when: "Initiate a fresh cursor query with high count=100 and advance until final page"
+        when: "Initiate a fresh cursor query with count=1 and advance until final page"
         String currentCursor = ""
         Response lastResponse = null
-        int maxPages = 10
-        while (currentCursor != null && maxPages-- > 0) {
-            lastResponse = scimRequest()
+        int pagesVisited = 0
+        int maxPages = 50
+        while (currentCursor != null && pagesVisited < maxPages) {
+            def req = scimRequest()
                 .queryParam("cursor", currentCursor)
-                .queryParam("count", 100)
-                .get("/Users")
+                .queryParam("count", 1)
+            if (isFilterSupported()) {
+                req.queryParam("filter", "userName sw \"${testPrefix}\"")
+            }
+            lastResponse = req.get("/Users")
             assert lastResponse.statusCode() == 200
+            pagesVisited++
             currentCursor = lastResponse.jsonPath().getString("nextCursor")
         }
 
-        then: "On the final page, nextCursor is absent or null"
+        then: "Traversed across multiple cursor pages and on the final page, nextCursor is absent or null"
+        assert pagesVisited >= 2 : "Must traverse at least 2 distinct cursor pages"
         assert lastResponse != null && lastResponse.statusCode() == 200
+        if (!isFilterSupported() && pagesVisited == maxPages && currentCursor != null) {
+            throw new TestAbortedException("Cursor pagination traversal hit maxPages=${maxPages} cap on unfiltered tenant without reaching final page (filter capability unsupported)")
+        }
         assert lastResponse.jsonPath().get("nextCursor") == null :
             "nextCursor must be omitted on final page of results (RFC 9865 §2)"
     }
@@ -199,7 +222,9 @@ class A10_CursorPaginationSpec extends ScimBaseSpec {
 
         and: "pagination complex attribute SHOULD be present per RFC 9865 §4 with cursor=true"
         def pag = response.jsonPath().get("pagination")
-        assert pag != null : "ServiceProviderConfig SHOULD include 'pagination' configuration attribute (RFC 9865 §4)"
+        if (pag == null) {
+            throw new TestAbortedException("Server omits optional 'pagination' configuration attribute in ServiceProviderConfig (RFC 9865 §4 SHOULD)")
+        }
         assert pag.cursor instanceof Boolean : "'pagination.cursor' must be a Boolean"
         assert pag.cursor == true : "'pagination.cursor' must be true when cursor pagination is supported (RFC 9865 §4)"
         assert pag.index instanceof Boolean : "'pagination.index' must be a Boolean"

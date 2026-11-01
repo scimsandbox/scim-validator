@@ -10,7 +10,7 @@
   capability: async
   observability: response
   disposition: optional
-  note: "Clients initiate async processing on POST, PUT, PATCH, DELETE with Prefer: respond-async (RFC 7240 §4.1, RFC 9967 §2.5.1.1)"
+  note: "Clients initiate async processing with Prefer: respond-async (RFC 7240 §4.1); server MAY respond with 202 Accepted or process synchronously (RFC 9967 §2.5.1.1)"
 
 - id: RFC9967-2.5.1.1-R2
   rfc: "9967"
@@ -25,12 +25,12 @@
 - id: RFC9967-2.5.1.1-R3
   rfc: "9967"
   section: "2.5.1.1"
-  title: "Asynchronous 202 response MUST include Location header"
+  title: "Asynchronous 202 response MUST include Location header with SET retrieval URI or target SCIM resource URI"
   level: MUST
   capability: async
   observability: response
   disposition: optional
-  note: "Location header value MUST be either a URI where completion SET may be retrieved via GET or normal SCIM resource location (RFC 9967 §2.5.1.1)"
+  note: "RFC 9967 §2.5.1.1: When returning HTTP 202 (Accepted), the response MUST include a Location header whose value is one of two permitted domains: (1) a protected URI where the completion Security Event Token (SET) may be retrieved via HTTP GET, or (2) the normal SCIM resource Location URI"
 
 - id: RFC9967-3-R1
   rfc: "9967"
@@ -50,4 +50,13 @@
   capability: async
   observability: response
   disposition: optional
-  note: "securityEvents.asyncRequest specifies 'none', 'long', or 'request' (RFC 9967 §4)"
+  note: "securityEvents.asyncRequest specifies 'none', 'long', or 'request' (RFC 9967 §4; securityEvents is OPTIONAL discovery schema)"
+
+# ==============================================================================
+# TASK-25: 23 Out-of-Scope / Uncataloged RFC Topics Deferred from Baseline 159
+# The following out-of-scope / uncataloged RFC 9967 topic (topic #23 of 23
+# across RFC 7644, RFC 9865, and RFC 9967) is documented for future reference
+# without altering the 159-requirement catalog invariant:
+#
+# 23. RFC 9967 §§2.5.1.1, 3, 5 - Accept header ignored for SET, Preference-Applied header, normal-or-202 status, protected Location URI, Set-Txn and txn claim match.
+# ==============================================================================

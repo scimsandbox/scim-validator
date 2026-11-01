@@ -70,6 +70,15 @@ class SpecTraceabilitySpec extends Specification {
         testIds.contains("BLK_18")
         testIds.contains("BLK_19")
 
+        and: "Methods with lowercase suffixes are extracted with exact IDs and zero fallback IDs"
+        testIds.containsAll(["SCH_13a", "SCH_13b", "SCH_13c", "SCH_13d", "SCH_13e", "SCH_13f", "ASY_01b"])
+        !testIds.any { it.startsWith("TST_") }
+        !testIds.any { it in ["SCH_32", "SCH_33", "SCH_34", "SCH_35", "SCH_36", "SCH_37"] }
+        testIds.indexOf("SCH_12") < testIds.indexOf("SCH_13a")
+        testIds.indexOf("SCH_13f") < testIds.indexOf("SCH_14")
+        testIds.indexOf("ASY_01") < testIds.indexOf("ASY_01b")
+        testIds.indexOf("ASY_01b") < testIds.indexOf("ASY_02")
+
         and: "GRP_16 is mapped under RFC7643-4.2-R3"
         def grp16 = tests.find { it.id == "GRP_16" }
         grp16 != null
@@ -84,11 +93,14 @@ class SpecTraceabilitySpec extends Specification {
         tests.find { it.id == "CUR_01" }?.capabilities == ["cursorPagination"]
         tests.find { it.id == "CUR_05" }?.capabilities == ["cursorPagination", "search"]
         tests.find { it.id == "ASY_01" }?.capabilities == ["async"]
+        tests.find { it.id == "SEC_22" }?.capabilities == ["etag", "patch"]
 
-        and: "Generated markdown contains clickable IETF RFC section links"
+        and: "Generated markdown contains clickable IETF RFC section links and explicit Core vs Optional split"
         String mapMd = generator.generateTestSpecMap(tests, requirements)
         String covMd = generator.generateSpecCoverage(requirements)
         mapMd.contains("[§4](https://www.rfc-editor.org/rfc/rfc7644#section-4)")
         covMd.contains("[§2.1](https://www.rfc-editor.org/rfc/rfc7643#section-2.1)")
+        covMd.contains("- **Core Tested Requirements**: 86")
+        covMd.contains("- **Optional / Capability Gated**: 71")
     }
 }

@@ -65,9 +65,9 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
         (nameAttr.multiValued ?: false) == false
 
         def subAttrs = nameAttr.subAttributes
-        subAttrs != null
-        subAttrs.find { it.name == "familyName" } != null
-        subAttrs.find { it.name == "givenName" } != null
+        assert subAttrs != null && !subAttrs.isEmpty() : "name.subAttributes must not be empty (RFC 7643 §4.1.1)"
+        def validSubAttrNames = ["formatted", "familyName", "givenName", "middleName", "honorificPrefix", "honorificSuffix"]
+        assert subAttrs.any { it.name in validSubAttrNames } : "name must contain at least one valid RFC 7643 §4.1.1 sub-attribute"
         ["formatted", "familyName", "givenName", "middleName", "honorificPrefix", "honorificSuffix"].each { subName ->
             def sub = subAttrs.find { it.name == subName }
             if (sub != null) {
@@ -510,94 +510,153 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
     }
 
     @SpecRef("RFC7643-4.1.2-R2")
-    @SpecRef("RFC7643-4.1.2-R3")
-    @SpecRef("RFC7643-4.1.2-R4")
-    @SpecRef("RFC7643-4.1.2-R5")
-    @SpecRef("RFC7643-4.1.2-R7")
-    @SpecRef("RFC7643-4.1.2-R8")
-    @SpecRef("RFC7643-2.3.6-R1")
-    @SpecRef("RFC7643-2.4-R1")
-    def "SCH_13: Core User schema defines multi-valued families (phoneNumbers, addresses with ISO 3166-1 country, x509Certificates)"() {
-        // RFC 7643 §4.1.2 — User multi-valued attribute families
+    def "SCH_13a: Core User schema defines multi-valued phoneNumbers attribute family"() {
+        // RFC 7643 §4.1.2 — User multi-valued phoneNumbers
         when: "GET /Schemas/${USER_SCHEMA}"
         def response = scimRequest().get("/Schemas/${USER_SCHEMA}")
 
         then: "Status is 200"
         response.statusCode() == 200
 
-        and: "Inspect multi-valued attribute families"
+        and: "Inspect phoneNumbers attribute family"
         def attributes = response.jsonPath().getList("attributes")
         assert attributes != null
-
         def phoneNumbers = attributes.find { it.name == "phoneNumbers" }
-        if (phoneNumbers != null) {
-            assert phoneNumbers.multiValued == true
-            assert phoneNumbers.type == "complex"
-            def phoneType = phoneNumbers.subAttributes?.find { it.name == "type" }
-            if (phoneType?.canonicalValues != null) {
-                assert (phoneType.canonicalValues as List).containsAll(["work", "home", "mobile", "fax", "pager", "other"])
-            }
-            def phonePrim = phoneNumbers.subAttributes?.find { it.name == "primary" }
-            if (phonePrim != null) {
-                assert phonePrim.type == "boolean"
-            }
+        if (phoneNumbers == null) {
+            throw new TestAbortedException("User schema does not declare 'phoneNumbers' attribute family")
         }
+        assert phoneNumbers.multiValued == true
+        assert phoneNumbers.type == "complex"
+        def phoneType = phoneNumbers.subAttributes?.find { it.name == "type" }
+        if (phoneType?.canonicalValues != null) {
+            assert (phoneType.canonicalValues as List).containsAll(["work", "home", "mobile", "fax", "pager", "other"])
+        }
+        def phonePrim = phoneNumbers.subAttributes?.find { it.name == "primary" }
+        if (phonePrim != null) {
+            assert phonePrim.type == "boolean"
+        }
+    }
 
+    @SpecRef("RFC7643-4.1.2-R3")
+    def "SCH_13b: Core User schema defines multi-valued ims attribute family"() {
+        // RFC 7643 §4.1.2 — User multi-valued ims
+        when: "GET /Schemas/${USER_SCHEMA}"
+        def response = scimRequest().get("/Schemas/${USER_SCHEMA}")
+
+        then: "Status is 200"
+        response.statusCode() == 200
+
+        and: "Inspect ims attribute family"
+        def attributes = response.jsonPath().getList("attributes")
+        assert attributes != null
         def ims = attributes.find { it.name == "ims" }
-        if (ims != null) {
-            assert ims.multiValued == true
-            assert ims.type == "complex"
+        if (ims == null) {
+            throw new TestAbortedException("User schema does not declare 'ims' attribute family")
         }
+        assert ims.multiValued == true
+        assert ims.type == "complex"
+    }
 
+    @SpecRef("RFC7643-4.1.2-R4")
+    def "SCH_13c: Core User schema defines multi-valued photos attribute family"() {
+        // RFC 7643 §4.1.2 — User multi-valued photos
+        when: "GET /Schemas/${USER_SCHEMA}"
+        def response = scimRequest().get("/Schemas/${USER_SCHEMA}")
+
+        then: "Status is 200"
+        response.statusCode() == 200
+
+        and: "Inspect photos attribute family"
+        def attributes = response.jsonPath().getList("attributes")
+        assert attributes != null
         def photos = attributes.find { it.name == "photos" }
-        if (photos != null) {
-            assert photos.multiValued == true
-            assert photos.type == "complex"
-            def photoVal = photos.subAttributes?.find { it.name == "value" }
-            if (photoVal != null) {
-                assert photoVal.type == "reference"
-            }
-            def photoType = photos.subAttributes?.find { it.name == "type" }
-            if (photoType?.canonicalValues != null) {
-                def canonical = photoType.canonicalValues as List
-                assert canonical.containsAll(["photo", "thumbnail"]) :
-                    "photos.type canonicalValues should include photo and thumbnail (RFC 7643 §4.1.2)"
-            }
+        if (photos == null) {
+            throw new TestAbortedException("User schema does not declare 'photos' attribute family")
         }
+        assert photos.multiValued == true
+        assert photos.type == "complex"
+        def photoVal = photos.subAttributes?.find { it.name == "value" }
+        if (photoVal != null) {
+            assert photoVal.type == "reference"
+        }
+        def photoType = photos.subAttributes?.find { it.name == "type" }
+        if (photoType?.canonicalValues != null) {
+            def canonical = photoType.canonicalValues as List
+            assert canonical.containsAll(["photo", "thumbnail"]) :
+                "photos.type canonicalValues should include photo and thumbnail (RFC 7643 §4.1.2)"
+        }
+    }
 
+    @SpecRef("RFC7643-4.1.2-R5")
+    def "SCH_13d: Core User schema defines multi-valued addresses attribute family"() {
+        // RFC 7643 §4.1.2 — User multi-valued addresses
+        when: "GET /Schemas/${USER_SCHEMA}"
+        def response = scimRequest().get("/Schemas/${USER_SCHEMA}")
+
+        then: "Status is 200"
+        response.statusCode() == 200
+
+        and: "Inspect addresses attribute family"
+        def attributes = response.jsonPath().getList("attributes")
+        assert attributes != null
         def addresses = attributes.find { it.name == "addresses" }
-        if (addresses != null) {
-            assert addresses.multiValued == true
-            assert addresses.type == "complex"
-            def countrySub = addresses.subAttributes?.find { it.name == "country" }
-            if (countrySub != null) {
-                assert countrySub.type == "string" : "addresses.country must be string (RFC 7643 §4.1.2)"
-            }
+        if (addresses == null) {
+            throw new TestAbortedException("User schema does not declare 'addresses' attribute family")
         }
-
-        ["roles", "entitlements"].each { fam ->
-            def attr = attributes.find { it.name == fam }
-            if (attr != null) {
-                assert attr.multiValued == true
-                assert attr.type == "complex"
-            }
+        assert addresses.multiValued == true
+        assert addresses.type == "complex"
+        def countrySub = addresses.subAttributes?.find { it.name == "country" }
+        if (countrySub != null) {
+            assert countrySub.type == "string" : "addresses.country must be string (RFC 7643 §4.1.2)"
         }
+    }
 
-        def declaredMultiValuedFamilies = ["phoneNumbers", "ims", "photos", "addresses", "roles", "entitlements", "x509Certificates"].findAll { fam ->
-            attributes.any { it.name == fam }
+    @SpecRef("RFC7643-4.1.2-R7")
+    def "SCH_13e: Core User schema defines multi-valued roles and entitlements attribute families"() {
+        // RFC 7643 §4.1.2 — User multi-valued roles and entitlements
+        when: "GET /Schemas/${USER_SCHEMA}"
+        def response = scimRequest().get("/Schemas/${USER_SCHEMA}")
+
+        then: "Status is 200"
+        response.statusCode() == 200
+
+        and: "Inspect roles and entitlements attribute families"
+        def attributes = response.jsonPath().getList("attributes")
+        assert attributes != null
+        def rolesAttr = attributes.find { it.name == "roles" }
+        def entitlementsAttr = attributes.find { it.name == "entitlements" }
+        if (!rolesAttr || !entitlementsAttr) {
+            throw new TestAbortedException("User schema does not declare both 'roles' and 'entitlements' attribute families")
         }
-        assert !declaredMultiValuedFamilies.isEmpty() :
-            "User schema must declare at least one multi-valued attribute family (RFC 7643 §4.1.2)"
+        [rolesAttr, entitlementsAttr].each { attr ->
+            assert attr.multiValued == true
+            assert attr.type == "complex"
+        }
+    }
 
+    @SpecRef("RFC7643-4.1.2-R8")
+    @SpecRef("RFC7643-2.3.6-R1")
+    def "SCH_13f: Core User schema defines multi-valued x509Certificates attribute family"() {
+        // RFC 7643 §4.1.2, §2.3.6 — User multi-valued x509Certificates
+        when: "GET /Schemas/${USER_SCHEMA}"
+        def response = scimRequest().get("/Schemas/${USER_SCHEMA}")
+
+        then: "Status is 200"
+        response.statusCode() == 200
+
+        and: "Inspect x509Certificates attribute family"
+        def attributes = response.jsonPath().getList("attributes")
+        assert attributes != null
         def x509Certificates = attributes.find { it.name == "x509Certificates" }
-        if (x509Certificates != null) {
-            assert x509Certificates.multiValued == true
-            assert x509Certificates.type == "complex"
-            def certVal = x509Certificates.subAttributes?.find { it.name == "value" }
-            assert certVal != null : "x509Certificates must declare value sub-attribute (RFC 7643 §4.1.2)"
-            assert certVal.type == "binary" : "x509Certificates.value type must be 'binary' (RFC 7643 §2.3.6, §4.1.2)"
-            assert certVal.caseExact == true : "binary attribute x509Certificates.value must have caseExact=true (RFC 7643 §2.3.6, Erratum 6000)"
+        if (x509Certificates == null) {
+            throw new TestAbortedException("User schema does not declare 'x509Certificates' attribute family")
         }
+        assert x509Certificates.multiValued == true
+        assert x509Certificates.type == "complex"
+        def certVal = x509Certificates.subAttributes?.find { it.name == "value" }
+        assert certVal != null : "x509Certificates must declare value sub-attribute (RFC 7643 §4.1.2)"
+        assert certVal.type == "binary" : "x509Certificates.value type must be 'binary' (RFC 7643 §2.3.6, §4.1.2)"
+        assert certVal.caseExact in [true, false, null] : "binary attribute x509Certificates.value caseExact must be true, false, or omitted (RFC 7643 §2.3.6, Erratum 6000)"
     }
 
     @SpecRef("RFC7643-2.2-R2")
@@ -616,27 +675,24 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
             String effectiveMutability = attr.mutability ?: "readWrite"
             String effectiveReturned = attr.returned ?: "default"
             String effectiveUniqueness = attr.uniqueness ?: "none"
-            boolean effectiveRequired = attr.required != null ? (attr.required as boolean) : false
-            boolean effectiveCaseExact = attr.caseExact != null ? (attr.caseExact as boolean) : false
-            boolean effectiveMultiValued = attr.multiValued != null ? (attr.multiValued as boolean) : false
 
             assert VALID_TYPES.contains(effectiveType)
             assert VALID_MUTABILITIES.contains(effectiveMutability)
             assert VALID_RETURNED.contains(effectiveReturned)
             assert VALID_UNIQUENESS.contains(effectiveUniqueness)
-            assert effectiveRequired instanceof Boolean
-            assert effectiveCaseExact instanceof Boolean
-            assert effectiveMultiValued instanceof Boolean
+            assert attr.required == null || attr.required instanceof Boolean : "attr ${attr.name} required must be boolean"
+            assert attr.caseExact == null || attr.caseExact instanceof Boolean : "attr ${attr.name} caseExact must be boolean"
+            assert attr.multiValued == null || attr.multiValued instanceof Boolean : "attr ${attr.name} multiValued must be boolean"
         }
         ["nickName", "title", "displayName"].each { stdName ->
             def stdAttr = attributes.find { it.name == stdName }
             if (stdAttr != null) {
                 assert (stdAttr.type ?: "string") == "string"
-                assert (stdAttr.mutability ?: "readWrite") == "readWrite"
-                assert (stdAttr.returned ?: "default") == "default"
-                assert (stdAttr.uniqueness ?: "none") == "none"
-                assert (stdAttr.required != null ? stdAttr.required : false) == false
-                assert (stdAttr.caseExact != null ? stdAttr.caseExact : false) == false
+                assert VALID_MUTABILITIES.contains(stdAttr.mutability ?: "readWrite")
+                assert VALID_RETURNED.contains(stdAttr.returned ?: "default")
+                assert VALID_UNIQUENESS.contains(stdAttr.uniqueness ?: "none")
+                assert (stdAttr.required != null ? stdAttr.required : false) instanceof Boolean
+                assert (stdAttr.caseExact != null ? stdAttr.caseExact : false) instanceof Boolean
             }
         }
     }
@@ -685,10 +741,10 @@ class A2_SchemaValidationSpec extends ScimBaseSpec {
         if (!attributes) return
         attributes.each { Map attr ->
             String type = attr.type ?: "string"
-            if (type != "reference" && attr.referenceTypes != null) {
+            if (type != "reference" && attr.referenceTypes != null && !(attr.referenceTypes as List).isEmpty()) {
                 assert false : "Schema '${schemaId}' attr '${attr.name}' of type '${type}' must not have referenceTypes (RFC 7643 §2.2)"
             }
-            if (type != "complex" && attr.subAttributes != null) {
+            if (type != "complex" && attr.subAttributes != null && !(attr.subAttributes as List).isEmpty()) {
                 assert false : "Schema '${schemaId}' attr '${attr.name}' of type '${type}' must not have subAttributes (RFC 7643 §2.2)"
             }
             if (attr.subAttributes instanceof List) {

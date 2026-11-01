@@ -5,6 +5,7 @@ import de.palsoftware.scim.validator.base.ScimOutput
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
+import org.opentest4j.TestAbortedException
 
 /**
  * Area 5c — Sorting
@@ -14,14 +15,21 @@ import io.restassured.response.Response
 @RequiresCapability("sort")
 class A5_SortingSpec extends A5_BaseSpec {
 
+    protected def userSortRequest(String prefix = PREFIX) {
+        def req = scimRequest()
+        if (isFilterSupported() && prefix) {
+            req.queryParam("filter", "userName sw \"${prefix}\"")
+        }
+        return req
+    }
+
     // ─── SRT_01: Sort users ascending ───────────────────────────────────────
 
     @SpecRef("RFC7644-3.4.2.3-R1")
     def "SRT_01: Sort users ascending by userName"() {
         // RFC 7644 §3.4.2.3 — Sorting
         when:
-        Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response = userSortRequest()
             .queryParam("sortBy", "userName")
             .queryParam("sortOrder", "ascending")
             .get("/Users")
@@ -33,6 +41,12 @@ class A5_SortingSpec extends A5_BaseSpec {
 
         and: "Results should be sorted by userName ascending"
         def userNames = resources.collect { it.userName as String }
+        if (!isFilterSupported()) {
+            def matched = userNames.findAll { it.startsWith(PREFIX) }
+            if (matched.size() >= 5) {
+                userNames = matched
+            }
+        }
         def sorted = new ArrayList<String>(userNames)
         sorted.sort { String a, String b -> a.compareToIgnoreCase(b) }
 
@@ -45,8 +59,7 @@ class A5_SortingSpec extends A5_BaseSpec {
     def "SRT_02: Sort users descending by userName"() {
         // RFC 7644 §3.4.2.3 — Sorting with descending order
         when:
-        Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response = userSortRequest()
             .queryParam("sortBy", "userName")
             .queryParam("sortOrder", "descending")
             .get("/Users")
@@ -58,6 +71,12 @@ class A5_SortingSpec extends A5_BaseSpec {
 
         and: "Results MUST be sorted by userName descending"
         def userNames = resources.collect { it.userName as String }
+        if (!isFilterSupported()) {
+            def matched = userNames.findAll { it.startsWith(PREFIX) }
+            if (matched.size() >= 5) {
+                userNames = matched
+            }
+        }
         def sortedDesc = new ArrayList<String>(userNames)
         sortedDesc.sort { String a, String b -> b.compareToIgnoreCase(a) }
 
@@ -70,8 +89,7 @@ class A5_SortingSpec extends A5_BaseSpec {
     def "SRT_03: Default sortOrder is ascending when parameter is omitted"() {
         // RFC 7644 §3.4.2.3: If omitted, the default sort order is ascending
         when: "Query with sortBy but omit sortOrder"
-        Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response = userSortRequest()
             .queryParam("sortBy", "userName")
             .get("/Users")
 
@@ -81,6 +99,12 @@ class A5_SortingSpec extends A5_BaseSpec {
         resources.size() >= 5
 
         def userNames = resources.collect { it.userName as String }
+        if (!isFilterSupported()) {
+            def matched = userNames.findAll { it.startsWith(PREFIX) }
+            if (matched.size() >= 5) {
+                userNames = matched
+            }
+        }
         def sorted = new ArrayList<String>(userNames)
         sorted.sort { String a, String b -> a.compareToIgnoreCase(b) }
 
@@ -93,8 +117,7 @@ class A5_SortingSpec extends A5_BaseSpec {
     def "SRT_04: Sort users by complex sub-attribute name.familyName"() {
         // RFC 7644 §3.4.2.3: complex attribute sortBy is qualified by sub-attribute
         when: "Query with sortBy=name.familyName"
-        Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response = userSortRequest()
             .queryParam("sortBy", "name.familyName")
             .queryParam("sortOrder", "ascending")
             .get("/Users")
@@ -104,7 +127,14 @@ class A5_SortingSpec extends A5_BaseSpec {
         def resources = response.jsonPath().getList("Resources")
         resources.size() >= 5
 
-        def familyNames = resources.collect { it.name?.familyName as String }.findAll { it != null }
+        def targetResources = resources
+        if (!isFilterSupported()) {
+            def matched = resources.findAll { (it.userName as String)?.startsWith(PREFIX) }
+            if (matched.size() >= 5) {
+                targetResources = matched
+            }
+        }
+        def familyNames = targetResources.collect { it.name?.familyName as String }.findAll { it != null }
         assert familyNames.size() >= 5 : "All 5 setup users have name.familyName populated"
         def sortedFamilyNames = new ArrayList<String>(familyNames)
         sortedFamilyNames.sort { String a, String b -> a.compareToIgnoreCase(b) }
@@ -118,8 +148,7 @@ class A5_SortingSpec extends A5_BaseSpec {
     def "SRT_05: Invalid sortBy attribute is gracefully ignored or returns 400"() {
         // Robustness check for invalid sortBy attribute
         when:
-        Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${PREFIX}\"")
+        Response response = userSortRequest()
             .queryParam("sortBy", "nonExistentAttributeXYZ123")
             .get("/Users")
 
@@ -145,21 +174,20 @@ class A5_SortingSpec extends A5_BaseSpec {
         String uOmega = "${prefix}omega@test.com"
         List<String> createdIds = []
 
-        Response r1 = createUser([userName: uAlpha, title: "Alpha"])
+        Response r1 = createUser([userName: uOmega, title: "Omega"])
         assert r1.statusCode() == 201
         createdIds << r1.jsonPath().getString("id")
 
-        Response r2 = createUser([userName: uOmega, title: "Omega"])
+        Response r2 = createUser([userName: uNull])
         assert r2.statusCode() == 201
         createdIds << r2.jsonPath().getString("id")
 
-        Response r3 = createUser([userName: uNull])
+        Response r3 = createUser([userName: uAlpha, title: "Alpha"])
         assert r3.statusCode() == 201
         createdIds << r3.jsonPath().getString("id")
 
         when: "Query with sortBy=title and sortOrder=ascending"
-        Response ascResp = scimRequest()
-            .queryParam("filter", "userName sw \"${prefix}\"")
+        Response ascResp = userSortRequest(prefix)
             .queryParam("sortBy", "title")
             .queryParam("sortOrder", "ascending")
             .get("/Users")
@@ -167,17 +195,25 @@ class A5_SortingSpec extends A5_BaseSpec {
         then: "Status is 200"
         ascResp.statusCode() == 200
         List<String> ascNames = ascResp.jsonPath().getList("Resources.userName") ?: []
-        ascNames.size() == 3
-
-        and: "Missing/null title is ordered last in ascending sort order"
-        assert ascNames.last() == uNull :
-            "User with missing/null title MUST be last in ascending order, got: ${ascNames}"
-        assert ascNames.indexOf(uAlpha) < ascNames.indexOf(uOmega) :
-            "Populated titles MUST be in ascending order"
+        if (isFilterSupported()) {
+            assert ascNames.size() == 3
+            assert ascNames.last() == uNull :
+                "User with missing/null title MUST be last in ascending order, got: ${ascNames}"
+            assert ascNames.indexOf(uAlpha) < ascNames.indexOf(uOmega) :
+                "Populated titles MUST be in ascending order"
+        } else {
+            List<String> matched = ascNames.findAll { it in [uNull, uAlpha, uOmega] }
+            if (matched.size() < 3) {
+                throw new TestAbortedException("Filter capability is unsupported and not all 3 sorting fixture users were returned on the unfiltered page (found ${matched.size()}/3); aborting to prevent vacuous pass")
+            }
+            assert matched.last() == uNull :
+                "User with missing/null title MUST be last in ascending order, got: ${matched}"
+            assert matched.indexOf(uAlpha) < matched.indexOf(uOmega) :
+                "Populated titles MUST be in ascending order"
+        }
 
         when: "Query with sortBy=title and sortOrder=descending"
-        Response descResp = scimRequest()
-            .queryParam("filter", "userName sw \"${prefix}\"")
+        Response descResp = userSortRequest(prefix)
             .queryParam("sortBy", "title")
             .queryParam("sortOrder", "descending")
             .get("/Users")
@@ -185,13 +221,22 @@ class A5_SortingSpec extends A5_BaseSpec {
         then: "Status is 200"
         descResp.statusCode() == 200
         List<String> descNames = descResp.jsonPath().getList("Resources.userName") ?: []
-        descNames.size() == 3
-
-        and: "Missing/null title is ordered first in descending sort order"
-        assert descNames.first() == uNull :
-            "User with missing/null title MUST be first in descending order, got: ${descNames}"
-        assert descNames.indexOf(uOmega) < descNames.indexOf(uAlpha) :
-            "Populated titles MUST be in descending order"
+        if (isFilterSupported()) {
+            assert descNames.size() == 3
+            assert descNames.first() == uNull :
+                "User with missing/null title MUST be first in descending order, got: ${descNames}"
+            assert descNames.indexOf(uOmega) < descNames.indexOf(uAlpha) :
+                "Populated titles MUST be in descending order"
+        } else {
+            List<String> matched = descNames.findAll { it in [uNull, uAlpha, uOmega] }
+            if (matched.size() < 3) {
+                throw new TestAbortedException("Filter capability is unsupported and not all 3 sorting fixture users were returned on the unfiltered page (found ${matched.size()}/3); aborting to prevent vacuous pass")
+            }
+            assert matched.first() == uNull :
+                "User with missing/null title MUST be first in descending order, got: ${matched}"
+            assert matched.indexOf(uOmega) < matched.indexOf(uAlpha) :
+                "Populated titles MUST be in descending order"
+        }
 
         cleanup:
         createdIds.each { id -> if (id) deleteUser(id) }
@@ -245,20 +290,32 @@ class A5_SortingSpec extends A5_BaseSpec {
         createdIds << r3.jsonPath().getString("id")
 
         when: "Query with sortBy=emails and sortOrder=ascending"
-        Response response = scimRequest()
-            .queryParam("filter", "userName sw \"${prefix}\"")
+        Response response = userSortRequest(prefix)
             .queryParam("sortBy", "emails")
             .queryParam("sortOrder", "ascending")
             .get("/Users")
+        if (response.statusCode() == 400) {
+            response = userSortRequest(prefix)
+                .queryParam("sortBy", "emails.value")
+                .queryParam("sortOrder", "ascending")
+                .get("/Users")
+        }
 
         then: "Status is 200"
         response.statusCode() == 200
         List<String> names = response.jsonPath().getList("Resources.userName") ?: []
-        names.size() == 3
-
-        and: "Ordering reflects primary email value (or first value when no primary): [u2, u3, u1]"
-        assert names == [u2, u3, u1] :
-            "Results MUST be ordered by primary email (or first value when no primary): expected [${u2}, ${u3}, ${u1}], got ${names}"
+        if (isFilterSupported()) {
+            assert names.size() == 3
+            assert names == [u2, u3, u1] :
+                "Results MUST be ordered by primary email (or first value when no primary): expected [${u2}, ${u3}, ${u1}], got ${names}"
+        } else {
+            List<String> matched = names.findAll { it in [u1, u2, u3] }
+            if (matched.size() < 3) {
+                throw new TestAbortedException("Filter capability is unsupported and not all 3 sorting fixture users were returned on the unfiltered page (found ${matched.size()}/3); aborting to prevent vacuous pass")
+            }
+            assert matched == [u2, u3, u1] :
+                "Results MUST be ordered by primary email (or first value when no primary): expected [${u2}, ${u3}, ${u1}], got ${matched}"
+        }
 
         cleanup:
         createdIds.each { id -> if (id) deleteUser(id) }

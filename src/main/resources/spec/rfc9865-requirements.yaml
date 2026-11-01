@@ -5,12 +5,12 @@
 - id: RFC9865-2-R1
   rfc: "9865"
   section: "2"
-  title: "Clients request cursor-based pagination with empty or omitted cursor parameter"
-  level: MAY
+  title: "Service providers MUST support initial cursor pagination query where cursor is empty or omitted"
+  level: MUST
   capability: cursorPagination
   observability: response
   disposition: optional
-  note: "cursor parameter value MUST be empty or omitted for the first page (RFC 9865 §2 Table 1)"
+  note: "RFC 9865 §2 Table 1: cursor parameter value MUST be empty or omitted for the first page; service provider MUST accept and process this initial request"
 
 - id: RFC9865-2-R2
   rfc: "9865"
@@ -40,7 +40,7 @@
   capability: cursorPagination
   observability: response
   disposition: optional
-  note: "Client uses nextCursor value from previous page to obtain subsequent resources (RFC 9865 §2)"
+  note: "Client uses nextCursor value from previous page to obtain subsequent resources; server returns distinct next page (RFC 9865 §2)"
 
 - id: RFC9865-2-R5
   rfc: "9865"
@@ -50,7 +50,7 @@
   capability: cursorPagination
   observability: response
   disposition: optional
-  note: "When no more results remain, nextCursor is omitted from ListResponse (RFC 9865 §2 Table 2)"
+  note: "When no more results remain, nextCursor is omitted from ListResponse (RFC 9865 §2 Table 2 states nextCursor is omitted only when no more pages exist)"
 
 - id: RFC9865-2.1-R1
   rfc: "9865"
@@ -70,7 +70,7 @@
   capability: cursorPagination
   observability: response
   disposition: optional
-  note: "cursor parameter may be provided in POST /.search JSON payload (RFC 9865 §3)"
+  note: "cursor parameter may be provided in POST /.search JSON payload (RFC 9865 §3 search operation)"
 
 - id: RFC9865-4-R1
   rfc: "9865"
@@ -80,4 +80,13 @@
   capability: cursorPagination
   observability: response
   disposition: optional
-  note: "pagination complex attribute in ServiceProviderConfig defines cursor and index booleans (RFC 9865 §4)"
+  note: "pagination complex attribute in ServiceProviderConfig defines cursor and index booleans (RFC 9865 §4 discovery schema advertisement is SHOULD)"
+
+# ==============================================================================
+# TASK-25: 23 Out-of-Scope / Uncataloged RFC Topics Deferred from Baseline 159
+# The following out-of-scope / uncataloged RFC 9865 topic (topic #22 of 23
+# across RFC 7644, RFC 9865, and RFC 9967) is documented for future reference
+# without altering the 159-requirement catalog invariant:
+#
+# 22. RFC 9865 §§2.1, 2.4, 5.2 - invalidCount error handling, default pagination method, and authorization confinement.
+# ==============================================================================

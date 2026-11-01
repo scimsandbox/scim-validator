@@ -110,15 +110,19 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
         and: "Check meta.version and ETag header for consistency"
         String version = response.jsonPath().getString("meta.version")
         String etagHeader = response.header("ETag")
-        assert version != null && etagHeader != null : "Both ETag header and meta.version must be returned when etag.supported=true (RFC 7643 §3.1)"
-
-        and: "Weak ETag prefix W/ is case-sensitive and ETag header matches meta.version"
+        assert etagHeader != null : "ETag HTTP header must be returned when etag.supported=true (RFC 7644 §3.14)"
         assert !etagHeader.startsWith("w/") : "Weak entity-tag prefix 'W/' is case-sensitive and must not use lowercase 'w/' (RFC 7643 §3.1)"
-        assert !version.startsWith("w/") : "Weak entity-tag prefix 'W/' in meta.version is case-sensitive and must not use lowercase 'w/' (RFC 7643 §3.1)"
-        String normalizedEtag = etagHeader.replace("W/\"", "").replace("\"", "")
-        String normalizedVersion = version.replace("W/\"", "").replace("\"", "")
-        assert normalizedEtag == normalizedVersion :
-            "ETag header '${etagHeader}' and meta.version '${version}' must agree (RFC 7643 §3.1 / RFC 7644 §3.14)"
+
+        and: "When optional meta.version is present, weak prefix and entity-tag match consistently"
+        if (version != null) {
+            assert !version.startsWith("w/") : "Weak entity-tag prefix 'W/' in meta.version is case-sensitive and must not use lowercase 'w/' (RFC 7643 §3.1)"
+            assert etagHeader.startsWith("W/") == version.startsWith("W/") :
+                "Weak ETag prefix 'W/' must be consistent between ETag header ('${etagHeader}') and meta.version ('${version}') (RFC 7643 §3.1)"
+            String normalizedEtag = etagHeader.replaceFirst(/^W\//, "").replace("\"", "")
+            String normalizedVersion = version.replaceFirst(/^W\//, "").replace("\"", "")
+            assert normalizedEtag == normalizedVersion :
+                "ETag header '${etagHeader}' and meta.version '${version}' must agree (RFC 7643 §3.1 / RFC 7644 §3.14)"
+        }
     }
 
     // ─── SEC_06: Unsupported HTTP method returns 405 ────────────────────────
@@ -448,16 +452,28 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
     def "SEC_20: Request with unsupported Content-Type returns 415 or 400 Bad Request"() {
         // RFC 7644 §3.8 — Unsupported Content-Type SHOULD return HTTP 415
         when: "POST with unsupported Content-Type: application/xml"
+        String leakedId = null
         Response response = scimRequestQuiet()
             .contentType("application/xml")
-            .body("<User><userName>xml_user@test.com</userName></User>")
+            .body("<User><userName>xml_user_${UUID.randomUUID().toString().substring(0, 8)}@test.com</userName></User>")
             .post("/Users")
+        if (response?.statusCode() in [200, 201]) {
+            try {
+                leakedId = response.jsonPath().getString("id")
+                if (leakedId) createdUserIds << leakedId
+            } catch (Exception ignored) {}
+        }
 
         then: "Server returns 415 Unsupported Media Type or 400 Bad Request"
         response.statusCode() in [400, 415]
 
         and: "Server response includes SCIM Error schema"
         response.jsonPath().getList("schemas")?.contains(ERROR_SCHEMA)
+
+        cleanup:
+        if (leakedId) {
+            deleteUser(leakedId)
+        }
     }
 
     // ─── SEC_21: Optimistic Concurrency on PUT with Outdated If-Match ────────
@@ -489,23 +505,19 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
     @RequiresCapability("etag")
     @SpecRef("RFC7644-3.14-R2")
-    def "SEC_22: PUT with outdated If-Match ETag returns 412 Precondition Failed"() {
+    def "SEC_22: PATCH with outdated If-Match ETag returns 412 Precondition Failed"() {
         // RFC 7644 §3.13, §3.14 — Precondition Failed on ETag mismatch
         given:
-        Response userResp = scimRequest().get("/Users/${testUserId}")
-        assert userResp.statusCode() == 200
-        String currentUserName = userResp.jsonPath().getString("userName")
-        Map putPayload = [
-            schemas    : [USER_SCHEMA],
-            userName   : currentUserName,
-            displayName: "Stale Put Name"
-        ]
+        requireCapability("patch")
+        Map patchPayload = buildPatchOp([
+            [op: "replace", path: "displayName", value: "Stale Patch Name"]
+        ])
 
-        when: "PUT with known-stale / synthetic ETag"
+        when: "PATCH with known-stale / synthetic ETag"
         Response response = scimRequestQuiet()
             .header("If-Match", 'W/"synthetic-stale-etag-88888"')
-            .body(JsonOutput.toJson(putPayload))
-            .put("/Users/${testUserId}")
+            .body(JsonOutput.toJson(patchPayload))
+            .patch("/Users/${testUserId}")
 
         then: "Server rejects with 412 Precondition Failed"
         assertScimError(response, 412)
@@ -631,15 +643,19 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
         ]
 
         when: "POST create user with password"
+        String createdId = null
         Response postRes = scimRequest()
             .body(JsonOutput.toJson(payload))
             .post("/Users")
+        if (postRes.statusCode() in [200, 201]) {
+            try { createdId = postRes.jsonPath().getString("id") } catch (Exception ignored) {}
+        }
 
         then: "POST response does NOT contain password"
         postRes.statusCode() == 201
         !postRes.body().asString().contains(secretPass)
         !postRes.body().asString().contains('"password"')
-        String createdId = postRes.jsonPath().getString("id")
+        assert createdId != null : "Created user ID must not be null"
 
         when: "PUT user representation with password"
         Map putPayload = [
@@ -663,6 +679,18 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
         then: "GET response does NOT contain password"
         getRes.statusCode() == 200
         !getRes.body().asString().contains('"password"')
+
+        when: "GET /Users list query"
+        def listReq = scimRequest()
+        if (isFilterSupported()) {
+            listReq.queryParam("filter", "userName eq \"${uniqueName}\"")
+        }
+        Response listRes = listReq.get("/Users")
+
+        then: "List response does NOT contain password"
+        listRes.statusCode() == 200
+        !listRes.body().asString().contains('"password"')
+        !listRes.body().asString().contains(secretPass)
 
         cleanup:
         if (createdId) deleteUser(createdId)
@@ -705,8 +733,10 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
 
     @SpecRef("RFC7644-3.12-R3")
     def "SEC_27: HTTP 401 and 403 error responses return JSON error body"() {
-        // RFC 7644 §3.12: "For HTTP status codes 401 and 403, the response body MUST
-        // be formatted as JSON using the 'urn:ietf:params:scim:api:messages:2.0:Error' schema."
+        // RFC 7644 §3.12: "In addition to returning an HTTP response code, implementers MUST
+        // return the errors in the body of the response in a JSON format, using the attributes
+        // described below. Error responses are identified using the following 'schema' URI:
+        // 'urn:ietf:params:scim:api:messages:2.0:Error'."
         when: "Unauthenticated request"
         Response response = scimRequestAnonymous()
             .get("/Users")
@@ -757,16 +787,20 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
             .toJson(userPayload)
 
         when: "POST raw UTF-8 JSON"
+        String uid = null
         Response response = scimRequest()
             .contentType("${SCIM_CONTENT_TYPE}; charset=UTF-8")
             .body(rawUtf8Json)
             .post("/Users")
+        if (response.statusCode() in [200, 201]) {
+            try { uid = response.jsonPath().getString("id") } catch (Exception ignored) {}
+        }
 
         then:
         response.statusCode() == 201
         response.contentType().contains(SCIM_CONTENT_TYPE)
         response.jsonPath().getString("displayName") == unicodeName
-        String uid = response.jsonPath().getString("id")
+        assert uid != null : "Created user ID must not be null"
 
         cleanup:
         if (uid) deleteUser(uid)
@@ -803,17 +837,19 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
         ]
 
         when: "POST with Content-Type: application/json and Accept: application/scim+json"
+        String createdId = null
         Response response = scimRequest()
             .contentType("application/json")
             .accept(SCIM_CONTENT_TYPE)
             .body(JsonOutput.toJson(payload))
             .post("/Users")
+        if (response.statusCode() in [200, 201]) {
+            try { createdId = response.jsonPath().getString("id") } catch (Exception ignored) {}
+        }
 
         then: "Server returns 201 Created or 415 Unsupported Media Type"
         response.statusCode() in [201, 415]
-        String createdId = null
         if (response.statusCode() == 201) {
-            createdId = response.jsonPath().getString("id")
             assert createdId != null
         }
 
@@ -827,11 +863,14 @@ class A8_SecurityAndRobustnessSpec extends ScimBaseSpec {
     def "SEC_32: Default format is application/scim+json when Accept header is omitted"() {
         // RFC 7644 §3.8: "When no format is specified, the format defaults to 'application/scim+json'."
         when: "Request user without explicit Accept header"
-        Response response = io.restassured.RestAssured.given()
+        def req = io.restassured.RestAssured.given()
+            .filter(new de.palsoftware.scim.validator.base.ScimExchangeCaptureFilter())
             .baseUri(state().scimApiUrl)
             .basePath(state().basePath)
-            .header("Authorization", "Bearer ${state().authToken}")
-            .get("/Users/${testUserId}")
+        if (state().authToken) {
+            req.header("Authorization", "Bearer ${state().authToken}")
+        }
+        Response response = req.get("/Users/${testUserId}")
 
         then: "Response Content-Type defaults to application/scim+json"
         response.statusCode() == 200

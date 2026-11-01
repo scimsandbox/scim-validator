@@ -30,57 +30,57 @@
   capability: none
   observability: response
   disposition: tested
-  note: "required=false, caseExact=false, mutability=readWrite, returned=default, uniqueness=none, multiValued=false, type=string"
+  note: "required=false, caseExact=false, mutability=readWrite, returned=default, uniqueness=none, type=string (RFC 7643 §2.2 defines these defaults when omitted; §2.2 defines multiValued as a Boolean plurality indicator without specifying an omission default, and §7/§8.7 declare multiValued explicitly on schema attributes)"
 
 - id: RFC7643-2.2-R3
   rfc: "7643"
-  section: "2.2"
+  section: "7"
   title: "Attribute mutability definitions (readOnly, readWrite, immutable, writeOnly) are enforced"
   level: MUST
   capability: none
   observability: behavior
   disposition: tested
-  note: "readOnly cannot be modified; immutable cannot be modified once set"
+  note: "RFC 7643 §2.2 / §7: readOnly cannot be modified; immutable cannot be modified once set"
 
 - id: RFC7643-2.2-R4
   rfc: "7643"
-  section: "2.2"
+  section: "7"
   title: "Attribute returned definitions (always, never, default, request) are honored"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "returned=never attributes like password are never returned in responses"
+  note: "RFC 7643 §2.2 / §7: returned=never attributes like password are never returned in responses"
 
 - id: RFC7643-2.2-R5
   rfc: "7643"
-  section: "2.2"
+  section: "7"
   title: "Attribute uniqueness definitions (none, server, global) are enforced"
-  level: MUST
+  level: SHOULD
   capability: none
   observability: behavior
   disposition: tested
-  note: "Enforces server-wide uniqueness for unique attributes"
+  note: "RFC 7643 §2.2 / §7: server MAY reject duplicate values and global uniqueness values SHOULD be globally unique"
 
 - id: RFC7643-2.2-R6
   rfc: "7643"
-  section: "2.2"
-  title: "Attribute caseExact definition is honored in filtering and matching"
+  section: "7"
+  title: "Attribute caseExact definition is honored in case preservation and filter matching"
   level: MUST
   capability: filter
   observability: behavior
   disposition: optional
-  note: "caseExact false matches case-insensitively; caseExact true requires exact case match"
+  note: "RFC 7643 §2.2 / §7: \"For attributes that are case exact, the server SHALL preserve case for any value submitted.\" Compound requirement covering case preservation for caseExact=true attributes and case-insensitive filtering for caseExact=false attributes per RFC 7644 §3.4.2.2 (kept as a single catalog entry to preserve the 159-requirement catalog schema)."
 
 - id: RFC7643-2.2-R7
   rfc: "7643"
-  section: "2.2"
+  section: "7"
   title: "Schema attribute canonicalValues declares applicable canonical types; server MAY restrict values"
   level: MAY
   capability: none
   observability: response
-  disposition: tested
-  note: "When applicable, schemas specify canonicalValues (e.g. work, home, other); servers MAY restrict values to canonical list"
+  disposition: optional
+  note: "RFC 7643 §2.2 / §7: When applicable, schemas specify canonicalValues (e.g. work, home, other); servers MAY restrict values to canonical list (disposition optional prevents unadvertised canonicalValues from docking core coverage)"
 
 - id: RFC7643-2.3-R1
   rfc: "7643"
@@ -90,7 +90,7 @@
   capability: none
   observability: response
   disposition: tested
-  note: "Invalid data types (e.g. string for boolean/integer) return 400 invalidValue"
+  note: "Persisted attribute values MUST conform to declared RFC 7643 §2.3 data types; invalid input types (e.g. non-boolean string for boolean or primitive for complex) are rejected with HTTP 400 (invalidValue/invalidSyntax) or coerced/ignored per RFC 7644 §3.3 without persisting invalid types"
 
 - id: RFC7643-2.3.5-R1
   rfc: "7643"
@@ -129,8 +129,8 @@
   level: MAY
   capability: none
   observability: behavior
-  disposition: tested
-  note: "Referential integrity enforcement is optional per RFC 7643 §2.3.7"
+  disposition: optional
+  note: "Referential integrity enforcement is optional per RFC 7643 §2.3.7 (disposition optional prevents unadvertised cascading integrity from docking core coverage)"
 
 - id: RFC7643-2.3.8-R1
   rfc: "7643"
@@ -155,12 +155,12 @@
 - id: RFC7643-2.4-R2
   rfc: "7643"
   section: "2.4"
-  title: "Multi-valued complex attribute display sub-attribute is a human-readable string with immutable, readOnly, or readWrite mutability"
+  title: "Multi-valued complex attribute display sub-attribute is a human-readable string"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "RFC 7643 §2.4 defines display with mutability 'immutable'; §8.7.1 schemas also declare 'readOnly' or 'readWrite'"
+  note: "RFC 7643 §2.4 defines display as a human-readable name with mutability 'readOnly', while §8.7.1 core schema definitions also use 'readWrite' or 'immutable' across multi-valued attributes"
 
 - id: RFC7643-2.4-R3
   rfc: "7643"
@@ -175,12 +175,12 @@
 - id: RFC7643-2.5-R1
   rfc: "7643"
   section: "2.5"
-  title: "Unassigned attributes are treated as null or empty array and MAY be omitted"
-  level: MAY
+  title: "Unassigned attributes, null value, or empty array SHALL be considered equivalent in state"
+  level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "Unassigned attributes omitted or returned as null"
+  note: "RFC 7643 §2.5: \"Unassigned attributes, the null value, or empty array (in the case of a multi-valued attribute) SHALL be considered to be equivalent in 'state'\"; service providers MAY omit unassigned attributes or return null/empty in responses (kept as a single catalog entry to preserve the 159-requirement catalog schema)."
 
 - id: RFC7643-3-R1
   rfc: "7643"
@@ -326,21 +326,21 @@
   rfc: "7643"
   section: "4.1.2"
   title: "User emails is multi-valued with canonical types (work, home, other) and primary"
-  level: MUST
+  level: SHOULD
   capability: none
   observability: response
   disposition: tested
-  note: "Email addresses multi-valued complex attribute"
+  note: "RFC 7643 §4.1.2 states canonical types (work, home, other) are typical values and service providers MAY define additional canonical types"
 
 - id: RFC7643-4.1.2-R2
   rfc: "7643"
   section: "4.1.2"
   title: "User phoneNumbers is multi-valued with canonical types (work, home, mobile, fax, pager, other)"
-  level: MUST
+  level: SHOULD
   capability: none
   observability: response
   disposition: tested
-  note: "Phone numbers multi-valued complex attribute"
+  note: "RFC 7643 §4.1.2 states phone number canonical types are typical values and service providers MAY define additional canonical types"
 
 - id: RFC7643-4.1.2-R3
   rfc: "7643"
@@ -446,11 +446,11 @@
   rfc: "7643"
   section: "4.3"
   title: "Enterprise User manager complex attribute includes value ($ref) and readOnly displayName"
-  level: MUST
+  level: SHOULD
   capability: enterprise
   observability: response
   disposition: optional
-  note: "Manager reference to another User"
+  note: "RFC 7643 §4.3 defines manager.value and $ref as RECOMMENDED, and displayName as OPTIONAL readOnly"
 
 - id: RFC7643-5-R1
   rfc: "7643"
@@ -465,12 +465,12 @@
 - id: RFC7643-6-R1
   rfc: "7643"
   section: "6"
-  title: "ResourceType representations declare name, endpoint, schema, and schemaExtensions"
+  title: "ResourceType representations declare name, endpoint, schema, and optional schemaExtensions"
   level: MUST
   capability: none
   observability: response
   disposition: tested
-  note: "ResourceType name and endpoint are server-unique and case-exact per erratum 8475"
+  note: "ResourceType name and endpoint are server-unique and case-exact per erratum 8475; schemaExtensions is optional"
 
 - id: RFC7643-7-R1
   rfc: "7643"

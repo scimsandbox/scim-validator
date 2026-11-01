@@ -8,7 +8,6 @@ import groovy.json.JsonOutput
 import io.restassured.response.Response
 import org.opentest4j.TestAbortedException
 import spock.lang.Shared
-import spock.lang.Stepwise
 
 /**
  * Area 3 — User CRUD Lifecycle
@@ -18,7 +17,6 @@ import spock.lang.Stepwise
  *
  * RFC 7644 §3.3 (POST), §3.4.1 (GET), §3.5.1 (PUT), §3.6 (DELETE)
  */
-@Stepwise
 class A3_UserCrudSpec extends ScimBaseSpec {
 
     @Shared String minimalUserId
@@ -27,6 +25,31 @@ class A3_UserCrudSpec extends ScimBaseSpec {
     @Shared String putTestUserId
     @Shared String putImmutTestUserId
     @Shared String deleteTestUserId
+
+    protected void ensureMinimalUser() {
+        if (!minimalUserId) {
+            minimalUserName = "usr01_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
+            def response = createUser(userName: minimalUserName)
+            assert response.statusCode() == 201 : "Fixture: minimal user creation failed: ${response.body().asString()}"
+            minimalUserId = response.jsonPath().getString("id")
+        }
+    }
+
+    protected String ensureDeletedUser() {
+        if (deleteTestUserId) {
+            def check = scimRequestQuiet().get("/Users/${deleteTestUserId}")
+            if (check.statusCode() == 404) {
+                return deleteTestUserId
+            }
+        }
+        def createResponse = createUser()
+        assert createResponse.statusCode() == 201 : "Failed to create fixture resource to delete"
+        String deletedUserId = createResponse.jsonPath().getString("id")
+        assert deletedUserId != null
+        deleteTestUserId = deletedUserId
+        scimRequestQuiet().delete("/Users/${deleteTestUserId}")
+        return deleteTestUserId
+    }
 
     // ─── USR_01: POST minimal user ──────────────────────────────────────────
 
@@ -84,7 +107,7 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         def userName = "usr02_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
 
         when: "POST to /Users"
-        def response = createFullUser(userName: userName)
+        def response = createFullUser(userName: userName, includeEnterprise: true)
         fullUserId = response.jsonPath().getString("id")
 
         then: "Status is 201 Created"
@@ -109,7 +132,7 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         def emails = response.jsonPath().getList("emails")
         emails.size() == 2
         emails.find { it.type == "work" && it.primary == true } != null
-        emails.find { it.type == "home" && it.primary == false } != null
+        emails.find { it.type == "home" && it.primary != true } != null
     }
 
     // ─── USR_03: GET user by ID ─────────────────────────────────────────────
@@ -120,6 +143,9 @@ class A3_UserCrudSpec extends ScimBaseSpec {
     @SpecRef("RFC7643-2.4-R1")
     def "USR_03: GET user by ID returns the created user"() {
         // RFC 7644 §3.4.1 — Retrieving a Known Resource
+        given: "Ensure minimal user fixture exists"
+        ensureMinimalUser()
+
         when: "GET /Users/{id}"
         def response = scimRequest()
             .get("/Users/${minimalUserId}")
@@ -204,27 +230,15 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         putResponse.statusCode() == 200
 
         and: "Supplied attributes are updated"
-        putResponse.jsonPath().getString("name.givenName") == "UpdatedFirst"
-        putResponse.jsonPath().getString("name.familyName") == "UpdatedLast"
-        putResponse.jsonPath().getString("emails[0].value") == putEmail
-        if (putResponse.jsonPath().get("displayName") != null) {
-            assert putResponse.jsonPath().getString("displayName") == "UpdatedFirst UpdatedLast"
-        }
-        if (putResponse.jsonPath().get("userType") != null) {
-            assert putResponse.jsonPath().getString("userType") == "Employee"
-        }
-        if (putResponse.jsonPath().get("profileUrl") != null) {
-            assert putResponse.jsonPath().getString("profileUrl") == "https://example.com/users/profile"
-        }
-        if (putResponse.jsonPath().get("preferredLanguage") != null) {
-            assert putResponse.jsonPath().getString("preferredLanguage") == "en-US"
-        }
-        if (putResponse.jsonPath().get("locale") != null) {
-            assert putResponse.jsonPath().getString("locale") == "en-US"
-        }
-        if (putResponse.jsonPath().get("timezone") != null) {
-            assert putResponse.jsonPath().getString("timezone") == "America/Los_Angeles"
-        }
+        assert putResponse.jsonPath().getString("name.givenName") == "UpdatedFirst"
+        assert putResponse.jsonPath().getString("name.familyName") == "UpdatedLast"
+        assert putResponse.jsonPath().getString("emails[0].value") == putEmail
+        assert putResponse.jsonPath().getString("displayName") == "UpdatedFirst UpdatedLast"
+        assert putResponse.jsonPath().getString("userType") == "Employee"
+        assert putResponse.jsonPath().getString("profileUrl") == "https://example.com/users/profile"
+        assert putResponse.jsonPath().getString("preferredLanguage") == "en-US"
+        assert putResponse.jsonPath().getString("locale") == "en-US"
+        assert putResponse.jsonPath().getString("timezone") == "America/Los_Angeles"
 
         when: "Subsequent GET /Users/{id}"
         def getResponse = scimRequest().get("/Users/${putTestUserId}")
@@ -288,6 +302,9 @@ class A3_UserCrudSpec extends ScimBaseSpec {
     @SpecRef("RFC7644-3.6-R2")
     def "USR_08: GET after DELETE returns 404"() {
         // RFC 7644 §3.6 — Deleting Resources
+        given: "Ensure a deleted user fixture exists"
+        ensureDeletedUser()
+
         when: "GET deleted user"
         def response = scimRequest()
             .get("/Users/${deleteTestUserId}")
@@ -302,6 +319,9 @@ class A3_UserCrudSpec extends ScimBaseSpec {
     @SpecRef("RFC7644-3.6-R2")
     def "USR_09: DELETE already-deleted user returns 404"() {
         // RFC 7644 §3.6 — Deleting Resources
+        given: "Ensure a deleted user fixture exists"
+        ensureDeletedUser()
+
         when: "DELETE the already deleted user again"
         def response = scimRequest()
             .delete("/Users/${deleteTestUserId}")
@@ -321,10 +341,12 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         def createResponse = createUser(userName: listTestUserName)
         def userId = createResponse.jsonPath().getString("id")
 
-        when: "GET /Users?filter=userName eq \"...\""
-        def response = scimRequest()
-            .queryParam("filter", "userName eq \"${listTestUserName}\"")
-            .get("/Users")
+        when: "GET /Users list"
+        def req = scimRequest()
+        if (isFilterSupported()) {
+            req.queryParam("filter", "userName eq \"${listTestUserName}\"")
+        }
+        def response = req.get("/Users")
 
         then: "Status is 200 OK"
         response.statusCode() == 200
@@ -333,8 +355,13 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         def body = response.jsonPath()
         body.getList("schemas").contains(LIST_RESPONSE_SCHEMA)
         body.getInt("totalResults") >= 1
-        def resources = body.getList("Resources")
-        resources.find { it.userName == listTestUserName } != null
+        if (isFilterSupported()) {
+            def resources = body.getList("Resources")
+            assert resources.find { it.userName == listTestUserName } != null
+        } else {
+            def direct = scimRequest().get("/Users/${userId}")
+            assert direct.statusCode() == 200
+        }
 
         cleanup:
         if (userId) {
@@ -374,6 +401,7 @@ class A3_UserCrudSpec extends ScimBaseSpec {
     def "USR_12: POST user without required userName returns 400 Bad Request"() {
         // RFC 7644 §3.3, RFC 7643 §4.1.1 — Missing required attribute
         when: "POST to /Users without userName"
+        String leakedId = null
         def payload = [
             schemas: [USER_SCHEMA],
             name   : [givenName: "NoUserName", familyName: "Test"]
@@ -381,12 +409,23 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         def response = scimRequestQuiet()
             .body(JsonOutput.toJson(payload))
             .post("/Users")
+        if (response?.statusCode() in [200, 201]) {
+            try {
+                leakedId = response.jsonPath().getString("id")
+                if (leakedId) createdUserIds << leakedId
+            } catch (Exception ignored) {}
+        }
 
         then: "Status is 400 Bad Request"
         response.statusCode() == 400
 
         and: "Response conforms to SCIM Error schema"
         assertScimError(response, 400)
+
+        cleanup:
+        if (leakedId) {
+            deleteUser(leakedId)
+        }
     }
 
     // ─── USR_13: POST duplicate userName ────────────────────────────────────
@@ -709,8 +748,6 @@ class A3_UserCrudSpec extends ScimBaseSpec {
 
     @SpecRef("RFC7643-4.1.2-R3")
     @SpecRef("RFC7643-4.1.2-R4")
-    @SpecRef("RFC7643-2.4-R1")
-    @SpecRef("RFC7643-2.4-R2")
     def "USR_21: User creation with multi-valued ims and photos attributes"() {
         // RFC 7643 §4.1.2 — User multi-valued attributes (ims, photos)
         given: "User with ims and photos attributes"
@@ -732,13 +769,12 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         String id = response.jsonPath().getString("id")
         if (id) createdUserIds << id
         def ims = response.jsonPath().getList("ims")
-        if (ims != null) {
-            assert ims.any { it.value == "dev_im_handle" }
-        }
         def photos = response.jsonPath().getList("photos")
-        if (photos != null) {
-            assert photos.any { it.value == "https://example.com/photos/user.png" }
+        if (ims == null || photos == null) {
+            throw new TestAbortedException("Server does not support both optional 'ims' and 'photos' multi-valued attributes")
         }
+        assert ims.any { it.value == "dev_im_handle" } : "Expected 'ims' to contain supplied dev_im_handle"
+        assert photos.any { it.value == "https://example.com/photos/user.png" } : "Expected 'photos' to contain supplied photo URL"
     }
 
     // ─── USR_22: Multi-valued duplicate (type, value) de-duplication ────────
@@ -812,7 +848,7 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         // RFC 7643 §3: "Extended attributes MUST be in their own JSON sub-structure keyed by schema URI; no top-level leak."
         given: "Create user with enterprise extension"
         def userName = "leak_check_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
-        Response response = createFullUser(userName: userName)
+        Response response = createFullUser(userName: userName, includeEnterprise: true)
         assert response.statusCode() == 201
         String uid = response.jsonPath().getString("id")
 
@@ -894,6 +930,10 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         assert createResponse.statusCode() == 201
         def userId = createResponse.jsonPath().getString("id")
         createdUserIds << userId
+        assert createResponse.jsonPath().getString("title") == "Manager" :
+            "Initial POST must store supplied readWrite attribute 'title' before testing PUT clearing"
+        assert createResponse.jsonPath().getString("nickName") == "OrigNick" :
+            "Initial POST must store supplied readWrite attribute 'nickName' before testing PUT clearing"
 
         when: "PUT user omitting title and nickName"
         def putPayload = [
@@ -904,8 +944,10 @@ class A3_UserCrudSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(putPayload))
             .put("/Users/${userId}")
 
-        then: "PUT returns 200 OK"
+        then: "PUT returns 200 OK with valid user representation"
         assert putResponse.statusCode() == 200
+        assert putResponse.jsonPath().getString("id") == userId
+        assert putResponse.jsonPath().getString("userName") == userName
 
         and: "Check if omitted readWrite attributes were cleared or defaulted"
         String putTitle = putResponse.jsonPath().getString("title")
@@ -916,15 +958,18 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         when: "Verify via subsequent GET"
         def getResponse = scimRequestQuiet().get("/Users/${userId}")
         assert getResponse.statusCode() == 200
+        assert getResponse.jsonPath().getString("id") == userId
+        assert getResponse.jsonPath().getString("userName") == userName
         String getTitle = getResponse.jsonPath().getString("title")
         String getNick = getResponse.jsonPath().getString("nickName")
         boolean persistedCleared = (getTitle == null || getTitle != "Manager") &&
                                    (getNick == null || getNick != "OrigNick")
 
-        then: "If server retains omitted attributes, abort via TestAbortedException"
+        then: "If server retains omitted attributes, abort via TestAbortedException; otherwise verify cleared"
         if (!clearedOrDefaulted || !persistedCleared) {
             throw new TestAbortedException("Server retains omitted readWrite attributes on PUT contrary to RFC 7644 §3.5.1 MAY")
         }
+        assert clearedOrDefaulted && persistedCleared
     }
 
     // ─── USR_27: Deleted User is omitted from subsequent GET queries ─────────
@@ -1077,8 +1122,6 @@ class A3_UserCrudSpec extends ScimBaseSpec {
     // ─── USR_32: Multi-valued addresses with valid ISO 3166-1 country code ──
 
     @SpecRef("RFC7643-4.1.2-R5")
-    @SpecRef("RFC7643-2.4-R1")
-    @SpecRef("RFC7643-2.4-R2")
     def "USR_32: User creation with multi-valued addresses and valid ISO 3166-1 country code"() {
         // RFC 7643 §4.1.2 & §2.4 — User multi-valued addresses with ISO 3166-1 country code
         given: "User with addresses"
@@ -1110,8 +1153,6 @@ class A3_UserCrudSpec extends ScimBaseSpec {
     // ─── USR_33: Multi-valued roles and entitlements ────────────────────────
 
     @SpecRef("RFC7643-4.1.2-R7")
-    @SpecRef("RFC7643-2.4-R1")
-    @SpecRef("RFC7643-2.4-R2")
     def "USR_33: User creation with multi-valued roles and entitlements"() {
         // RFC 7643 §4.1.2 & §2.4 — User multi-valued roles and entitlements
         given: "User with roles and entitlements"
@@ -1175,10 +1216,10 @@ class A3_UserCrudSpec extends ScimBaseSpec {
         assert returnedBytes == derBytes
     }
 
-    // ─── USR_35: Invalid ISO 3166-1 country code returns 400 Bad Request ────
+    // ─── USR_35: Invalid ISO 3166-1 country code returns 400 or alters/ignores (201) ────
 
     @SpecRef("RFC7643-4.1.2-R5")
-    def "USR_35: POST /Users with non-ISO-3166-1 alpha-2 country code returns 400 Bad Request"() {
+    def "USR_35: POST /Users with non-ISO-3166-1 alpha-2 country code returns 400 or alters/ignores (201)"() {
         // RFC 7643 §4.1.2 — addresses.country MUST be a valid ISO 3166-1 alpha-2 country code
         given: "User payload with 3-letter country code 'USA'"
         def userName = "bad_country_${UUID.randomUUID().toString().substring(0, 8)}@test.com"
@@ -1195,13 +1236,27 @@ class A3_UserCrudSpec extends ScimBaseSpec {
             .body(JsonOutput.toJson(payload))
             .post("/Users")
 
-        then: "Server rejects with HTTP 400 Bad Request"
+        then: "Server rejects with HTTP 400 Bad Request or normalizes/alters/ignores per RFC 7644 §3.3 returning 201"
         if (response.statusCode() == 201) {
             String id = response.jsonPath().getString("id")
             if (id) createdUserIds << id
         }
-        assert response.statusCode() == 400 : "Expected 400 Bad Request for non-ISO-3166-1 country code, got ${response.statusCode()}"
-        assertScimErrorOptionalType(response, 400, "invalidValue")
+        assert response.statusCode() in [201, 400] : "Expected 400 Bad Request or 201 Created for country code alteration/rejection, got ${response.statusCode()}"
+        if (response.statusCode() == 400) {
+            assertScimErrorOptionalType(response, 400, "invalidValue")
+        } else {
+            assert response.jsonPath().getString("id") != null
+            assert response.jsonPath().getString("userName") == userName
+            List<Map> addresses = response.jsonPath().getList("addresses")
+            if (addresses != null && !addresses.isEmpty()) {
+                addresses.each { Map addr ->
+                    if (addr?.country != null) {
+                        String country = addr.country as String
+                        assert country ==~ /^[A-Z]{2}$/ && Locale.getISOCountries().contains(country) : "RFC 7643 §4.1.2: when returning 201, invalid country 'USA' must be omitted/ignored or coerced to a valid ISO 3166-1 alpha-2 code (e.g. 'US'), got: ${country}"
+                    }
+                }
+            }
+        }
     }
 
     // ─── Cleanup ────────────────────────────────────────────────────────────

@@ -170,14 +170,41 @@ class SpecMatrixGenerator {
         Pattern methodPattern = Pattern.compile('^\\s*def\\s+(?:"([^"]+)"|\'([^\']+)\')\\s*\\(.*')
         Pattern specRefPattern = Pattern.compile('@SpecRef\\s*\\(\\s*["\']([^"\']+)["\'](?:\\s*,\\s*note\\s*=\\s*["\']([^"\']*)["\'])?\\s*\\)')
         Pattern capPattern = Pattern.compile('@RequiresCapability\\s*\\(\\s*["\']([^"\']+)["\']\\s*\\)')
+        Pattern runtimeCapPattern = Pattern.compile('\\brequireCapability\\s*\\(\\s*["\']([^"\']+)["\']\\s*\\)')
 
-        Files.list(specsDir).filter { it.toString().endsWith(".groovy") }.sorted().forEach { file ->
+        Pattern specPrefixPattern = Pattern.compile('^A(\\d+)')
+        Comparator<Path> naturalSpecComparator = new Comparator<Path>() {
+            @Override
+            int compare(Path p1, Path p2) {
+                String n1 = p1.fileName.toString()
+                String n2 = p2.fileName.toString()
+                Matcher m1 = specPrefixPattern.matcher(n1)
+                Matcher m2 = specPrefixPattern.matcher(n2)
+                boolean f1 = m1.find()
+                boolean f2 = m2.find()
+                if (f1 && f2) {
+                    int num1 = Integer.parseInt(m1.group(1))
+                    int num2 = Integer.parseInt(m2.group(1))
+                    if (num1 != num2) {
+                        return Integer.compare(num1, num2)
+                    }
+                } else if (f1) {
+                    return -1
+                } else if (f2) {
+                    return 1
+                }
+                return n1.compareTo(n2)
+            }
+        }
+
+        Files.list(specsDir).filter { it.toString().endsWith(".groovy") }.sorted(naturalSpecComparator).forEach { file ->
             List<String> lines = Files.readAllLines(file)
             String fileName = file.fileName.toString()
             List<String> pendingSpecRefs = []
             String classCap = null
             String pendingCap = null
             boolean inClassBody = false
+            TestMethod currentTest = null
 
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i)
@@ -212,8 +239,17 @@ class SpecMatrixGenerator {
                         capabilities: [classCap, pendingCap].findAll { it != null && it != 'none' }.unique()
                     )
                     tests.add(test)
+                    currentTest = test
                     pendingSpecRefs.clear()
                     pendingCap = null
+                } else if (currentTest != null) {
+                    Matcher runtimeCapMatcher = runtimeCapPattern.matcher(line)
+                    while (runtimeCapMatcher.find()) {
+                        String rtCap = runtimeCapMatcher.group(1).trim()
+                        if (rtCap && rtCap != 'none' && !currentTest.capabilities.contains(rtCap)) {
+                            currentTest.capabilities.add(rtCap)
+                        }
+                    }
                 }
             }
         }
@@ -222,7 +258,7 @@ class SpecMatrixGenerator {
     }
 
     static String extractTestId(String title, String fileName, int index) {
-        Matcher m = Pattern.compile('^([A-Z0-9_]+):\\s*(.*)').matcher(title)
+        Matcher m = Pattern.compile('^([A-Z0-9_]+[a-z]?):\\s*(.*)').matcher(title)
         if (m.find()) {
             return m.group(1)
         }
@@ -311,13 +347,15 @@ class SpecMatrixGenerator {
 
         int total = requirements.size()
         long covered = requirements.values().count { !it.tests.isEmpty() }
+        long coreTested = requirements.values().count { it.disposition == "tested" }
         long optional = requirements.values().count { it.disposition == "optional" }
         long na = requirements.values().count { it.disposition == "na" }
         long gap = requirements.values().count { it.disposition == "gap" }
 
         sb.append("### Coverage Summary\n\n")
         sb.append("- **Total Requirements Tracked**: ${total}\n")
-        sb.append("- **Tested / Covered Requirements**: ${covered}\n")
+        sb.append("- **Tested / Covered Requirements**: ${covered} (${coreTested} Core + ${optional} Optional)\n")
+        sb.append("- **Core Tested Requirements**: ${coreTested}\n")
         sb.append("- **Optional / Capability Gated**: ${optional}\n")
         sb.append("- **Non-Observable / NA**: ${na}\n")
         sb.append("- **Known Gaps**: ${gap}\n\n")
@@ -328,7 +366,12 @@ class SpecMatrixGenerator {
         requirements.values().each { req ->
             String status
             if (!req.tests.isEmpty()) {
-                status = req.capability != "none" ? "Gated (${req.capability})" : "Covered"
+                boolean isGated = req.disposition == "optional" || (req.capability && req.capability != "none")
+                if (isGated) {
+                    status = (req.capability && req.capability != "none") ? "Gated (${req.capability})" : "Gated (optional)"
+                } else {
+                    status = "Covered"
+                }
             } else if (req.disposition == "na") {
                 status = "N/A"
             } else if (req.disposition == "optional") {
