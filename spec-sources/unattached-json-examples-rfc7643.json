@@ -1,0 +1,26 @@
+[
+  {
+    "section": "8.7.2",
+    "label_path": "Schema.attributes.referenceTypes",
+    "lines": [
+      4822,
+      4824
+    ],
+    "keywords": [
+      "MAY"
+    ],
+    "text": "Specifies a SCIM resourceType that a reference attribute MAY refer to, e.g., 'User'."
+  },
+  {
+    "section": "8.7.2",
+    "label_path": "Schema.attributes.subAttributes.referenceTypes",
+    "lines": [
+      5046,
+      5048
+    ],
+    "keywords": [
+      "MAY"
+    ],
+    "text": "Specifies a SCIM resourceType that a reference attribute MAY refer to, e.g., 'User'."
+  }
+]

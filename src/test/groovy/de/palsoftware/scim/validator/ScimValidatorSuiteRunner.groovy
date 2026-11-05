@@ -9,7 +9,7 @@ import org.junit.platform.suite.api.Suite
  *
  * Surefire discovers this class in {@code target/test-classes} and hands it to the
  * JUnit Platform Suite Engine, which recursively processes {@link ScimValidatorSuite}
- * and runs all A1-A9 specs.
+ * and runs all Rfc*Spec classes.
  */
 @Suite
 @SelectClasses(ScimValidatorSuite)

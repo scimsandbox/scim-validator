@@ -8,7 +8,7 @@ with Testcontainers.
 ## What Is In This Repo
 
 - `src/main/groovy/de/palsoftware/scim/validator/ScimValidatorSuite.groovy`
-  selects the full A1-A11 suite.
+  selects the generated `Rfc*Spec` classes in the specs package.
 - `src/main/groovy/de/palsoftware/scim/validator/base` contains shared request
   setup, configuration loading, capture, and the `ScimBootstrapProvider` SPI.
 - `src/main/groovy/de/palsoftware/scim/validator/specs` contains the compliance
@@ -24,17 +24,9 @@ with Testcontainers.
 
 ## Coverage
 
-- A1 Service discovery
-- A2 Schema validation
-- A3 User CRUD
-- A4 PATCH operations
-- A5 Filtering, pagination, and sorting
-- A6 Group lifecycle
-- A7 Bulk operations
-- A8 Security and robustness
-- A9 Negative and edge cases
-- A10 Cursor-based pagination (RFC 9865)
-- A11 Asynchronous operations (RFC 9967)
+One spec class per RFC and area (`Rfc7643*`, `Rfc7644*`, `Rfc9865*`, `Rfc9967*`),
+one feature per catalogued requirement. See `docs/SCIM_SPEC_COVERAGE.md` and
+`docs/TEST_SPEC_MAP.md` (generated) for the current status.
 
 ## Using as a Library Dependency
 

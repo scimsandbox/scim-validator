@@ -1,0 +1,1277 @@
+[
+  {
+    "id": "C9865-001",
+    "newer_rfc": "9865",
+    "kind": "cue",
+    "lines": [
+      19,
+      24
+    ],
+    "text": "This document updates RFCs 7643 and 7644 by defining additional System for Cross-Domain Identity Management (SCIM) query parameters and result attributes to allow use of cursor-based pagination in SCIM service providers that are implemented with existing codebases, databases, or APIs where cursor-based pagination is already well established.",
+    "cues": [
+      "extends",
+      "declares"
+    ]
+  },
+  {
+    "id": "C9865-002",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      91,
+      98
+    ],
+    "text": "Translating from an underlying cursor-based pagination pattern to the index-based pagination defined in Section 3.4.2.4 of [RFC7644] ultimately requires the SCIM service provider to fully iterate the underlying cursor, store the results, and then serve indexed pages from the stored results.  This task of \"pagination translation\" increases complexity and memory requirements for implementing a SCIM service provider, and may be an impediment to SCIM adoption for some applications and identity systems.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.4.2.4",
+        "section_exists": true,
+        "section_title": "Pagination",
+        "target_record_count": 6,
+        "target_records": [
+          88,
+          89,
+          90,
+          91,
+          92,
+          93
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9865-003",
+    "newer_rfc": "9865",
+    "kind": "cue",
+    "lines": [
+      108,
+      111
+    ],
+    "text": "This document updates RFCs 7643 and 7644 because it adds attributes to existing structures from those documents, as described in Section 2.  These changes are invoked when using the \"cursor\" parameter when making SCIM search requests using GET or POST methods.",
+    "cues": [
+      "extends",
+      "declares"
+    ]
+  },
+  {
+    "id": "C9865-004",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      123,
+      123
+    ],
+    "text": "This document uses the terms defined in Section 1.2 of [RFC7643].",
+    "citations": [
+      {
+        "rfc": "7643",
+        "section": "1.2",
+        "section_exists": true,
+        "section_title": "Definitions",
+        "target_record_count": 2,
+        "target_records": [
+          5,
+          6
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9865-005",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      237,
+      241
+    ],
+    "text": "As described in Section 3.4.1 of [RFC7644], service providers should return an accurate value for totalResults, which is the total number of resources for all pages.  Service providers implementing cursor pagination that are unable to estimate totalResults MAY choose to omit the totalResults attribute.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.4.1",
+        "section_exists": true,
+        "section_title": "Retrieving a Known Resource",
+        "target_record_count": 0,
+        "target_records": []
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9865-006",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      245,
+      249
+    ],
+    "text": "If a service provider encounters invalid pagination query parameters (invalid cursor value, count value, etc) or other error conditions, the service provider SHOULD return the appropriate HTTP response status code and detailed JSON error response as defined in Section 3.12 of [RFC7644].",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.12",
+        "section_exists": true,
+        "section_title": "HTTP Status and Error Response Handling",
+        "target_record_count": 12,
+        "target_records": [
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          231,
+          232,
+          233,
+          234,
+          235
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9865-007",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      251,
+      254
+    ],
+    "text": "For HTTP status code 400 (Bad Request) responses, the following detail error types are defined.  These error types extend the list defined in Table 9 (\"SCIM Detail Error Keyword Values\") of Section 3.12 of [RFC7644]",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.12",
+        "section_exists": true,
+        "section_title": "HTTP Status and Error Response Handling",
+        "target_record_count": 12,
+        "target_records": [
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          231,
+          232,
+          233,
+          234,
+          235
+        ]
+      }
+    ],
+    "cues": [
+      "extends"
+    ]
+  },
+  {
+    "id": "C9865-008",
+    "newer_rfc": "9865",
+    "kind": "cue",
+    "lines": [
+      256,
+      275
+    ],
+    "text": "+===============+==================================+===============+ | scimType      | Description                      | Applicability | +===============+==================================+===============+ | invalidCursor | Cursor value is invalid.  Cursor | GET (Section  | |               | value SHOULD be empty to request | 3.4.2 of      | |               | the first page and set to the    | [RFC7644])    | |               | nextCursor or previousCursor     |               | |               | value for subsequent queries.    |               | +---------------+----------------------------------+---------------+ | expiredCursor | Cursor has expired.  Do not wait | GET (Section  | |               | longer than service provider's   | 3.4.2 of      | |               | cursorTimeout to request         | [RFC7644])    | |               | additional pages.                |               | +---------------+----------------------------------+---------------+ | invalidCount  | Count value is invalid.  Count   | GET (Section  | |               | value must be between 0 and      | 3.4.2 of      | |               | service provider's maxPageSize   | [RFC7644])    | |               | and must be equal to the count   |               | |               | value of the initial query.      |               | +---------------+----------------------------------+---------------+",
+    "cues": [
+      "extends"
+    ]
+  },
+  {
+    "id": "C9865-009",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      281,
+      282
+    ],
+    "text": "If sorting is implemented as described Section 3.4.2.3 of [RFC7644], then cursor-paged results should be sorted.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.4.2.3",
+        "section_exists": true,
+        "section_title": "Sorting",
+        "target_record_count": 5,
+        "target_records": [
+          83,
+          84,
+          85,
+          86,
+          87
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9865-010",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      334,
+      338
+    ],
+    "text": "Section 3.4.3 of [RFC7644] defines how clients may execute queries without passing parameters on the URL by using the POST verb combined with the /.search path extension execute.  When posting to /.search, the client would pass the parameters defined in Section 2 in the body of the POST request.  For example:",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.4.3",
+        "section_exists": true,
+        "section_title": "Querying Resources Using HTTP POST",
+        "target_record_count": 17,
+        "target_records": [
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9865-011",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      373,
+      377
+    ],
+    "text": "The /ServiceProviderConfig resource defined in Section 4 of [RFC7644] facilitates discovery of SCIM service provider features.  A SCIM service provider implementing cursor-based pagination SHOULD include the following additional attribute in a JSON document returned by the /ServiceProviderConfig endpoint:",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "4",
+        "section_exists": true,
+        "section_title": "Service Provider Configuration Endpoints",
+        "target_record_count": 6,
+        "target_records": [
+          245,
+          246,
+          247,
+          248,
+          249,
+          250
+        ]
+      }
+    ],
+    "cues": [
+      "extends"
+    ]
+  },
+  {
+    "id": "C9865-012",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      437,
+      440
+    ],
+    "text": "A service provider supporting both cursor-based pagination and index-based pagination would return a document similar to the following (full ServiceProviderConfig schema defined in Section 5 of [RFC7643] has been omitted for brevity):",
+    "citations": [
+      {
+        "rfc": "7643",
+        "section": "5",
+        "section_exists": true,
+        "section_title": "Service Provider Configuration Schema",
+        "target_record_count": 23,
+        "target_records": [
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9865-013",
+    "newer_rfc": "9865",
+    "kind": "citation",
+    "lines": [
+      544,
+      547
+    ],
+    "text": "*  Clients should authenticate to retrieve large result sets. Anonymous queries yielding numerous results may return an HTTP status code 400 (Bad Request) with the error type \"tooMany,\" as outlined in Section 3.12 of [RFC7644].",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.12",
+        "section_exists": true,
+        "section_title": "HTTP Status and Error Response Handling",
+        "target_record_count": 12,
+        "target_records": [
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          231,
+          232,
+          233,
+          234,
+          235
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9865-014",
+    "newer_rfc": "9865",
+    "kind": "cue",
+    "lines": [
+      573,
+      575
+    ],
+    "text": "IANA has amended the \"System for Cross-domain Identity Management (SCIM) Schema URIs\" registry group established by [RFC7643] as described below.",
+    "cues": [
+      "declares"
+    ]
+  },
+  {
+    "id": "C9865-015",
+    "newer_rfc": "9865",
+    "kind": "name-collision",
+    "label": "count",
+    "older_rfc": "7644",
+    "newer_records": [
+      3,
+      4,
+      5
+    ],
+    "older_records": [
+      91,
+      92,
+      93,
+      116
+    ]
+  },
+  {
+    "id": "C9967-001",
+    "newer_rfc": "9967",
+    "kind": "cue",
+    "lines": [
+      26,
+      29
+    ],
+    "text": "This specification updates RFC 7643 by defining additional attributes for the \"urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig\" schema, and it updates RFC 7644 with an optional new asynchronous SCIM request capability.",
+    "cues": [
+      "extends",
+      "declares"
+    ]
+  },
+  {
+    "id": "C9967-002",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      211,
+      221
+    ],
+    "text": "Event Publisher: A system that issues SETs based on a resource state change that has occurred at a SCIM service provider.  For example, events may be the result of a SCIM Create, Modify, or Delete operation as defined in Section 3 of [RFC7644].  A SCIM service provider may be an Event Publisher or an independent service that aggregates events into Event Receiver feeds.  As described above, when using [RFC8935], the Event Publisher is an HTTP client that initiates HTTP POST requests to a defined Event Receiver endpoint.  When using [RFC8936], the Event Publisher provides an HTTP endpoint, which a receiver may use to \"poll\" for Security Events.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3",
+        "section_exists": true,
+        "section_title": "SCIM Protocol",
+        "target_record_count": 225,
+        "target_records": "too many (cited section is broad)"
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-003",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      287,
+      298
+    ],
+    "text": "uri: The SCIM relative path for the resource that usually consists of the resource type endpoint plus the resource \"id\" (see Section 3.2 of [RFC7644]), for example, \"/Users/2b2f880af6674ac284bae9381673d462\".  This attribute MUST be provided in a SCIM Event \"sub_id\" claim.  Note that the relative path is the path component after the SCIM service provider Base URI as defined in Section 1.3 of [RFC7644].  In cases where the Event Receiver is unable to match a URI, the Event Receiver MAY issue a callback to a previously agreed SCIM service provider Base URI plus the relative \"uri\" value and perform a SCIM GET request per Section 3.4.1 of [RFC7644].",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.2",
+        "section_exists": true,
+        "section_title": "SCIM Endpoints and HTTP Methods",
+        "target_record_count": 5,
+        "target_records": [
+          25,
+          26,
+          27,
+          28,
+          29
+        ]
+      },
+      {
+        "rfc": "7644",
+        "section": "1.3",
+        "section_exists": true,
+        "section_title": "Definitions",
+        "target_record_count": 3,
+        "target_records": [
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "rfc": "7644",
+        "section": "3.4.1",
+        "section_exists": true,
+        "section_title": "Retrieving a Known Resource",
+        "target_record_count": 0,
+        "target_records": []
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-004",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      300,
+      304
+    ],
+    "text": "externalId: If known, the \"externalId\" value (defined in Section 3.1 of [RFC7643]) of the SCIM resource that MAY be used by a receiver to identify the corresponding resource in the Event Receiver's domain.",
+    "citations": [
+      {
+        "rfc": "7643",
+        "section": "3.1",
+        "section_exists": true,
+        "section_title": "Common Attributes",
+        "target_record_count": 18,
+        "target_records": [
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-005",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      306,
+      309
+    ],
+    "text": "id: The SCIM \"id\" attribute (defined in Section 3.1 of [RFC7643]) MAY be used for backwards compatibility reasons in addition to the \"uri\" claim.",
+    "citations": [
+      {
+        "rfc": "7643",
+        "section": "3.1",
+        "section_exists": true,
+        "section_title": "Common Attributes",
+        "target_record_count": 18,
+        "target_records": [
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64
+        ]
+      }
+    ],
+    "cues": [
+      "extends"
+    ]
+  },
+  {
+    "id": "C9967-006",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      311,
+      319
+    ],
+    "text": "In cases where SCIM identifiers (\"id\" and \"externalId\") are not enough to identify a common resource between an Event Publisher and Event Receiver, the \"sub_id\" object MAY contain attributes whose SCIM attribute types have \"uniqueness\" set to \"server\" or \"global\" as per Section 7 of [RFC7643].  For example, attributes such as \"emails\" or \"userName\" (defined in Section 4 of [RFC7643]) are unique within a SCIM service provider.  Such attributes should allow an Event Publisher and Event Receiver to identify a commonly understood subject resource of an event.",
+    "citations": [
+      {
+        "rfc": "7643",
+        "section": "7",
+        "section_exists": true,
+        "section_title": "Schema Definition",
+        "target_record_count": 31,
+        "target_records": [
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187
+        ]
+      },
+      {
+        "rfc": "7643",
+        "section": "4",
+        "section_exists": true,
+        "section_title": "SCIM Core Resources and Extensions",
+        "target_record_count": 48,
+        "target_records": "too many (cited section is broad)"
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-007",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      345,
+      348
+    ],
+    "text": "version: The ETag version of the resource as a result of the event. Corresponds to the ETag response header described in Section 3.14 of [RFC7644].",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.14",
+        "section_exists": true,
+        "section_title": "Versioning Resources",
+        "target_record_count": 5,
+        "target_records": [
+          240,
+          241,
+          242,
+          243,
+          244
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-008",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      350,
+      357
+    ],
+    "text": "data: An event payload attribute that contains information described in the SCIM Bulk Operations \"data\" attribute in Section 3.7 of [RFC7644].  The JSON object contains the equivalent SCIM command processed by the SCIM service provider.  For example, after processing a SCIM Create operation, the data contained includes the final representation of the entity created by the SCIM service provider including the assigned \"id\" value.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.7",
+        "section_exists": true,
+        "section_title": "Bulk Operations",
+        "target_record_count": 30,
+        "target_records": [
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          204
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-009",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      359,
+      364
+    ],
+    "text": "attributes: A payload that contains an array of attributes that were added, revised, or removed.  Names of modified attributes SHOULD conform to the ABNF syntax rule for \"path\" (Section 3.5.2 of [RFC7644]). For example: \"attributes\": [\"userName\",\"emails\",\"name.familyName\"].",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.5.2",
+        "section_exists": true,
+        "section_title": "Modifying with PATCH",
+        "target_record_count": 37,
+        "target_records": [
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168
+        ]
+      }
+    ],
+    "cues": [
+      "extends"
+    ]
+  },
+  {
+    "id": "C9967-010",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      719,
+      725
+    ],
+    "text": "A SCIM client making SCIM HTTP requests defined in Section 3 of [RFC7644] MAY request asynchronous processing using the \"Prefer\" HTTP header as defined in Section 4.1 of [RFC7240].  The client may do this for a number of reasons such as avoiding holding HTTP connections open during long requests because the result of the request is not needed or the result is delivered to another entity for further action for coordination reasons.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3",
+        "section_exists": true,
+        "section_title": "SCIM Protocol",
+        "target_record_count": 225,
+        "target_records": "too many (cited section is broad)"
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-011",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      786,
+      791
+    ],
+    "text": "Section 3.7 of [RFC7644] provides the ability to submit multiple SCIM operations in a single \"bulk\" request.  When an asynchronous response is requested, a single Asynchronous Request Completion Event MUST be generated for each requested operation.  For example, if a single \"bulk\" request had 10 operations, then 10 Asynchronous Event completion events would be generated.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.7",
+        "section_exists": true,
+        "section_title": "Bulk Operations",
+        "target_record_count": 30,
+        "target_records": [
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          204
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-012",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      808,
+      812
+    ],
+    "text": "If a SCIM service provider optimizes the sequence of operations (per Section 3.7 of [RFC7644]), the Asynchronous Request Completion Events MAY be generated out of sequence from the original request.  In this case, the \"txn\" claims in those events MUST use operation numbers that correspond to the order in the original request.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.7",
+        "section_exists": true,
+        "section_title": "Bulk Operations",
+        "target_record_count": 30,
+        "target_records": [
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          204
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-013",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      816,
+      821
+    ],
+    "text": "The Asynchronous Response Event signals the completion of a SCIM request.  The event payload contains the attributes defined in Section 3.7 of [RFC7644] and is the same as a single SCIM Bulk Response Operation as per Section 3.7.3 of [RFC7644].  In the event, the \"txn\" claim MUST be set to the value originally returned to the requesting SCIM client (see Section 2.5.1.1).",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.7",
+        "section_exists": true,
+        "section_title": "Bulk Operations",
+        "target_record_count": 30,
+        "target_records": [
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          204
+        ]
+      },
+      {
+        "rfc": "7644",
+        "section": "3.7.3",
+        "section_exists": true,
+        "section_title": "Response and Error Handling",
+        "target_record_count": 4,
+        "target_records": [
+          197,
+          198,
+          199,
+          200
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-014",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      846,
+      851
+    ],
+    "text": "If an error occurs during asynchronous processing, the event operation MUST include a \"response\" attribute indicating a non- 200-series HTTP status as defined in Section 3.7 of [RFC7644], and that \"response\" attribute MUST contain the sub-attributes defined in Section 3.12 of [RFC7644].  The \"status\" attribute of the event operation typically matches the \"status\" attribute of the response.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.7",
+        "section_exists": true,
+        "section_title": "Bulk Operations",
+        "target_record_count": 30,
+        "target_records": [
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192,
+          193,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          204
+        ]
+      },
+      {
+        "rfc": "7644",
+        "section": "3.12",
+        "section_exists": true,
+        "section_title": "HTTP Status and Error Response Handling",
+        "target_record_count": 12,
+        "target_records": [
+          224,
+          225,
+          226,
+          227,
+          228,
+          229,
+          230,
+          231,
+          232,
+          233,
+          234,
+          235
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-015",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      884,
+      885
+    ],
+    "text": "The following four figures show asynchronous completion events for the example in Section 3.7.3 of [RFC7644].",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.7.3",
+        "section_exists": true,
+        "section_title": "Response and Error Handling",
+        "target_record_count": 4,
+        "target_records": [
+          197,
+          198,
+          199,
+          200
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-016",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      1007,
+      1010
+    ],
+    "text": "Section 5 of [RFC7643] defines SCIM service provider configuration schemas.  This section defines additional attributes that enable a SCIM client to discover the additional capabilities defined by this specification.",
+    "citations": [
+      {
+        "rfc": "7643",
+        "section": "5",
+        "section_exists": true,
+        "section_title": "Service Provider Configuration Schema",
+        "target_record_count": 23,
+        "target_records": [
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141
+        ]
+      }
+    ],
+    "cues": [
+      "extends"
+    ]
+  },
+  {
+    "id": "C9967-017",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      1090,
+      1097
+    ],
+    "text": "*  The use of SCIM PUT (Section 3.5.1 of [RFC7644]), particularly with large SCIM Groups, can result in excessive data being conveyed in Security Event payloads.  Instead, it is RECOMMENDED to use SCIM PATCH (Section 3.5.2 of [RFC7644]) to focus on updating and notifying about changed information.  Alternatively, use SCIM PUT Event Notice (urn:ietf:params:scim:event:prov:put:notice) as a trigger to later retrieve the full information when needed.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.5.1",
+        "section_exists": true,
+        "section_title": "Replacing with PUT",
+        "target_record_count": 13,
+        "target_records": [
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131
+        ]
+      },
+      {
+        "rfc": "7644",
+        "section": "3.5.2",
+        "section_exists": true,
+        "section_title": "Modifying with PATCH",
+        "target_record_count": 37,
+        "target_records": [
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168
+        ]
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-018",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      1099,
+      1102
+    ],
+    "text": "*  Use SCIM Patch Event Notice (urn:ietf:params:scim:event:prov:patch:notice) to reduce event content combined with periodic SCIM GETs (see Section 3.4 of [RFC7644]) to retrieve current group state.",
+    "citations": [
+      {
+        "rfc": "7644",
+        "section": "3.4",
+        "section_exists": true,
+        "section_title": "Retrieving Resources",
+        "target_record_count": 76,
+        "target_records": "too many (cited section is broad)"
+      }
+    ],
+    "cues": []
+  },
+  {
+    "id": "C9967-019",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      1169,
+      1173
+    ],
+    "text": "A reference to Section 4 of this document has been added to the \"urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig\" entry in the \"SCIM Server-Related Schema URIs\" registry (Section 10.4 of [RFC7643]) under the \"System for Cross-domain Identity Management (SCIM) Schema URIs\" registry group.",
+    "citations": [
+      {
+        "rfc": "7643",
+        "section": "10.4",
+        "section_exists": true,
+        "section_title": "Initial SCIM Schema Registry",
+        "target_record_count": 0,
+        "target_records": []
+      }
+    ],
+    "cues": [
+      "extends"
+    ]
+  },
+  {
+    "id": "C9967-020",
+    "newer_rfc": "9967",
+    "kind": "citation",
+    "lines": [
+      1177,
+      1180
+    ],
+    "text": "IANA has created a new registry called \"SCIM Event URIs\" under the \"System for Cross-domain Identity Management (SCIM) Schema URIs\" registry group (Section 10.1 of [RFC7643]) at <https://www.iana.org/assignments/scim>.",
+    "citations": [
+      {
+        "rfc": "7643",
+        "section": "10.1",
+        "section_exists": true,
+        "section_title": "Registration of SCIM URN Sub-namespace and SCIM Registry",
+        "target_record_count": 0,
+        "target_records": []
+      }
+    ],
+    "cues": [
+      "extends"
+    ]
+  },
+  {
+    "id": "C9967-021",
+    "newer_rfc": "9967",
+    "kind": "name-collision",
+    "label": "externalId",
+    "older_rfc": "7643",
+    "newer_records": [
+      9
+    ],
+    "older_records": [
+      56,
+      57,
+      58,
+      59
+    ]
+  },
+  {
+    "id": "C9967-022",
+    "newer_rfc": "9967",
+    "kind": "name-collision",
+    "label": "id",
+    "older_rfc": "7643",
+    "newer_records": [
+      10
+    ],
+    "older_records": [
+      51,
+      52,
+      53,
+      54,
+      55,
+      143,
+      159,
+      160
+    ]
+  }
+]

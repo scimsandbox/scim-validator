@@ -1,92 +1,456 @@
-# RFC 9865 — SCIM 2.0 Cursor-Based Pagination Normative Requirement Catalog
-# Basis: RFC 9865 (October 2025)
-# Stable IDs follow: RFC9865-<section>-<sequence>
+# RFC 9865: requirements generated from normative-rfc9865.json (generate_requirements.py)
+# One entry per upper-case-keyword sentence of rfc9865-fixed.txt (RFC text + Verified errata).
+# Do not edit by hand: regenerate. capability/disposition/legacy_ids are filled
+# through the overlay described in README.md.
 
-- id: RFC9865-2-R1
+- id: RFC9865-2-351699
   rfc: "9865"
   section: "2"
-  title: "Service providers MUST support initial cursor pagination query where cursor is empty or omitted"
-  level: MUST
-  capability: cursorPagination
-  observability: response
-  disposition: optional
-  note: "RFC 9865 §2 Table 1: cursor parameter value MUST be empty or omitted for the first page; service provider MUST accept and process this initial request"
+  subject: "cursor"
+  level: "MUST"
+  polarity: "positive"
+  quote: "The cursor value MUST be empty or omitted for the first request of a cursor-paginated query."
+  lines: [133, 138]
+  original_lines: [133, 138]
+  record: 2
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
 
-- id: RFC9865-2-R2
+- id: RFC9865-2-11e103
   rfc: "9865"
   section: "2"
-  title: "Service providers return nextCursor in ListResponse when more results remain"
-  level: MUST
-  capability: cursorPagination
-  observability: response
-  disposition: optional
-  note: "nextCursor opaque string provided when additional results exist (RFC 9865 §2 Table 2)"
+  subject: "count"
+  level: "MUST"
+  polarity: "positive"
+  quote: "A negative value SHALL be interpreted as \"0\"."
+  lines: [140, 147]
+  original_lines: [140, 147]
+  record: 3
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
 
-- id: RFC9865-2-R3
+- id: RFC9865-2-c265b6
   rfc: "9865"
   section: "2"
-  title: "previousCursor is omitted or absent on the initial result page"
-  level: MUST
-  capability: cursorPagination
-  observability: response
-  disposition: optional
-  note: "previousCursor is only returned when previous results exist (RFC 9865 §2 Table 2)"
+  subject: "count"
+  level: "MUST"
+  polarity: "negative"
+  quote: "When specified, the service provider MUST NOT return more"
+  lines: [140, 147]
+  original_lines: [140, 147]
+  record: 4
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
 
-- id: RFC9865-2-R4
+- id: RFC9865-2-b48f77
   rfc: "9865"
   section: "2"
-  title: "Querying with cursor returns subsequent page of distinct resources"
-  level: MUST
-  capability: cursorPagination
-  observability: response
-  disposition: optional
-  note: "Client uses nextCursor value from previous page to obtain subsequent resources; server returns distinct next page (RFC 9865 §2)"
+  subject: "count"
+  level: "MAY"
+  polarity: "positive"
+  quote: "although it MAY return fewer, results."
+  lines: [140, 147]
+  original_lines: [140, 147]
+  record: 5
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
 
-- id: RFC9865-2-R5
+- id: RFC9865-2-34fdba
   rfc: "9865"
   section: "2"
-  title: "nextCursor is omitted on the final page of query results"
-  level: MUST
-  capability: cursorPagination
-  observability: response
-  disposition: optional
-  note: "When no more results remain, nextCursor is omitted from ListResponse (RFC 9865 §2 Table 2 states nextCursor is omitted only when no more pages exist)"
+  subject: "nextCursor"
+  level: "MAY"
+  polarity: "positive"
+  quote: "A cursor value string that MAY be used in a subsequent request to obtain the next page of results."
+  lines: [158, 165]
+  original_lines: [158, 165]
+  record: 6
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
 
-- id: RFC9865-2.1-R1
+- id: RFC9865-2-5686ee
+  rfc: "9865"
+  section: "2"
+  subject: "nextCursor"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Service providers supporting cursor-based pagination MUST include nextCursor in all paged query responses except when returning the last page."
+  lines: [158, 165]
+  original_lines: [158, 165]
+  record: 7
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-2-8c501a
+  rfc: "9865"
+  section: "2"
+  subject: "nextCursor"
+  level: "MUST"
+  polarity: "positive"
+  quote: "nextCursor MUST be omitted from a response only to indicate that there are no more result pages."
+  lines: [158, 165]
+  original_lines: [158, 165]
+  record: 8
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-2-5892b9
+  rfc: "9865"
+  section: "2"
+  subject: "previousCursor"
+  level: "MAY"
+  polarity: "positive"
+  quote: "A cursor value string that MAY be used in a subsequent request to obtain the previous page of results."
+  lines: [167, 171]
+  original_lines: [167, 171]
+  record: 9
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-2-893493
+  rfc: "9865"
+  section: "2"
+  subject: "previousCursor"
+  level: "MAY"
+  polarity: "positive"
+  quote: "Returning previousCursor is OPTIONAL."
+  lines: [167, 171]
+  original_lines: [167, 171]
+  record: 10
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-2-70bc13
+  rfc: "9865"
+  section: "2"
+  subject: "previousCursor"
+  level: "MUST"
+  polarity: "negative"
+  quote: "previousCursor MUST NOT be returned with the first page."
+  lines: [167, 171]
+  original_lines: [167, 171]
+  record: 11
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-2-9e14ff
+  rfc: "9865"
+  section: "2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "To retrieve another result page for a query, the client MUST query the same service provider endpoint with all query parameters and values being identical to the initial query with the exception of the cursor value"
+  lines: [176, 181]
+  original_lines: [176, 181]
+  record: 12
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC9865-2-136e90
+  rfc: "9865"
+  section: "2"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "which SHOULD be set to a nextCursor (or previousCursor) value that was returned by the service provider in a previous response."
+  lines: [176, 181]
+  original_lines: [176, 181]
+  record: 13
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC9865-2-4cc5ce
+  rfc: "9865"
+  section: "2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Service providers implementing cursor pagination that are unable to estimate totalResults MAY choose to omit the totalResults attribute."
+  lines: [239, 241]
+  original_lines: [239, 241]
+  record: 14
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-2.1-38c026
   rfc: "9865"
   section: "2.1"
-  title: "Invalid cursor query parameter returns HTTP 400 with scimType invalidCursor"
-  level: SHOULD
-  capability: cursorPagination
-  observability: response
-  disposition: optional
-  note: "Invalid cursor values return HTTP 400 with detail error type invalidCursor (RFC 9865 §2.1 Table 3)"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "If a service provider encounters invalid pagination query parameters (invalid cursor value, count value, etc) or other error conditions, the service provider SHOULD return the appropriate HTTP response status code and detailed JSON error response as defined in Section 3.12 of [RFC7644]."
+  lines: [245, 249]
+  original_lines: [245, 249]
+  record: 15
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
 
-- id: RFC9865-3-R1
+- id: RFC9865-2.1-a66a36
   rfc: "9865"
-  section: "3"
-  title: "POST /.search SearchRequest supports cursor attribute"
-  level: MAY
-  capability: cursorPagination
-  observability: response
-  disposition: optional
-  note: "cursor parameter may be provided in POST /.search JSON payload (RFC 9865 §3 search operation)"
+  section: "2.1"
+  subject: "invalidCursor"
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Cursor value SHOULD be empty to request the first page and set to the nextCursor or previousCursor value for subsequent queries."
+  lines: [259, 263]
+  original_lines: [259, 263]
+  record: 16
+  in_table: true
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
 
-- id: RFC9865-4-R1
+- id: RFC9865-2.3-12c2fe
+  rfc: "9865"
+  section: "2.3"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "A service provider MAY require cursor-based pagination to retrieve all results for a query by including a nextCursor value in the response, even when the query does not include the cursor parameter."
+  lines: [286, 288]
+  original_lines: [286, 288]
+  record: 17
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-2.4-65723e
+  rfc: "9865"
+  section: "2.4"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Additionally, service providers supporting both pagination methods MUST choose a default pagination method to use when responding to requests that have not specified a pagination query parameter."
+  lines: [317, 320]
+  original_lines: [317, 320]
+  record: 18
+  area: "cursor-pagination"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-4-16cf55
   rfc: "9865"
   section: "4"
-  title: "ServiceProviderConfig advertises pagination configuration schema"
-  level: SHOULD
-  capability: cursorPagination
-  observability: response
-  disposition: optional
-  note: "pagination complex attribute in ServiceProviderConfig defines cursor and index booleans (RFC 9865 §4 discovery schema advertisement is SHOULD)"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "A SCIM service provider implementing cursor-based pagination SHOULD include the following additional attribute in a JSON document returned by the /ServiceProviderConfig endpoint:"
+  lines: [374, 377]
+  original_lines: [374, 377]
+  record: 19
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "optional"
 
-# ==============================================================================
-# TASK-25: 23 Out-of-Scope / Uncataloged RFC Topics Deferred from Baseline 159
-# The following out-of-scope / uncataloged RFC 9865 topic (topic #22 of 23
-# across RFC 7644, RFC 9865, and RFC 9967) is documented for future reference
-# without altering the 159-requirement catalog invariant:
-#
-# 22. RFC 9865 §§2.1, 2.4, 5.2 - invalidCount error handling, default pagination method, and authorization confinement.
-# ==============================================================================
+- id: RFC9865-4-083c69
+  rfc: "9865"
+  section: "4"
+  subject: "pagination"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [380, 380]
+  original_lines: [380, 380]
+  record: 20
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-4-31de16
+  rfc: "9865"
+  section: "4"
+  subject: "cursor"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED."
+  lines: [385, 385]
+  original_lines: [385, 385]
+  record: 21
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-4-b9b16e
+  rfc: "9865"
+  section: "4"
+  subject: "index"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED."
+  lines: [388, 388]
+  original_lines: [388, 388]
+  record: 22
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-4-241864
+  rfc: "9865"
+  section: "4"
+  subject: "defaultPaginationMethod"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [393, 393]
+  original_lines: [393, 393]
+  record: 23
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-4-3328c7
+  rfc: "9865"
+  section: "4"
+  subject: "defaultPageSize"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [397, 397]
+  original_lines: [397, 397]
+  record: 24
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-4-0f750c
+  rfc: "9865"
+  section: "4"
+  subject: "maxPageSize"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [402, 402]
+  original_lines: [402, 402]
+  record: 25
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-4-710a4e
+  rfc: "9865"
+  section: "4"
+  subject: "cursorTimeout"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [409, 409]
+  original_lines: [409, 409]
+  record: 26
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-4-10a6a8
+  rfc: "9865"
+  section: "4"
+  subject: ""
+  level: "MUST"
+  polarity: "negative"
+  quote: "Clients MUST NOT interpret the lack of published Service Provider Configuration values to mean that no defaults or limits on page sizes or cursor lifetimes exist, or that there is no default pagination method."
+  lines: [413, 416]
+  original_lines: [413, 416]
+  record: 27
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC9865-4-495016
+  rfc: "9865"
+  section: "4"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Before using cursor-based pagination, a SCIM client MAY fetch the Service Provider Configuration document from the SCIM service provider and verify that cursor-based pagination is supported."
+  lines: [427, 429]
+  original_lines: [427, 429]
+  record: 28
+  area: "service-provider-config"
+  capability: "cursorPagination"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC9865-5.2-230645
+  rfc: "9865"
+  section: "5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Implementers MUST ensure that pagination through results sets is strictly confined to the data that the actor's current identity has been authorized to access."
+  lines: [494, 496]
+  original_lines: [494, 496]
+  record: 29
+  area: "security"
+  capability: "cursorPagination"
+  disposition: "na"
+  reason: "not-observable"
+
+- id: RFC9865-5.2-5661f9
+  rfc: "9865"
+  section: "5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Authorization checks MUST be continuously applied as an actor navigates through the result set associated with a cursor."
+  lines: [500, 501]
+  original_lines: [500, 501]
+  record: 30
+  area: "security"
+  capability: "cursorPagination"
+  disposition: "optional"
+
+- id: RFC9865-5.2-535e56
+  rfc: "9865"
+  section: "5.2"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "When possible, service providers SHOULD invalidate all cursors corresponding to an actor immediately following a change in permissions."
+  lines: [505, 507]
+  original_lines: [505, 507]
+  record: 31
+  area: "security"
+  capability: "cursorPagination"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC9865-5.2-826018
+  rfc: "9865"
+  section: "5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The service provider MUST handle error scenarios without exposing sensitive data."
+  lines: [521, 522]
+  original_lines: [521, 522]
+  record: 32
+  area: "security"
+  capability: "cursorPagination"
+  disposition: "na"
+  reason: "not-observable"

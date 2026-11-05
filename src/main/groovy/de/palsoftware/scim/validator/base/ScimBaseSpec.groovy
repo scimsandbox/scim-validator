@@ -739,4 +739,21 @@ abstract class ScimBaseSpec extends Specification {
             assertOptionalScimType(response, allowedScimTypes)
         }
     }
+
+    /**
+     * Common helper for generating unique tags/identifiers across specifications.
+     */
+    protected static String uniqueTag(String prefix = "test") {
+        String token = UUID.randomUUID().toString().replace("-", "").substring(0, 8)
+        return prefix ? "${prefix}_${token}" : token
+    }
+
+    protected static String uniqueTag(int length) {
+        String clean = UUID.randomUUID().toString().replace("-", "")
+        return length <= clean.length() ? clean.substring(0, length) : clean
+    }
+
+    protected static String uniq(String prefix = "test") {
+        return uniqueTag(prefix)
+    }
 }

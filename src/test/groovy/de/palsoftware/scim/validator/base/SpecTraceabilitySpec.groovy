@@ -1,9 +1,8 @@
 package de.palsoftware.scim.validator.base
 
-import de.palsoftware.scim.validator.ScimValidatorSuite
 import de.palsoftware.scim.validator.base.spec.SpecMatrixGenerator
-import org.junit.platform.suite.api.SelectClasses
-import org.spockframework.runtime.model.FeatureMetadata
+import de.palsoftware.scim.validator.base.spec.SpecMatrixGenerator.Feature
+import de.palsoftware.scim.validator.base.spec.SpecMatrixGenerator.Requirement
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -20,16 +19,16 @@ class SpecTraceabilitySpec extends Specification {
         Path projectRoot = Paths.get("").toAbsolutePath()
         SpecMatrixGenerator generator = new SpecMatrixGenerator(projectRoot)
 
-        when: "Catalog is loaded and test specs are scanned"
+        when: "Catalog is loaded and feature specs are scanned"
         def requirements = generator.loadCatalog()
-        def tests = generator.scanTestSpecs()
+        def features = generator.scanFeatures()
 
         then: "Catalogs are non-empty"
         !requirements.isEmpty()
-        !tests.isEmpty()
+        !features.isEmpty()
 
         and: "Traceability validation succeeds"
-        def errors = generator.validate(requirements, tests)
+        def errors = generator.validate(requirements, features)
         if (!errors.isEmpty()) {
             System.err.println("Spec Traceability Errors:\n" + errors.join("\n"))
         }
@@ -46,61 +45,67 @@ class SpecTraceabilitySpec extends Specification {
         generator.run(verifyOnly)
     }
 
-    def "all feature methods across suite specs are scanned including those with nested quotes and class-level capabilities"() {
+    def "every non-na requirement has exactly one feature with a unique id"() {
         given: "Spec matrix generator"
-        Path projectRoot = Paths.get("").toAbsolutePath()
-        SpecMatrixGenerator generator = new SpecMatrixGenerator(projectRoot)
-        int expectedFeatureCount = ScimValidatorSuite.getAnnotation(SelectClasses).value().sum { Class<?> specClass ->
-            specClass.declaredMethods.count { it.isAnnotationPresent(FeatureMetadata) }
-        } as int
+        SpecMatrixGenerator generator = new SpecMatrixGenerator(Paths.get("").toAbsolutePath())
 
-        when: "Test specs are scanned and requirements linked"
+        when: "Catalog and features are loaded"
         def requirements = generator.loadCatalog()
-        def tests = generator.scanTestSpecs()
-        generator.linkTestsToRequirements(requirements, tests)
-        def testIds = tests.collect { it.id }
+        def features = generator.scanFeatures()
+        def ids = features.collect { it.id }
 
-        then: "All compiled feature methods across suite specs are found with unique IDs"
-        tests.size() == expectedFeatureCount
-        testIds.size() == testIds.unique().size()
+        then: "Feature ids are unique and every feature name starts with its id"
+        ids.size() == ids.unique().size()
+        features.every { it.name.startsWith(it.id + ":") }
 
-        and: "Methods with nested quotes are detected"
-        testIds.contains("PAT_19")
-        testIds.contains("GRP_16")
-        testIds.contains("BLK_18")
-        testIds.contains("BLK_19")
+        and: "Features and non-na requirements correspond one to one"
+        features.size() == requirements.values().count { it.disposition != "na" }
+    }
 
-        and: "Methods with lowercase suffixes are extracted with exact IDs and zero fallback IDs"
-        testIds.containsAll(["SCH_13a", "SCH_13b", "SCH_13c", "SCH_13d", "SCH_13e", "SCH_13f", "ASY_01b"])
-        !testIds.any { it.startsWith("TST_") }
-        !testIds.any { it in ["SCH_32", "SCH_33", "SCH_34", "SCH_35", "SCH_36", "SCH_37"] }
-        testIds.indexOf("SCH_12") < testIds.indexOf("SCH_13a")
-        testIds.indexOf("SCH_13f") < testIds.indexOf("SCH_14")
-        testIds.indexOf("ASY_01") < testIds.indexOf("ASY_01b")
-        testIds.indexOf("ASY_01b") < testIds.indexOf("ASY_02")
+    def "validation rejects broken traceability"() {
+        given: "A tiny catalog with one core, one gated and one na requirement"
+        SpecMatrixGenerator generator = new SpecMatrixGenerator(Paths.get("").toAbsolutePath())
+        def requirements = [
+            "R-core": new Requirement(id: "R-core", rfc: "1", section: "1", level: "MUST", capability: "core", disposition: "tested"),
+            "R-patch": new Requirement(id: "R-patch", rfc: "1", section: "2", level: "MAY", capability: "patch", disposition: "tested"),
+            "R-na": new Requirement(id: "R-na", rfc: "1", section: "3", level: "MAY", capability: "core", disposition: "na", reason: "not observable"),
+            "R-open": new Requirement(id: "R-open", rfc: "1", section: "4", level: "MAY", capability: "core", disposition: "unassigned")
+        ]
+        List<Feature> good = [
+            feature("R-core", "R-core: ok", "core"),
+            feature("R-patch", "R-patch: ok", "patch"),
+            feature("R-open", "R-open: ok", "core")
+        ]
 
-        and: "GRP_16 is mapped under RFC7643-4.2-R3"
-        def grp16 = tests.find { it.id == "GRP_16" }
-        grp16 != null
-        grp16.specRefs.contains("RFC7643-4.2-R3")
-        requirements.get("RFC7643-4.2-R3")?.tests?.contains("GRP_16")
+        expect: "The consistent set is valid and unassigned is only reported"
+        generator.validate(requirements, good).isEmpty()
 
-        and: "Class-level @RequiresCapability is inherited and composite capabilities are tracked"
-        tests.find { it.id == "BLK_01" }?.capabilities == ["bulk"]
-        tests.find { it.id == "PAT_01" }?.capabilities == ["patch"]
-        tests.find { it.id == "FLT_01" }?.capabilities == ["filter"]
-        tests.find { it.id == "SRT_01" }?.capabilities == ["sort"]
-        tests.find { it.id == "CUR_01" }?.capabilities == ["cursorPagination"]
-        tests.find { it.id == "CUR_05" }?.capabilities == ["cursorPagination", "search"]
-        tests.find { it.id == "ASY_01" }?.capabilities == ["async"]
-        tests.find { it.id == "SEC_22" }?.capabilities == ["etag", "patch"]
+        and: "Each broken rule is reported"
+        generator.validate(requirements, good + [feature("R-unknown", "R-unknown: x", "core")]).any { it.contains("unknown requirement") }
+        generator.validate(requirements, good + [new Feature(name: "R-core: none", fileName: "X.groovy")]).any { it.contains("exactly one @SpecRef") }
+        generator.validate(requirements, good + [feature("R-core", "R-core: again", "core")]).any { it.contains("referenced by 2 features") }
+        generator.validate(requirements, [feature("R-core", "wrong name", "core"), good[1], good[2]]).any { it.contains("must be named starting with") }
+        generator.validate(requirements, good.take(2)).any { it.contains("R-open") && it.contains("has no feature") }
+        generator.validate(requirements, good + [feature("R-na", "R-na: x", "core")]).any { it.contains("R-na is na") }
+        generator.validate(requirements, [good[0], feature("R-patch", "R-patch: ok", "core"), good[2]]).any { it.contains("has capability 'core' but R-patch requires 'patch'") }
+    }
 
-        and: "Generated markdown contains clickable IETF RFC section links and explicit Core vs Optional split"
-        String mapMd = generator.generateTestSpecMap(tests, requirements)
-        String covMd = generator.generateSpecCoverage(requirements)
-        mapMd.contains("[§4](https://www.rfc-editor.org/rfc/rfc7644#section-4)")
-        covMd.contains("[§2.1](https://www.rfc-editor.org/rfc/rfc7643#section-2.1)")
-        covMd.contains("- **Core Tested Requirements**: 86")
-        covMd.contains("- **Optional / Capability Gated**: 71")
+    def "strict mode fails on unassigned requirements"() {
+        given: "A consistent catalog with one unassigned requirement"
+        SpecMatrixGenerator generator = new SpecMatrixGenerator(Paths.get("").toAbsolutePath())
+        def requirements = [
+            "R-open": new Requirement(id: "R-open", rfc: "1", section: "4", level: "MAY", capability: "core", disposition: "unassigned")
+        ]
+        def features = [feature("R-open", "R-open: ok", "core")]
+
+        when: "Strict mode is switched on"
+        generator.strict = true
+
+        then: "The unassigned requirement is an error"
+        generator.validate(requirements, features).any { it.contains("unassigned") }
+    }
+
+    private static Feature feature(String id, String name, String capability) {
+        return new Feature(id: id, name: name, fileName: "X.groovy", lineNumber: 1, specRefs: [id], capability: capability)
     }
 }

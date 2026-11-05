@@ -1,0 +1,3416 @@
+[
+  {
+    "id": "RFC7643-2.1-R1",
+    "section": "2.1",
+    "level": "MUST",
+    "title": "Attribute names match ABNF ATTRNAME and are case-insensitive",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.574,
+        "n": 8,
+        "section": "2.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          369,
+          369
+        ],
+        "text": "Attribute names MUST conform to the following ABNF rules:",
+        "common_words": [
+          "abnf",
+          "attribute",
+          "names"
+        ]
+      },
+      {
+        "score": 0.565,
+        "n": 7,
+        "section": "2.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          365,
+          367
+        ],
+        "text": "SCIM resources are represented in JSON [RFC7159] format and MUST specify schema via the \"schemas\" attribute per Section 3.",
+        "common_words": [
+          "and",
+          "are",
+          "attribute",
+          "schemas"
+        ]
+      },
+      {
+        "score": 0.383,
+        "n": 73,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1037,
+          1038
+        ],
+        "text": "This attribute is REQUIRED and is case insensitive.",
+        "common_words": [
+          "and",
+          "attribute",
+          "case",
+          "insensitive"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.2-R1",
+    "section": "2.2",
+    "level": "MUST",
+    "title": "Schema attribute characteristics use valid enum values when present",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.315,
+        "n": 43,
+        "section": "3",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          711,
+          713
+        ],
+        "text": "The \"schemas\" attribute for a resource MUST only contain values defined as \"schema\" and \"schemaExtensions\" for the resource's defined \"resourceType\".",
+        "common_words": [
+          "attribute",
+          "defined",
+          "schema",
+          "type",
+          "values"
+        ]
+      },
+      {
+        "score": 0.309,
+        "n": 149,
+        "section": "6",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "schema",
+        "lines": [
+          1643,
+          1644
+        ],
+        "text": "This MUST be equal to the \"id\" attribute of the associated \"Schema\" resource.",
+        "common_words": [
+          "attribute",
+          "schema",
+          "to",
+          "type"
+        ]
+      },
+      {
+        "score": 0.293,
+        "n": 46,
+        "section": "3",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          720,
+          723
+        ],
+        "text": "These attributes are not defined in any particular schema but SHALL be assumed to be present in every resource, regardless of the value of the \"schemas\" attribute.",
+        "common_words": [
+          "attribute",
+          "defined",
+          "present",
+          "schema",
+          "to"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.2-R2",
+    "section": "2.2",
+    "level": "MUST",
+    "title": "Schema attribute characteristics apply default values when omitted",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.33,
+        "n": 38,
+        "section": "2.5",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          681,
+          683
+        ],
+        "text": "Unassigned attributes, the null value, or an empty array (in the case of a multi-valued attribute) SHALL be considered to be equivalent in \"state\".",
+        "common_words": [
+          "a",
+          "an",
+          "and",
+          "attribute",
+          "attributes",
+          "case",
+          "multi",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.296,
+        "n": 11,
+        "section": "2.3.1",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          489,
+          490
+        ],
+        "text": "An attribute with SCIM schema type \"string\" MAY specify a required data format.",
+        "common_words": [
+          "a",
+          "an",
+          "attribute",
+          "required",
+          "schema",
+          "string",
+          "type"
+        ]
+      },
+      {
+        "score": 0.283,
+        "n": 33,
+        "section": "2.4",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          655,
+          658
+        ],
+        "text": "When returning multi-valued attributes, service providers SHOULD canonicalize the value returned (e.g., by returning a value for the sub-attribute \"type\", such as \"home\" or \"work\") when appropriate (e.g., for email addresses and URLs).",
+        "common_words": [
+          "a",
+          "and",
+          "as",
+          "attribute",
+          "attributes",
+          "multi",
+          "returned",
+          "type"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.2-R3",
+    "section": "7",
+    "level": "MUST",
+    "title": "Attribute mutability definitions (readOnly, readWrite, immutable, writeOnly) are enforced",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.543,
+        "n": 174,
+        "section": "7",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "attributes.mutability",
+        "lines": [
+          1762,
+          1762
+        ],
+        "text": "The attribute SHALL NOT be modified.",
+        "common_words": [
+          "attribute",
+          "be",
+          "modified"
+        ]
+      },
+      {
+        "score": 0.462,
+        "n": 177,
+        "section": "7",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "attributes.mutability",
+        "lines": [
+          1769,
+          1769
+        ],
+        "text": "The attribute SHALL NOT be updated.",
+        "common_words": [
+          "attribute",
+          "be"
+        ]
+      },
+      {
+        "score": 0.452,
+        "n": 175,
+        "section": "7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "attributes.mutability",
+        "lines": [
+          1764,
+          1764
+        ],
+        "text": "The attribute MAY be updated and read at any time.",
+        "common_words": [
+          "attribute",
+          "be",
+          "read"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.2-R4",
+    "section": "7",
+    "level": "MUST",
+    "title": "Attribute returned definitions (always, never, default, request) are honored",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.463,
+        "n": 158,
+        "section": "7",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          1678,
+          1680
+        ],
+        "text": "and all attributes are REQUIRED unless otherwise specified.",
+        "common_words": [
+          "are",
+          "attributes"
+        ]
+      },
+      {
+        "score": 0.425,
+        "n": 171,
+        "section": "7",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "attributes.caseExact",
+        "lines": [
+          1752,
+          1754
+        ],
+        "text": "For attributes that are case exact, the server SHALL preserve case for any value submitted.",
+        "common_words": [
+          "are",
+          "attributes"
+        ]
+      },
+      {
+        "score": 0.425,
+        "n": 179,
+        "section": "7",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "attributes.mutability",
+        "lines": [
+          1771,
+          1773
+        ],
+        "text": "Attribute values SHALL NOT be returned (e.g., because the value is a stored hash).",
+        "common_words": [
+          "attribute",
+          "returned"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.2-R5",
+    "section": "7",
+    "level": "SHOULD",
+    "title": "Attribute uniqueness definitions (none, server, global) are enforced",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.529,
+        "n": 186,
+        "section": "7",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "attributes.uniqueness",
+        "lines": [
+          1832,
+          1833
+        ],
+        "text": "The value SHOULD be globally unique (e.g., an email address, a GUID, or other value).",
+        "common_words": [
+          "be",
+          "globally",
+          "should",
+          "unique"
+        ]
+      },
+      {
+        "score": 0.528,
+        "n": 184,
+        "section": "7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "attributes.uniqueness",
+        "lines": [
+          1826,
+          1829
+        ],
+        "text": "MAY be globally unique (e.g., a \"username\", email address, or other server-generated key or counter).",
+        "common_words": [
+          "be",
+          "globally",
+          "may",
+          "server",
+          "unique"
+        ]
+      },
+      {
+        "score": 0.511,
+        "n": 175,
+        "section": "7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "attributes.mutability",
+        "lines": [
+          1764,
+          1764
+        ],
+        "text": "The attribute MAY be updated and read at any time.",
+        "common_words": [
+          "and",
+          "attribute",
+          "be",
+          "may"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.2-R6",
+    "section": "7",
+    "level": "MUST",
+    "title": "Attribute caseExact definition is honored in case preservation and filter matching",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.875,
+        "n": 171,
+        "section": "7",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "attributes.caseExact",
+        "lines": [
+          1752,
+          1754
+        ],
+        "text": "For attributes that are case exact, the server SHALL preserve case for any value submitted.",
+        "common_words": [
+          "any",
+          "are",
+          "attributes",
+          "case",
+          "definition",
+          "exact",
+          "for",
+          "preserve"
+        ]
+      },
+      {
+        "score": 0.734,
+        "n": 172,
+        "section": "7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "attributes.caseExact",
+        "lines": [
+          1754,
+          1755
+        ],
+        "text": "If the attribute is case insensitive, the server MAY alter case for a submitted value.",
+        "common_words": [
+          "a",
+          "attribute",
+          "case",
+          "definition",
+          "exact",
+          "for",
+          "insensitive",
+          "is"
+        ]
+      },
+      {
+        "score": 0.607,
+        "n": 179,
+        "section": "7",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "attributes.mutability",
+        "lines": [
+          1771,
+          1773
+        ],
+        "text": "Attribute values SHALL NOT be returned (e.g., because the value is a stored hash).",
+        "common_words": [
+          "a",
+          "attribute",
+          "definition",
+          "is",
+          "schema",
+          "shall",
+          "the",
+          "value"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.2-R7",
+    "section": "7",
+    "level": "MAY",
+    "title": "Schema attribute canonicalValues declares applicable canonical types; server MAY restrict values",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.601,
+        "n": 167,
+        "section": "7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "attributes.canonicalValues",
+        "lines": [
+          1746,
+          1747
+        ],
+        "text": "A collection of suggested canonical values that MAY be used (e.g., \"work\" and \"home\").",
+        "common_words": [
+          "canonical",
+          "e.g",
+          "home",
+          "may",
+          "schema",
+          "values",
+          "work"
+        ]
+      },
+      {
+        "score": 0.543,
+        "n": 159,
+        "section": "7",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "id",
+        "lines": [
+          1692,
+          1694
+        ],
+        "text": "When applicable, service providers MUST specify the URI, e.g., \"urn:ietf:params:scim:schemas:core:2.0:User\".",
+        "common_words": [
+          "applicable",
+          "core",
+          "e.g",
+          "schema",
+          "schemas",
+          "specify",
+          "when"
+        ]
+      },
+      {
+        "score": 0.528,
+        "n": 157,
+        "section": "7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          1678,
+          1680
+        ],
+        "text": "Unlike other core resources, the \"Schema\" resource MAY contain a complex object within a sub-attribute",
+        "common_words": [
+          "attribute",
+          "core",
+          "may",
+          "other",
+          "schema"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.3-R1",
+    "section": "2.3",
+    "level": "MUST",
+    "title": "Value validation conforms to declared attribute data types",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.542,
+        "n": 15,
+        "section": "2.3.5",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          531,
+          533
+        ],
+        "text": "Values represented in JSON format MUST conform to the XML constraints above and are represented as a JSON string per Section 7 of [RFC7159].",
+        "common_words": [
+          "are",
+          "conform",
+          "must",
+          "per",
+          "string",
+          "to",
+          "values"
+        ]
+      },
+      {
+        "score": 0.495,
+        "n": 27,
+        "section": "2.3.8",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "",
+        "lines": [
+          595,
+          596
+        ],
+        "text": "A complex attribute MUST NOT contain sub-attributes that have sub-attributes (i.e., that are complex).",
+        "common_words": [
+          "are",
+          "attribute",
+          "complex",
+          "must"
+        ]
+      },
+      {
+        "score": 0.46,
+        "n": 22,
+        "section": "2.3.7",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          577,
+          577
+        ],
+        "text": "A reference URI MUST be to an HTTP-addressable resource.",
+        "common_words": [
+          "http",
+          "must",
+          "to"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.3.5-R1",
+    "section": "2.3.5",
+    "level": "MUST",
+    "title": "dateTime attributes are formatted as XML dateTime according to ISO 8601",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.685,
+        "n": 15,
+        "section": "2.3.5",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          531,
+          533
+        ],
+        "text": "Values represented in JSON format MUST conform to the XML constraints above and are represented as a JSON string per Section 7 of [RFC7159].",
+        "common_words": [
+          "are",
+          "as",
+          "date",
+          "datetime",
+          "time",
+          "to",
+          "values",
+          "xml"
+        ]
+      },
+      {
+        "score": 0.551,
+        "n": 14,
+        "section": "2.3.5",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          526,
+          528
+        ],
+        "text": "The attribute value MUST be encoded as a valid xsd:dateTime as specified in Section 3.3.7 of [XML-Schema] and MUST include both a date and a time.",
+        "common_words": [
+          "as",
+          "date",
+          "datetime",
+          "time",
+          "xml"
+        ]
+      },
+      {
+        "score": 0.405,
+        "n": 61,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "meta.created",
+        "lines": [
+          920,
+          920
+        ],
+        "text": "This attribute MUST be a DateTime.",
+        "common_words": [
+          "attributes",
+          "date",
+          "datetime",
+          "meta.created",
+          "time"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.3.6-R1",
+    "section": "2.3.6",
+    "level": "MUST",
+    "title": "binary attributes are base64 encoded and case-exact",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.615,
+        "n": 16,
+        "section": "2.3.6",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          537,
+          538
+        ],
+        "text": "The attribute value MUST be base64 encoded as specified in Section 4 of [RFC4648].",
+        "common_words": [
+          "base64",
+          "be",
+          "binary",
+          "encoded",
+          "must"
+        ]
+      },
+      {
+        "score": 0.442,
+        "n": 17,
+        "section": "2.3.6",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          538,
+          540
+        ],
+        "text": "In cases where a URL-safe encoding is required, the attribute definition MAY specify that base64 URL encoding be used as per Section 5 of [RFC4648].",
+        "common_words": [
+          "base64",
+          "be",
+          "binary",
+          "per"
+        ]
+      },
+      {
+        "score": 0.376,
+        "n": 18,
+        "section": "2.3.6",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          540,
+          542
+        ],
+        "text": "Unless otherwise specified in the attribute definition, trailing padding characters MAY be omitted (\"=\").",
+        "common_words": [
+          "be",
+          "binary"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.3.7-R1",
+    "section": "2.3.7",
+    "level": "MUST",
+    "title": "reference attributes contain valid URI ($ref) and target resource referenceTypes",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.631,
+        "n": 20,
+        "section": "2.3.7",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          552,
+          553
+        ],
+        "text": "The value MUST be the absolute or relative URI of the target resource.",
+        "common_words": [
+          "or",
+          "reference",
+          "resource",
+          "target",
+          "uri"
+        ]
+      },
+      {
+        "score": 0.59,
+        "n": 22,
+        "section": "2.3.7",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          577,
+          577
+        ],
+        "text": "A reference URI MUST be to an HTTP-addressable resource.",
+        "common_words": [
+          "reference",
+          "resource",
+          "to",
+          "uri"
+        ]
+      },
+      {
+        "score": 0.584,
+        "n": 19,
+        "section": "2.3.7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          550,
+          551
+        ],
+        "text": "A resource MAY be a SCIM resource, an external link to a resource (e.g., a photo), or an identifier such as a URN.",
+        "common_words": [
+          "external",
+          "or",
+          "reference",
+          "resource",
+          "scim",
+          "to"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.3.7-R2",
+    "section": "2.3.7",
+    "level": "MAY",
+    "title": "Service providers MAY enforce referential integrity for reference attributes",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.685,
+        "n": 24,
+        "section": "2.3.7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          579,
+          581
+        ],
+        "text": "A SCIM service provider MAY choose to enforce referential integrity for reference types referring to SCIM resources.",
+        "common_words": [
+          "enforce",
+          "for",
+          "integrity",
+          "may",
+          "reference",
+          "referential",
+          "service"
+        ]
+      },
+      {
+        "score": 0.491,
+        "n": 25,
+        "section": "2.3.7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          583,
+          585
+        ],
+        "text": "By convention, a reference is commonly represented as a \"$ref\" sub-attribute in complex or multi-valued attributes; however, this is OPTIONAL.",
+        "common_words": [
+          "attributes",
+          "is",
+          "optional",
+          "reference"
+        ]
+      },
+      {
+        "score": 0.403,
+        "n": 19,
+        "section": "2.3.7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          550,
+          551
+        ],
+        "text": "A resource MAY be a SCIM resource, an external link to a resource (e.g., a photo), or an identifier such as a URN.",
+        "common_words": [
+          "may",
+          "reference"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.3.8-R1",
+    "section": "2.3.8",
+    "level": "MUST",
+    "title": "Complex attributes MUST NOT contain nested complex attributes (except Schema resource)",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.8,
+        "n": 27,
+        "section": "2.3.8",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "",
+        "lines": [
+          595,
+          596
+        ],
+        "text": "A complex attribute MUST NOT contain sub-attributes that have sub-attributes (i.e., that are complex).",
+        "common_words": [
+          "attributes",
+          "complex",
+          "contain",
+          "must",
+          "not",
+          "sub"
+        ]
+      },
+      {
+        "score": 0.541,
+        "n": 26,
+        "section": "2.3.8",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "",
+        "lines": [
+          592,
+          594
+        ],
+        "text": "Servers and clients MUST NOT require or expect attributes to be in any specific order when an object is either generated or analyzed.",
+        "common_words": [
+          "attributes",
+          "complex",
+          "must",
+          "not"
+        ]
+      },
+      {
+        "score": 0.531,
+        "n": 6,
+        "section": "1.2",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "",
+        "lines": [
+          304,
+          305
+        ],
+        "text": "A simple attribute MUST NOT contain sub-attributes.",
+        "common_words": [
+          "attributes",
+          "contain",
+          "must",
+          "not",
+          "sub"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.4-R1",
+    "section": "2.4",
+    "level": "MUST",
+    "title": "Multi-valued complex attribute primary sub-attribute is boolean with at most one true",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.671,
+        "n": 28,
+        "section": "2.4",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          606,
+          608
+        ],
+        "text": "objects with a set of sub-attributes and values, using the JSON object format defined in Section 4 of [RFC7159], in which case they SHALL be considered to be complex attributes.",
+        "common_words": [
+          "a",
+          "complex",
+          "in",
+          "multi",
+          "set",
+          "sub",
+          "to",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.65,
+        "n": 30,
+        "section": "2.4",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "primary",
+        "lines": [
+          633,
+          634
+        ],
+        "text": "The primary attribute value \"true\" MUST appear no more than once.",
+        "common_words": [
+          "attribute",
+          "multi",
+          "primary",
+          "true",
+          "value",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.638,
+        "n": 31,
+        "section": "2.4",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "primary",
+        "lines": [
+          634,
+          635
+        ],
+        "text": "If not specified, the value of \"primary\" SHALL be assumed to be \"false\".",
+        "common_words": [
+          "false",
+          "multi",
+          "primary",
+          "to",
+          "value",
+          "valued"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.4-R2",
+    "section": "2.4",
+    "level": "MUST",
+    "title": "Multi-valued complex attribute display sub-attribute is a human-readable string",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.538,
+        "n": 28,
+        "section": "2.4",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          606,
+          608
+        ],
+        "text": "objects with a set of sub-attributes and values, using the JSON object format defined in Section 4 of [RFC7159], in which case they SHALL be considered to be complex attributes.",
+        "common_words": [
+          "a",
+          "attributes",
+          "complex",
+          "multi",
+          "sub",
+          "valued",
+          "with"
+        ]
+      },
+      {
+        "score": 0.53,
+        "n": 29,
+        "section": "2.4",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          610,
+          612
+        ],
+        "text": "The predefined sub-attributes listed in this section can be used with multi-valued attribute objects, but these sub-attributes MUST be used with the meanings defined here.",
+        "common_words": [
+          "attribute",
+          "attributes",
+          "multi",
+          "sub",
+          "valued",
+          "with"
+        ]
+      },
+      {
+        "score": 0.517,
+        "n": 33,
+        "section": "2.4",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          655,
+          658
+        ],
+        "text": "When returning multi-valued attributes, service providers SHOULD canonicalize the value returned (e.g., by returning a value for the sub-attribute \"type\", such as \"home\" or \"work\") when appropriate (e.g., for email addresses and URLs).",
+        "common_words": [
+          "a",
+          "as",
+          "attribute",
+          "attributes",
+          "multi",
+          "or",
+          "sub",
+          "valued"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.4-R3",
+    "section": "2.4",
+    "level": "SHOULD",
+    "title": "Service providers SHOULD NOT return duplicate (type, value) entries",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.677,
+        "n": 35,
+        "section": "2.4",
+        "level": "SHOULD",
+        "polarity": "negative",
+        "label_path": "",
+        "lines": [
+          660,
+          664
+        ],
+        "text": "but SHOULD NOT return the same (type, value) combination more than once per attribute, as this complicates processing by the client.",
+        "common_words": [
+          "multi",
+          "not",
+          "return",
+          "should",
+          "type",
+          "value",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.636,
+        "n": 33,
+        "section": "2.4",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          655,
+          658
+        ],
+        "text": "When returning multi-valued attributes, service providers SHOULD canonicalize the value returned (e.g., by returning a value for the sub-attribute \"type\", such as \"home\" or \"work\") when appropriate (e.g., for email addresses and URLs).",
+        "common_words": [
+          "multi",
+          "providers",
+          "service",
+          "should",
+          "type",
+          "value",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.583,
+        "n": 31,
+        "section": "2.4",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "primary",
+        "lines": [
+          634,
+          635
+        ],
+        "text": "If not specified, the value of \"primary\" SHALL be assumed to be \"false\".",
+        "common_words": [
+          "multi",
+          "not",
+          "of",
+          "value",
+          "valued"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-2.5-R1",
+    "section": "2.5",
+    "level": "MUST",
+    "title": "Unassigned attributes, null value, or empty array SHALL be considered equivalent in state",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 1.014,
+        "n": 38,
+        "section": "2.5",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          681,
+          683
+        ],
+        "text": "Unassigned attributes, the null value, or an empty array (in the case of a multi-valued attribute) SHALL be considered to be equivalent in \"state\".",
+        "common_words": [
+          "a",
+          "array",
+          "attribute",
+          "attributes",
+          "be",
+          "case",
+          "considered",
+          "empty"
+        ]
+      },
+      {
+        "score": 0.528,
+        "n": 39,
+        "section": "2.5",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          685,
+          687
+        ],
+        "text": "When a resource is expressed in JSON format, unassigned attributes, although they are defined in schema, MAY be omitted for compactness.",
+        "common_words": [
+          "a",
+          "attributes",
+          "be",
+          "in",
+          "may",
+          "null",
+          "schema",
+          "unassigned"
+        ]
+      },
+      {
+        "score": 0.437,
+        "n": 31,
+        "section": "2.4",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "primary",
+        "lines": [
+          634,
+          635
+        ],
+        "text": "If not specified, the value of \"primary\" SHALL be assumed to be \"false\".",
+        "common_words": [
+          "attributes",
+          "be",
+          "multi",
+          "of",
+          "shall",
+          "the",
+          "to",
+          "value"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-3-R1",
+    "section": "3",
+    "level": "MUST",
+    "title": "Resource representations MUST include non-empty schemas array of unique, resource-type-supported schema URIs",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.955,
+        "n": 43,
+        "section": "3",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          711,
+          713
+        ],
+        "text": "The \"schemas\" attribute for a resource MUST only contain values defined as \"schema\" and \"schemaExtensions\" for the resource's defined \"resourceType\".",
+        "common_words": [
+          "and",
+          "as",
+          "attribute",
+          "contain",
+          "defined",
+          "extensions",
+          "for",
+          "must"
+        ]
+      },
+      {
+        "score": 0.773,
+        "n": 42,
+        "section": "3",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          709,
+          711
+        ],
+        "text": "All representations of SCIM schemas MUST include a non-empty array with value(s) of the URIs supported by that representation.",
+        "common_words": [
+          "array",
+          "empty",
+          "include",
+          "must",
+          "non",
+          "of",
+          "representations",
+          "s"
+        ]
+      },
+      {
+        "score": 0.644,
+        "n": 66,
+        "section": "3.3",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          975,
+          977
+        ],
+        "text": "The \"schemas\" attribute MUST contain at least one value, which SHALL be the base schema for the resource.",
+        "common_words": [
+          "attribute",
+          "contain",
+          "extensions",
+          "for",
+          "must",
+          "resource",
+          "schema",
+          "schemas"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-3-R2",
+    "section": "3",
+    "level": "MUST",
+    "title": "Extended attributes MUST be in sub-structure keyed by schema URI without top-level leak",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.533,
+        "n": 48,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          853,
+          856
+        ],
+        "text": "When accepted by a service provider (e.g., after a SCIM create), the attributes \"id\" and \"meta\" (and its associated sub-attributes) MUST be assigned values by the service provider.",
+        "common_words": [
+          "attributes",
+          "be",
+          "by",
+          "must",
+          "sub"
+        ]
+      },
+      {
+        "score": 0.528,
+        "n": 69,
+        "section": "3.3",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          980,
+          983
+        ],
+        "text": "Except for the base object schema, the schema extension URI SHALL be used as a JSON container to distinguish attributes belonging to the extension namespace from base schema attributes.",
+        "common_words": [
+          "attributes",
+          "be",
+          "extension",
+          "schema",
+          "uri"
+        ]
+      },
+      {
+        "score": 0.505,
+        "n": 54,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "id",
+        "lines": [
+          870,
+          872
+        ],
+        "text": "The value of the \"id\" attribute is always issued by the service provider and MUST NOT be specified by the client.",
+        "common_words": [
+          "attributes",
+          "be",
+          "by",
+          "must"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-3.1-R1",
+    "section": "3.1",
+    "level": "MUST",
+    "title": "id attribute is server-issued, unique, case-exact, readOnly, returned always; client MUST NOT specify",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.736,
+        "n": 55,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "id",
+        "lines": [
+          872,
+          874
+        ],
+        "text": "The string \"bulkId\" is a reserved keyword and MUST NOT be used within any unique identifier value.",
+        "common_words": [
+          "a",
+          "bulk",
+          "bulkid",
+          "id",
+          "is",
+          "keyword",
+          "must",
+          "not"
+        ]
+      },
+      {
+        "score": 0.667,
+        "n": 54,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "id",
+        "lines": [
+          870,
+          872
+        ],
+        "text": "The value of the \"id\" attribute is always issued by the service provider and MUST NOT be specified by the client.",
+        "common_words": [
+          "always",
+          "attribute",
+          "client",
+          "id",
+          "is",
+          "issued",
+          "must",
+          "not"
+        ]
+      },
+      {
+        "score": 0.606,
+        "n": 57,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "externalId",
+        "lines": [
+          888,
+          890
+        ],
+        "text": "The value of the \"externalId\" attribute is always issued by the provisioning client and MUST NOT be specified by the service provider.",
+        "common_words": [
+          "always",
+          "attribute",
+          "client",
+          "is",
+          "issued",
+          "must",
+          "not"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-3.1-R2",
+    "section": "3.1",
+    "level": "MUST",
+    "title": "externalId attribute is readWrite, case-exact, scoped to provisioning domain",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.665,
+        "n": 58,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "externalId",
+        "lines": [
+          890,
+          892
+        ],
+        "text": "The service provider MUST always interpret the externalId as scoped to the provisioning domain.",
+        "common_words": [
+          "domain",
+          "external",
+          "externalid",
+          "provisioning",
+          "scoped",
+          "to"
+        ]
+      },
+      {
+        "score": 0.66,
+        "n": 57,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "externalId",
+        "lines": [
+          888,
+          890
+        ],
+        "text": "The value of the \"externalId\" attribute is always issued by the provisioning client and MUST NOT be specified by the service provider.",
+        "common_words": [
+          "and",
+          "attribute",
+          "client",
+          "external",
+          "externalid",
+          "is",
+          "provisioning"
+        ]
+      },
+      {
+        "score": 0.583,
+        "n": 59,
+        "section": "3.1",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "externalId",
+        "lines": [
+          904,
+          905
+        ],
+        "text": "This attribute is OPTIONAL.",
+        "common_words": [
+          "attribute",
+          "external",
+          "externalid",
+          "is"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-3.1-R3",
+    "section": "3.1",
+    "level": "MUST",
+    "title": "meta.location is the resource URI (readOnly) and MUST match Content-Location (or 201 Location) header when present",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.659,
+        "n": 63,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "meta.location",
+        "lines": [
+          927,
+          929
+        ],
+        "text": "This value MUST be the same as the \"Content-Location\" HTTP response header (see Section 3.1.4.2 of [RFC7231]).",
+        "common_words": [
+          "content",
+          "header",
+          "location",
+          "meta.location",
+          "must",
+          "response",
+          "the"
+        ]
+      },
+      {
+        "score": 0.574,
+        "n": 53,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "id",
+        "lines": [
+          868,
+          870
+        ],
+        "text": "It MUST be a stable, non-reassignable identifier that does not change when the same resource is returned in subsequent requests.",
+        "common_words": [
+          "is",
+          "must",
+          "resource",
+          "returned",
+          "the",
+          "when"
+        ]
+      },
+      {
+        "score": 0.505,
+        "n": 54,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "id",
+        "lines": [
+          870,
+          872
+        ],
+        "text": "The value of the \"id\" attribute is always issued by the service provider and MUST NOT be specified by the client.",
+        "common_words": [
+          "and",
+          "is",
+          "must",
+          "the"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-3.1-R4",
+    "section": "3.1",
+    "level": "MUST",
+    "title": "meta.version matches ETag HTTP response header and marks non-strong validators as weak with case-sensitive 'W/'",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.621,
+        "n": 64,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "meta.version",
+        "lines": [
+          936,
+          942
+        ],
+        "text": "If a service provider provides \"version\" (entity-tag) for a representation and the generation of that entity-tag does not satisfy all of the characteristics of a strong validator (see Section 2.1 of [RFC7232]), then the origin server MUST mark the \"version\" (entity-tag) as weak by prefixing its opaque value with \"W/\" (case sensitive).",
+        "common_words": [
+          "and",
+          "as",
+          "case",
+          "entity",
+          "meta.version",
+          "sensitive",
+          "strong",
+          "w"
+        ]
+      },
+      {
+        "score": 0.496,
+        "n": 63,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "meta.location",
+        "lines": [
+          927,
+          929
+        ],
+        "text": "This value MUST be the same as the \"Content-Location\" HTTP response header (see Section 3.1.4.2 of [RFC7231]).",
+        "common_words": [
+          "as",
+          "header",
+          "http",
+          "response"
+        ]
+      },
+      {
+        "score": 0.379,
+        "n": 47,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          850,
+          853
+        ],
+        "text": "With the exception of the \"/ServiceProviderConfig\" and \"/ResourceTypes\" server discovery endpoints and their associated resources, these attributes MUST be defined for all resources, including any extended resource types.",
+        "common_words": [
+          "and",
+          "with"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-3.1-R5",
+    "section": "3.1",
+    "level": "MUST",
+    "title": "meta.created and meta.lastModified are readOnly DateTimes assigned by service provider; initial lastModified MUST equal created",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.576,
+        "n": 48,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          853,
+          856
+        ],
+        "text": "When accepted by a service provider (e.g., after a SCIM create), the attributes \"id\" and \"meta\" (and its associated sub-attributes) MUST be assigned values by the service provider.",
+        "common_words": [
+          "and",
+          "assigned",
+          "by",
+          "must",
+          "provider",
+          "service",
+          "values"
+        ]
+      },
+      {
+        "score": 0.576,
+        "n": 62,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "meta.lastModified",
+        "lines": [
+          923,
+          925
+        ],
+        "text": "If this resource has never been modified since its initial creation, the value MUST be the same as the value of \"created\".",
+        "common_words": [
+          "created",
+          "creation",
+          "initial",
+          "meta.last",
+          "meta.lastmodified",
+          "modified",
+          "must"
+        ]
+      },
+      {
+        "score": 0.56,
+        "n": 54,
+        "section": "3.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "id",
+        "lines": [
+          870,
+          872
+        ],
+        "text": "The value of the \"id\" attribute is always issued by the service provider and MUST NOT be specified by the client.",
+        "common_words": [
+          "and",
+          "by",
+          "client",
+          "must",
+          "provider",
+          "service"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.1-R1",
+    "section": "4.1.1",
+    "level": "MUST",
+    "title": "User userName is required, unique across server/global, and case-insensitive",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.877,
+        "n": 73,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1037,
+          1038
+        ],
+        "text": "This attribute is REQUIRED and is case insensitive.",
+        "common_words": [
+          "and",
+          "case",
+          "insensitive",
+          "is",
+          "name",
+          "required",
+          "user",
+          "username"
+        ]
+      },
+      {
+        "score": 0.644,
+        "n": 72,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1036,
+          1037
+        ],
+        "text": "This identifier MUST be unique across the service provider's entire set of Users.",
+        "common_words": [
+          "across",
+          "identifier",
+          "name",
+          "unique",
+          "user",
+          "username"
+        ]
+      },
+      {
+        "score": 0.517,
+        "n": 71,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1035,
+          1036
+        ],
+        "text": "Each User MUST include a non-empty userName value.",
+        "common_words": [
+          "name",
+          "user",
+          "username"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.1-R2",
+    "section": "4.1.1",
+    "level": "MUST",
+    "title": "User password has mutability writeOnly and returned never",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.651,
+        "n": 88,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "password",
+        "lines": [
+          1221,
+          1224
+        ],
+        "text": "The mutability of the password attribute is \"writeOnly\", indicating that the value MUST NOT be returned by a service provider in any form (the attribute characteristic \"returned\" is \"never\").",
+        "common_words": [
+          "be",
+          "in",
+          "mutability",
+          "never",
+          "password",
+          "returned",
+          "write",
+          "writeonly"
+        ]
+      },
+      {
+        "score": 0.463,
+        "n": 82,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "password",
+        "lines": [
+          1185,
+          1187
+        ],
+        "text": "The cleartext value or the hashed value of a password SHALL NOT be returnable by a service provider.",
+        "common_words": [
+          "be",
+          "or",
+          "password"
+        ]
+      },
+      {
+        "score": 0.429,
+        "n": 73,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1037,
+          1038
+        ],
+        "text": "This attribute is REQUIRED and is case insensitive.",
+        "common_words": [
+          "and",
+          "user"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.1-R3",
+    "section": "4.1.1",
+    "level": "MUST",
+    "title": "User name complex attribute defines formatted, familyName, givenName, middleName, and honorific sub-attributes",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.631,
+        "n": 73,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1037,
+          1038
+        ],
+        "text": "This attribute is REQUIRED and is case insensitive.",
+        "common_words": [
+          "and",
+          "attribute",
+          "attributes",
+          "name",
+          "user"
+        ]
+      },
+      {
+        "score": 0.499,
+        "n": 71,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1035,
+          1036
+        ],
+        "text": "Each User MUST include a non-empty userName value.",
+        "common_words": [
+          "attributes",
+          "name",
+          "user"
+        ]
+      },
+      {
+        "score": 0.479,
+        "n": 74,
+        "section": "4.1.1",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "name",
+        "lines": [
+          1041,
+          1045
+        ],
+        "text": "Service providers MAY return just the full name as a single string in the formatted sub-attribute, or they MAY return just the individual component attributes using the other sub-attributes, or they MAY return both.",
+        "common_words": [
+          "attribute",
+          "attributes",
+          "formatted",
+          "name",
+          "sub"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.1-R4",
+    "section": "4.1.1",
+    "level": "MUST",
+    "title": "User displayName, nickName, profileUrl, title, userType adhere to schema definitions",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.618,
+        "n": 76,
+        "section": "4.1.1",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "displayName",
+        "lines": [
+          1080,
+          1081
+        ],
+        "text": "Each user returned MAY include a non-empty displayName value.",
+        "common_words": [
+          "attributes",
+          "display",
+          "displayname",
+          "name",
+          "singular",
+          "user"
+        ]
+      },
+      {
+        "score": 0.6,
+        "n": 80,
+        "section": "4.1.1",
+        "level": "SHOULD",
+        "polarity": "negative",
+        "label_path": "nickName",
+        "lines": [
+          1091,
+          1092
+        ],
+        "text": "This attribute SHOULD NOT be used to represent a User's username (e.g., bjensen or mpepperidge).",
+        "common_words": [
+          "attributes",
+          "name",
+          "nick",
+          "nickname",
+          "singular",
+          "to",
+          "user"
+        ]
+      },
+      {
+        "score": 0.565,
+        "n": 71,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1035,
+          1036
+        ],
+        "text": "Each User MUST include a non-empty userName value.",
+        "common_words": [
+          "attributes",
+          "name",
+          "singular",
+          "user"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.1-R5",
+    "section": "4.1.1",
+    "level": "MUST",
+    "title": "User preferredLanguage, locale, timezone conform to standard formats",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.394,
+        "n": 86,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "password",
+        "lines": [
+          1206,
+          1209
+        ],
+        "text": "If the value needs to be temporarily persisted for a period of time (e.g., because of a workflow) before provisioning, then the value MUST be protected by some method, such as encryption.",
+        "common_words": [
+          "time",
+          "to"
+        ]
+      },
+      {
+        "score": 0.379,
+        "n": 81,
+        "section": "4.1.1",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "locale",
+        "lines": [
+          1138,
+          1140
+        ],
+        "text": "For backward compatibility, servers MAY accept tags separated by an underscore character (\"_\", %x5F).",
+        "common_words": [
+          "locale",
+          "tags"
+        ]
+      },
+      {
+        "score": 0.375,
+        "n": 71,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1035,
+          1036
+        ],
+        "text": "Each User MUST include a non-empty userName value.",
+        "common_words": [
+          "user"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.1-R6",
+    "section": "4.1.1",
+    "level": "MUST",
+    "title": "User active is a boolean indicating account administrative status",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.477,
+        "n": 88,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "password",
+        "lines": [
+          1221,
+          1224
+        ],
+        "text": "The mutability of the password attribute is \"writeOnly\", indicating that the value MUST NOT be returned by a service provider in any form (the attribute characteristic \"returned\" is \"never\").",
+        "common_words": [
+          "a",
+          "indicating",
+          "is"
+        ]
+      },
+      {
+        "score": 0.474,
+        "n": 71,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1035,
+          1036
+        ],
+        "text": "Each User MUST include a non-empty userName value.",
+        "common_words": [
+          "a",
+          "user"
+        ]
+      },
+      {
+        "score": 0.474,
+        "n": 73,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1037,
+          1038
+        ],
+        "text": "This attribute is REQUIRED and is case insensitive.",
+        "common_words": [
+          "is",
+          "user"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.1-R7",
+    "section": "4.1.1",
+    "level": "MUST",
+    "title": "User password modification via PUT and PATCH when changePassword is supported",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.563,
+        "n": 88,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "password",
+        "lines": [
+          1221,
+          1224
+        ],
+        "text": "The mutability of the password attribute is \"writeOnly\", indicating that the value MUST NOT be returned by a service provider in any form (the attribute characteristic \"returned\" is \"never\").",
+        "common_words": [
+          "be",
+          "in",
+          "is",
+          "never",
+          "password",
+          "returned"
+        ]
+      },
+      {
+        "score": 0.5,
+        "n": 84,
+        "section": "4.1.1",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "password",
+        "lines": [
+          1188,
+          1190
+        ],
+        "text": "When a password is set or changed by the client, the cleartext password SHOULD be processed by the service provider as follows:",
+        "common_words": [
+          "be",
+          "is",
+          "or",
+          "password",
+          "when"
+        ]
+      },
+      {
+        "score": 0.494,
+        "n": 73,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1037,
+          1038
+        ],
+        "text": "This attribute is REQUIRED and is case insensitive.",
+        "common_words": [
+          "and",
+          "is",
+          "user"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.2-R1",
+    "section": "4.1.2",
+    "level": "SHOULD",
+    "title": "User emails is multi-valued with canonical types (work, home, other) and primary",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.683,
+        "n": 92,
+        "section": "4.1.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "emails",
+        "lines": [
+          1250,
+          1253
+        ],
+        "text": "The user interface should encourage the use of basic values of \"work\", \"home\", and \"other\" and MAY allow additional type values to be used at the discretion of SCIM clients.",
+        "common_words": [
+          "additional",
+          "and",
+          "emails",
+          "home",
+          "may",
+          "multi",
+          "other",
+          "user"
+        ]
+      },
+      {
+        "score": 0.619,
+        "n": 96,
+        "section": "4.1.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "phoneNumbers",
+        "lines": [
+          1261,
+          1264
+        ],
+        "text": "The sub-attribute \"type\" often has typical values of \"work\", \"home\", \"mobile\", \"fax\", \"pager\", and \"other\" and MAY allow more types to be defined by the SCIM clients.",
+        "common_words": [
+          "and",
+          "home",
+          "may",
+          "multi",
+          "other",
+          "types",
+          "typical",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.604,
+        "n": 107,
+        "section": "4.1.2",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "groups",
+        "lines": [
+          1334,
+          1337
+        ],
+        "text": "Direct group membership indicates that the user is directly associated with the group and SHOULD indicate that clients may modify membership through the \"Group\" resource.",
+        "common_words": [
+          "and",
+          "is",
+          "may",
+          "multi",
+          "user",
+          "valued",
+          "with"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.2-R2",
+    "section": "4.1.2",
+    "level": "SHOULD",
+    "title": "User phoneNumbers is multi-valued with canonical types (work, home, mobile, fax, pager, other)",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.785,
+        "n": 96,
+        "section": "4.1.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "phoneNumbers",
+        "lines": [
+          1261,
+          1264
+        ],
+        "text": "The sub-attribute \"type\" often has typical values of \"work\", \"home\", \"mobile\", \"fax\", \"pager\", and \"other\" and MAY allow more types to be defined by the SCIM clients.",
+        "common_words": [
+          "and",
+          "fax",
+          "home",
+          "may",
+          "mobile",
+          "multi",
+          "numbers",
+          "other"
+        ]
+      },
+      {
+        "score": 0.612,
+        "n": 94,
+        "section": "4.1.2",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "phoneNumbers",
+        "lines": [
+          1258,
+          1259
+        ],
+        "text": "Service providers SHOULD canonicalize the value according to [RFC3966] format, when appropriate.",
+        "common_words": [
+          "multi",
+          "numbers",
+          "phone",
+          "phonenumbers",
+          "providers",
+          "service",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.607,
+        "n": 92,
+        "section": "4.1.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "emails",
+        "lines": [
+          1250,
+          1253
+        ],
+        "text": "The user interface should encourage the use of basic values of \"work\", \"home\", and \"other\" and MAY allow additional type values to be used at the discretion of SCIM clients.",
+        "common_words": [
+          "additional",
+          "and",
+          "home",
+          "may",
+          "multi",
+          "other",
+          "user",
+          "valued"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.2-R3",
+    "section": "4.1.2",
+    "level": "MUST",
+    "title": "User ims is multi-valued instant messaging addresses",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.651,
+        "n": 97,
+        "section": "4.1.2",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "ims",
+        "lines": [
+          1267,
+          1270
+        ],
+        "text": "No official canonicalization rules exist for all instant messaging addresses, but service providers SHOULD, when appropriate, remove all whitespace and convert the address to lowercase.",
+        "common_words": [
+          "addresses",
+          "ims",
+          "instant",
+          "messaging",
+          "multi",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.625,
+        "n": 103,
+        "section": "4.1.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "addresses",
+        "lines": [
+          1304,
+          1305
+        ],
+        "text": "All sub-attributes are OPTIONAL.",
+        "common_words": [
+          "addresses",
+          "multi",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.545,
+        "n": 107,
+        "section": "4.1.2",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "groups",
+        "lines": [
+          1334,
+          1337
+        ],
+        "text": "Direct group membership indicates that the user is directly associated with the group and SHOULD indicate that clients may modify membership through the \"Group\" resource.",
+        "common_words": [
+          "is",
+          "multi",
+          "user",
+          "valued"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.2-R4",
+    "section": "4.1.2",
+    "level": "MUST",
+    "title": "User photos is multi-valued and values MUST specify image file URIs",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.61,
+        "n": 100,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "photos",
+        "lines": [
+          1281,
+          1283
+        ],
+        "text": "The resource MUST be a file (e.g., a GIF, JPEG, or PNG image file) rather than a web page containing an image.",
+        "common_words": [
+          "file",
+          "image",
+          "multi",
+          "must",
+          "photos",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.553,
+        "n": 107,
+        "section": "4.1.2",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "groups",
+        "lines": [
+          1334,
+          1337
+        ],
+        "text": "Direct group membership indicates that the user is directly associated with the group and SHOULD indicate that clients may modify membership through the \"Group\" resource.",
+        "common_words": [
+          "and",
+          "is",
+          "multi",
+          "user",
+          "valued",
+          "with"
+        ]
+      },
+      {
+        "score": 0.525,
+        "n": 109,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "groups",
+        "lines": [
+          1341,
+          1353
+        ],
+        "text": "If the SCIM service provider exposes a \"Group\" resource, the \"value\" sub-attribute MUST be the \"id\", and the \"$ref\" sub-attribute must be the URI of the corresponding \"Group\" resources to which the user belongs.",
+        "common_words": [
+          "and",
+          "multi",
+          "must",
+          "user",
+          "valued"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.2-R5",
+    "section": "4.1.2",
+    "level": "MUST",
+    "title": "User addresses country (when specified) MUST be in two-letter ISO 3166-1 alpha-2 format",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.737,
+        "n": 106,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "addresses.country",
+        "lines": [
+          1321,
+          1323
+        ],
+        "text": "When specified, the value MUST be in ISO 3166-1 \"alpha-2\" code format [ISO3166]; e.g., the United States and Sweden are \"US\" and \"SE\", respectively.",
+        "common_words": [
+          "alpha",
+          "be",
+          "code",
+          "format",
+          "in",
+          "iso",
+          "must",
+          "specified"
+        ]
+      },
+      {
+        "score": 0.473,
+        "n": 93,
+        "section": "4.1.2",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "phoneNumbers",
+        "lines": [
+          1256,
+          1258
+        ],
+        "text": "The value SHOULD be specified according to the format defined in [RFC3966], e.g., 'tel:+1-201-555-0123'.",
+        "common_words": [
+          "be",
+          "format",
+          "in",
+          "specified"
+        ]
+      },
+      {
+        "score": 0.452,
+        "n": 111,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "x509Certificates",
+        "lines": [
+          1377,
+          1379
+        ],
+        "text": "Each value contains exactly one DER-encoded X.509 certificate (see Section 4 of [RFC5280]), which MUST be base64 encoded per Section 4 of [RFC4648].",
+        "common_words": [
+          "be",
+          "must",
+          "per"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.2-R6",
+    "section": "4.1.2",
+    "level": "MUST",
+    "title": "User groups attribute is readOnly; membership changes MUST occur via Group resource",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.766,
+        "n": 110,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "groups",
+        "lines": [
+          1353,
+          1355
+        ],
+        "text": "Since this attribute has a mutability of \"readOnly\", group membership changes MUST be applied via the \"Group\" Resource (Section 4.2).",
+        "common_words": [
+          "attribute",
+          "changes",
+          "group",
+          "groups",
+          "membership",
+          "must",
+          "read",
+          "readonly"
+        ]
+      },
+      {
+        "score": 0.591,
+        "n": 109,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "groups",
+        "lines": [
+          1341,
+          1353
+        ],
+        "text": "If the SCIM service provider exposes a \"Group\" resource, the \"value\" sub-attribute MUST be the \"id\", and the \"$ref\" sub-attribute must be the URI of the corresponding \"Group\" resources to which the user belongs.",
+        "common_words": [
+          "attribute",
+          "group",
+          "groups",
+          "must",
+          "resource",
+          "to",
+          "user"
+        ]
+      },
+      {
+        "score": 0.576,
+        "n": 107,
+        "section": "4.1.2",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "groups",
+        "lines": [
+          1334,
+          1337
+        ],
+        "text": "Direct group membership indicates that the user is directly associated with the group and SHOULD indicate that clients may modify membership through the \"Group\" resource.",
+        "common_words": [
+          "direct",
+          "group",
+          "groups",
+          "is",
+          "membership",
+          "resource",
+          "user"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.2-R7",
+    "section": "4.1.2",
+    "level": "MUST",
+    "title": "User roles and entitlements multi-valued attributes adhere to schema definitions",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.622,
+        "n": 109,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "groups",
+        "lines": [
+          1341,
+          1353
+        ],
+        "text": "If the SCIM service provider exposes a \"Group\" resource, the \"value\" sub-attribute MUST be the \"id\", and the \"$ref\" sub-attribute must be the URI of the corresponding \"Group\" resources to which the user belongs.",
+        "common_words": [
+          "and",
+          "attributes",
+          "multi",
+          "to",
+          "user",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.583,
+        "n": 89,
+        "section": "4.1.2",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "emails",
+        "lines": [
+          1244,
+          1245
+        ],
+        "text": "The value SHOULD be specified according to [RFC5321].",
+        "common_words": [
+          "attributes",
+          "multi",
+          "to",
+          "valued"
+        ]
+      },
+      {
+        "score": 0.577,
+        "n": 92,
+        "section": "4.1.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "emails",
+        "lines": [
+          1250,
+          1253
+        ],
+        "text": "The user interface should encourage the use of basic values of \"work\", \"home\", and \"other\" and MAY allow additional type values to be used at the discretion of SCIM clients.",
+        "common_words": [
+          "and",
+          "attributes",
+          "multi",
+          "to",
+          "user",
+          "valued"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.1.2-R8",
+    "section": "4.1.2",
+    "level": "MUST",
+    "title": "User x509Certificates values contain exactly one DER-encoded certificate in base64",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.742,
+        "n": 111,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "x509Certificates",
+        "lines": [
+          1377,
+          1379
+        ],
+        "text": "Each value contains exactly one DER-encoded X.509 certificate (see Section 4 of [RFC5280]), which MUST be base64 encoded per Section 4 of [RFC4648].",
+        "common_words": [
+          "base64",
+          "certificate",
+          "der",
+          "encoded",
+          "exactly",
+          "of",
+          "one",
+          "per"
+        ]
+      },
+      {
+        "score": 0.693,
+        "n": 112,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "x509Certificates",
+        "lines": [
+          1379,
+          1381
+        ],
+        "text": "A single value MUST NOT contain multiple certificates and so does not contain the encoding \"SEQUENCE OF Certificate\" in any guise.",
+        "common_words": [
+          "certificate",
+          "certificates",
+          "contain",
+          "in",
+          "of",
+          "sequence",
+          "single",
+          "x509certificates"
+        ]
+      },
+      {
+        "score": 0.388,
+        "n": 109,
+        "section": "4.1.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "groups",
+        "lines": [
+          1341,
+          1353
+        ],
+        "text": "If the SCIM service provider exposes a \"Group\" resource, the \"value\" sub-attribute MUST be the \"id\", and the \"$ref\" sub-attribute must be the URI of the corresponding \"Group\" resources to which the user belongs.",
+        "common_words": [
+          "of",
+          "user"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.2-R1",
+    "section": "4.2",
+    "level": "MUST",
+    "title": "Group displayName is REQUIRED",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.93,
+        "n": 113,
+        "section": "4.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "displayName",
+        "lines": [
+          1411,
+          1411
+        ],
+        "text": "REQUIRED.",
+        "common_words": [
+          "display",
+          "displayname",
+          "group",
+          "name",
+          "required"
+        ]
+      },
+      {
+        "score": 0.386,
+        "n": 115,
+        "section": "4.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "members",
+        "lines": [
+          1423,
+          1426
+        ],
+        "text": "Service providers MAY require clients to provide a non-empty value by setting the \"required\" attribute characteristic of a sub-attribute of the \"members\" attribute in the \"Group\" resource schema.",
+        "common_words": [
+          "group",
+          "required"
+        ]
+      },
+      {
+        "score": 0.339,
+        "n": 73,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "userName",
+        "lines": [
+          1037,
+          1038
+        ],
+        "text": "This attribute is REQUIRED and is case insensitive.",
+        "common_words": [
+          "is",
+          "name",
+          "required"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.2-R2",
+    "section": "4.2",
+    "level": "MUST",
+    "title": "Group members sub-attributes (value, $ref, type) are immutable",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.78,
+        "n": 114,
+        "section": "4.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "members",
+        "lines": [
+          1417,
+          1418
+        ],
+        "text": "While values MAY be added or removed, sub-attributes of members are \"immutable\".",
+        "common_words": [
+          "added",
+          "are",
+          "attributes",
+          "be",
+          "group",
+          "immutable",
+          "members",
+          "removed"
+        ]
+      },
+      {
+        "score": 0.442,
+        "n": 115,
+        "section": "4.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "members",
+        "lines": [
+          1423,
+          1426
+        ],
+        "text": "Service providers MAY require clients to provide a non-empty value by setting the \"required\" attribute characteristic of a sub-attribute of the \"members\" attribute in the \"Group\" resource schema.",
+        "common_words": [
+          "group",
+          "members",
+          "sub",
+          "value"
+        ]
+      },
+      {
+        "score": 0.389,
+        "n": 113,
+        "section": "4.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "displayName",
+        "lines": [
+          1411,
+          1411
+        ],
+        "text": "REQUIRED.",
+        "common_words": [
+          "group"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.2-R3",
+    "section": "4.2",
+    "level": "MAY",
+    "title": "Group supports nested groups as members",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.526,
+        "n": 114,
+        "section": "4.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "members",
+        "lines": [
+          1417,
+          1418
+        ],
+        "text": "While values MAY be added or removed, sub-attributes of members are \"immutable\".",
+        "common_words": [
+          "group",
+          "members",
+          "resource"
+        ]
+      },
+      {
+        "score": 0.485,
+        "n": 115,
+        "section": "4.2",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "members",
+        "lines": [
+          1423,
+          1426
+        ],
+        "text": "Service providers MAY require clients to provide a non-empty value by setting the \"required\" attribute characteristic of a sub-attribute of the \"members\" attribute in the \"Group\" resource schema.",
+        "common_words": [
+          "group",
+          "members",
+          "resource"
+        ]
+      },
+      {
+        "score": 0.478,
+        "n": 113,
+        "section": "4.2",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "displayName",
+        "lines": [
+          1411,
+          1411
+        ],
+        "text": "REQUIRED.",
+        "common_words": [
+          "group",
+          "resource"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.3-R1",
+    "section": "4.3",
+    "level": "MUST",
+    "title": "Enterprise User extension attributes (employeeNumber, department, etc.) adhere to schema",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.686,
+        "n": 116,
+        "section": "4.3",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "manager.value",
+        "lines": [
+          1469,
+          1469
+        ],
+        "text": "RECOMMENDED.",
+        "common_words": [
+          "enterprise",
+          "extension",
+          "schema",
+          "user"
+        ]
+      },
+      {
+        "score": 0.686,
+        "n": 117,
+        "section": "4.3",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "manager.$ref",
+        "lines": [
+          1472,
+          1472
+        ],
+        "text": "RECOMMENDED.",
+        "common_words": [
+          "enterprise",
+          "extension",
+          "schema",
+          "user"
+        ]
+      },
+      {
+        "score": 0.526,
+        "n": 118,
+        "section": "4.3",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "manager.displayName",
+        "lines": [
+          1474,
+          1475
+        ],
+        "text": "This attribute is OPTIONAL, and mutability is \"readOnly\".",
+        "common_words": [
+          "enterprise",
+          "extension",
+          "schema",
+          "user"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-4.3-R2",
+    "section": "4.3",
+    "level": "SHOULD",
+    "title": "Enterprise User manager complex attribute includes value ($ref) and readOnly displayName",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.712,
+        "n": 118,
+        "section": "4.3",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "manager.displayName",
+        "lines": [
+          1474,
+          1475
+        ],
+        "text": "This attribute is OPTIONAL, and mutability is \"readOnly\".",
+        "common_words": [
+          "and",
+          "attribute",
+          "enterprise",
+          "name",
+          "optional",
+          "read",
+          "readonly",
+          "user"
+        ]
+      },
+      {
+        "score": 0.665,
+        "n": 116,
+        "section": "4.3",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "manager.value",
+        "lines": [
+          1469,
+          1469
+        ],
+        "text": "RECOMMENDED.",
+        "common_words": [
+          "enterprise",
+          "manager.value",
+          "recommended",
+          "user"
+        ]
+      },
+      {
+        "score": 0.574,
+        "n": 117,
+        "section": "4.3",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "manager.$ref",
+        "lines": [
+          1472,
+          1472
+        ],
+        "text": "RECOMMENDED.",
+        "common_words": [
+          "enterprise",
+          "recommended",
+          "user"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-5-R1",
+    "section": "5",
+    "level": "MUST",
+    "title": "ServiceProviderConfig attributes are all readOnly and include required capability flags",
+    "verdict": "ambiguous",
+    "candidates": [
+      {
+        "score": 0.724,
+        "n": 129,
+        "section": "5",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "changePassword",
+        "lines": [
+          1537,
+          1537
+        ],
+        "text": "REQUIRED.",
+        "common_words": [
+          "change",
+          "changepassword",
+          "password",
+          "provider",
+          "required",
+          "service"
+        ]
+      },
+      {
+        "score": 0.724,
+        "n": 136,
+        "section": "5",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "authenticationSchemes",
+        "lines": [
+          1583,
+          1583
+        ],
+        "text": "REQUIRED.",
+        "common_words": [
+          "authentication",
+          "authenticationschemes",
+          "provider",
+          "required",
+          "schemes",
+          "service"
+        ]
+      },
+      {
+        "score": 0.627,
+        "n": 120,
+        "section": "5",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "patch",
+        "lines": [
+          1499,
+          1499
+        ],
+        "text": "REQUIRED.",
+        "common_words": [
+          "patch",
+          "provider",
+          "required",
+          "service"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-6-R1",
+    "section": "6",
+    "level": "MUST",
+    "title": "ResourceType representations declare name, endpoint, schema, and optional schemaExtensions",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.842,
+        "n": 151,
+        "section": "6",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "schemaExtensions",
+        "lines": [
+          1649,
+          1649
+        ],
+        "text": "OPTIONAL.",
+        "common_words": [
+          "extensions",
+          "optional",
+          "resource",
+          "resourcetype",
+          "schema",
+          "schemaextensions",
+          "type"
+        ]
+      },
+      {
+        "score": 0.756,
+        "n": 145,
+        "section": "6",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "name",
+        "lines": [
+          1623,
+          1623
+        ],
+        "text": "REQUIRED",
+        "common_words": [
+          "name",
+          "resource",
+          "resourcetype",
+          "schema",
+          "type"
+        ]
+      },
+      {
+        "score": 0.756,
+        "n": 148,
+        "section": "6",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "endpoint",
+        "lines": [
+          1639,
+          1639
+        ],
+        "text": "REQUIRED",
+        "common_words": [
+          "endpoint",
+          "resource",
+          "resourcetype",
+          "schema",
+          "type"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-7-R1",
+    "section": "7",
+    "level": "MUST",
+    "title": "Schema resources are readOnly and define full attribute characteristics",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.583,
+        "n": 158,
+        "section": "7",
+        "level": "MUST",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          1678,
+          1680
+        ],
+        "text": "and all attributes are REQUIRED unless otherwise specified.",
+        "common_words": [
+          "all",
+          "and",
+          "are",
+          "schema"
+        ]
+      },
+      {
+        "score": 0.498,
+        "n": 175,
+        "section": "7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "attributes.mutability",
+        "lines": [
+          1764,
+          1764
+        ],
+        "text": "The attribute MAY be updated and read at any time.",
+        "common_words": [
+          "and",
+          "attribute",
+          "read",
+          "schema"
+        ]
+      },
+      {
+        "score": 0.474,
+        "n": 157,
+        "section": "7",
+        "level": "MAY",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          1678,
+          1680
+        ],
+        "text": "Unlike other core resources, the \"Schema\" resource MAY contain a complex object within a sub-attribute",
+        "common_words": [
+          "attribute",
+          "resource",
+          "resources",
+          "schema"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RFC7643-9.2-R1",
+    "section": "9.2",
+    "level": "MUST",
+    "title": "Passwords MUST NOT be stored cleartext (hashed or encrypted per erratum 8450)",
+    "verdict": "clear",
+    "candidates": [
+      {
+        "score": 0.586,
+        "n": 189,
+        "section": "9.2",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "",
+        "lines": [
+          5094,
+          5096
+        ],
+        "text": "While the SCIM protocol uses cleartext passwords for value assignment and equality-testing purposes, password values MUST NOT be stored in cleartext form.",
+        "common_words": [
+          "and",
+          "be",
+          "cleartext",
+          "must",
+          "not",
+          "passwords",
+          "stored"
+        ]
+      },
+      {
+        "score": 0.353,
+        "n": 82,
+        "section": "4.1.1",
+        "level": "MUST",
+        "polarity": "negative",
+        "label_path": "password",
+        "lines": [
+          1185,
+          1187
+        ],
+        "text": "The cleartext value or the hashed value of a password SHALL NOT be returnable by a service provider.",
+        "common_words": [
+          "be",
+          "by",
+          "cleartext",
+          "hashed",
+          "not",
+          "or"
+        ]
+      },
+      {
+        "score": 0.333,
+        "n": 190,
+        "section": "9.2",
+        "level": "SHOULD",
+        "polarity": "positive",
+        "label_path": "",
+        "lines": [
+          5098,
+          5100
+        ],
+        "text": "Administrators should undertake industry best practices to protect the storage of credentials and in particular SHOULD follow recommendations outlined in Section 5.1.4.1 of [RFC6819].",
+        "common_words": [
+          "and",
+          "passwords"
+        ]
+      }
+    ]
+  }
+]
