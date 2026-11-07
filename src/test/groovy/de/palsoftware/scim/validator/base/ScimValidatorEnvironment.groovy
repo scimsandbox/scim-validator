@@ -67,6 +67,7 @@ final class ScimValidatorEnvironment {
             }
 
             String actuatorApiKey = randomToken(32)
+            String cursorSecret = randomToken(32)
             api = new GenericContainer<>(DockerImageName.parse(configuration.apiImage))
                 .withNetwork(network)
                 .withExposedPorts(apiConfiguration.port, 9090)
@@ -76,7 +77,10 @@ final class ScimValidatorEnvironment {
                 .withEnv("SPRING_DATASOURCE_PASSWORD", postgresConfiguration.password)
                 .withEnv("SPRING_FLYWAY_ENABLED", "false")
                 .withEnv("MANAGEMENT_SERVER_PORT", "9090")
+                .withEnv("SCIM_CURSOR_SECRET", cursorSecret)
                 .withEnv("GO_SERVER_PORT", Integer.toString(apiConfiguration.port))
+                .withEnv("GO_SERVER_BASE_URL", "http://localhost:${apiConfiguration.port}")
+                .withEnv("GO_CURSOR_SECRET", cursorSecret)
                 .withEnv("GO_MANAGEMENT_PORT", "9090")
                 .withEnv("GO_DATASOURCE_URL", "jdbc:postgresql://${postgresConfiguration.alias}:5432/${postgresConfiguration.databaseName}")
                 .withEnv("GO_DATASOURCE_USERNAME", postgresConfiguration.username)

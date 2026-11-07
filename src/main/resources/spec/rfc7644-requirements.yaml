@@ -1,963 +1,3932 @@
-# RFC 7644: SCIM Protocol Specification Requirements Catalog
-# Basis: RFC 7644 as published (September 2015) + Verified Errata (6893, 7898, 7916, 8096, 8365)
-# Date: 2026-10-10
+# RFC 7644: requirements generated from normative-rfc7644.json (generate_requirements.py)
+# One entry per upper-case-keyword sentence of rfc7644-fixed.txt (RFC text + Verified errata).
+# Do not edit by hand: regenerate. capability/disposition/legacy_ids are filled
+# through the overlay described in README.md.
 
-- id: RFC7644-2-R1
+- id: RFC7644-1.2-258cd0
+  rfc: "7644"
+  section: "1.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Implementers MUST percent-encode URLs as described in Section 2.1 of [RFC3986]."
+  lines: [186, 187]
+  original_lines: [186, 187]
+  record: 2
+  area: "general"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-1.3-b39c0f
+  rfc: "7644"
+  section: "1.3"
+  subject: ""
+  level: "MUST"
+  polarity: "negative"
+  quote: "The Base URI MUST NOT contain a query string,"
+  lines: [201, 203]
+  original_lines: [201, 203]
+  record: 3
+  area: "general"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-1.3-4e1682
+  rfc: "7644"
+  section: "1.3"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "as clients MAY append additional path information and query parameters as part of forming the request."
+  lines: [201, 203]
+  original_lines: [201, 203]
+  record: 4
+  area: "general"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-1.3-9c02a0
+  rfc: "7644"
+  section: "1.3"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Additionally, a client MAY apply a version number to the server root prefix (see Section 3.13)."
+  lines: [214, 215]
+  original_lines: [214, 215]
+  record: 5
+  area: "general"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-2-218a88
   rfc: "7644"
   section: "2"
-  title: "Missing or invalid credentials return HTTP 401 with WWW-Authenticate header"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "RFC 7644 §2 references RFC 7235 §4.1 for WWW-Authenticate header"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "TLS Client Authentication The SCIM service provider MAY request TLS client authentication (also known as mutual authentication)."
+  lines: [239, 241]
+  original_lines: [239, 241]
+  record: 6
+  area: "auth"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
 
-- id: RFC7644-2-R2
+- id: RFC7644-2-9e4c19
   rfc: "7644"
   section: "2"
-  title: "Unauthorized operations return HTTP 403 Forbidden"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: optional
-  note: "Returns 403 when authenticated caller lacks required authorization/scope"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Bearer Tokens Bearer tokens [RFC6750] MAY be used when combined with TLS and a token framework such as OAuth 2.0 [RFC6749]."
+  lines: [253, 255]
+  original_lines: [253, 255]
+  record: 7
+  area: "auth"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.1-R1
+- id: RFC7644-2-556b3a
+  rfc: "7644"
+  section: "2"
+  subject: ""
+  level: "SHOULD"
+  polarity: "negative"
+  quote: "Tokens that are issued based on weak or no authentication of authorizing users and/or OAuth clients SHOULD NOT be used, unless, for example, they are being used as single-use tokens to permit one-time requests such as anonymous registration (see Section 3.3)."
+  lines: [255, 259]
+  original_lines: [255, 259]
+  record: 8
+  area: "auth"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-2-1db029
+  rfc: "7644"
+  section: "2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Cookies JavaScript clients MAY assert HTTP cookies over TLS that contain an authentication state that is understood by the SCIM service provider (see [RFC6265])."
+  lines: [287, 290]
+  original_lines: [287, 290]
+  record: 9
+  area: "auth"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-2-4ec7bb
+  rfc: "7644"
+  section: "2"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Implementers SHOULD combine the use of basic authentication with other factors."
+  lines: [299, 300]
+  original_lines: [299, 300]
+  record: 10
+  area: "auth"
+  capability: "core"
+  disposition: "na"
+  reason: "process"
+
+- id: RFC7644-2-a8b9bb
+  rfc: "7644"
+  section: "2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "As per Section 4.1 of [RFC7235], a SCIM service provider SHALL indicate supported HTTP authentication schemes via the \"WWW-Authenticate\" header."
+  lines: [307, 309]
+  original_lines: [307, 309]
+  record: 11
+  area: "auth"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-2-b897c4
+  rfc: "7644"
+  section: "2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Regardless of methodology, the SCIM service provider MUST be able to map the authenticated client to an access control policy in order to determine the client's authorization to retrieve and update SCIM resources."
+  lines: [311, 314]
+  original_lines: [311, 314]
+  record: 12
+  area: "auth"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-2-fccd30
+  rfc: "7644"
+  section: "2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "For example, while a browser session may have been established via HTTP cookie or TLS client authentication, the unique client MUST be mapped to a security subject (e.g., User)."
+  lines: [314, 316]
+  original_lines: [314, 316]
+  record: 13
+  area: "auth"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
+
+- id: RFC7644-2-d8fe6f
+  rfc: "7644"
+  section: "2"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "When processing requests, the service provider SHOULD consider the subject performing the request and whether or not the action is appropriate given the subject and the resource affected by the request."
+  lines: [320, 323]
+  original_lines: [320, 323]
+  record: 14
+  area: "auth"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-2-1e06b4
+  rfc: "7644"
+  section: "2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "For example, a subject MAY be permitted to retrieve and update their own \"User\" resource but will normally have restricted ability to access resources associated with other Users."
+  lines: [325, 327]
+  original_lines: [325, 327]
+  record: 15
+  area: "auth"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
+
+- id: RFC7644-2.1-ad0d26
+  rfc: "7644"
+  section: "2.1"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "When using bearer tokens or PoP tokens that represent an authorization grant, such as a grant issued by OAuth (see [RFC6749]), implementers SHOULD consider the type of authorization granted, any authorized scopes (see Section 3.3 of [RFC6749]), and the security subject(s) that SHOULD be mapped from the authorization when considering local access control rules."
+  lines: [357, 362]
+  original_lines: [357, 362]
+  record: 16
+  area: "auth"
+  capability: "core"
+  disposition: "na"
+  reason: "process"
+
+- id: RFC7644-2.1-5e578b
+  rfc: "7644"
+  section: "2.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When using OAuth authorization tokens, implementers MUST take into account the threats and countermeasures related to the use of client authorizations, as documented in Section 8 of [RFC7521]."
+  lines: [373, 375]
+  original_lines: [373, 375]
+  record: 17
+  area: "auth"
+  capability: "core"
+  disposition: "na"
+  reason: "process"
+
+- id: RFC7644-2.1-15f126
+  rfc: "7644"
+  section: "2.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When using other token formats or frameworks, implementers MUST take into account similar threats and countermeasures, especially those documented by the relevant specifications."
+  lines: [375, 378]
+  original_lines: [375, 378]
+  record: 18
+  area: "auth"
+  capability: "core"
+  disposition: "na"
+  reason: "process"
+
+- id: RFC7644-2.2-59c61f
+  rfc: "7644"
+  section: "2.2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "In some SCIM deployments, it MAY be acceptable to permit unauthenticated (anonymous) requests -- for example, a user self-registration request where the service provider chooses to accept a SCIM Create request (see Section 3.3) from an anonymous client."
+  lines: [382, 386]
+  original_lines: [382, 386]
+  record: 19
+  area: "auth"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.1-75f5ba
   rfc: "7644"
   section: "3.1"
-  title: "SCIM message schemas SHALL NOT be discoverable using the /Schemas endpoint"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "ListResponse, PatchOp, BulkRequest, BulkResponse, Error, SearchRequest schemas absent from /Schemas"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Specific information about what attributes are defined within a schema MAY be obtained by querying a SCIM service provider's \"/Schemas\" endpoint for a schema definition (see Section 8.7 of [RFC7643])."
+  lines: [417, 420]
+  original_lines: [417, 420]
+  record: 20
+  area: "general"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.2-R1
+- id: RFC7644-3.1-8f8796
+  rfc: "7644"
+  section: "3.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "As with a SCIM resource, a SCIM message is a JSON object [RFC7159] that contains a \"schemas\" attribute with a URI whose namespace prefix MUST begin with \"urn:ietf:params:scim:api:\"."
+  lines: [434, 437]
+  original_lines: [434, 437]
+  record: 21
+  area: "general"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.1-b3c159
+  rfc: "7644"
+  section: "3.1"
+  subject: ""
+  level: "MUST"
+  polarity: "negative"
+  quote: "As SCIM protocol messages are fixed and defined by SCIM specifications and registered extensions, SCIM message schemas using the above prefix URN SHALL NOT be discoverable using the \"/Schemas\" endpoint."
+  lines: [437, 440]
+  original_lines: [437, 440]
+  record: 22
+  area: "general"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.1-3d5248
+  rfc: "7644"
+  section: "3.1"
+  subject: ""
+  level: "SHOULD"
+  polarity: "negative"
+  quote: "Similarly, a SCIM client SHOULD NOT expect a service provider to return SCIM resources with exactly the same schema and values as submitted."
+  lines: [461, 463]
+  original_lines: [461, 463]
+  record: 23
+  area: "general"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-3.1-4fbdc7
+  rfc: "7644"
+  section: "3.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "SCIM responses SHALL reflect resource state as interpreted by the SCIM service provider."
+  lines: [463, 465]
+  original_lines: [463, 465]
+  record: 24
+  area: "general"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.2-c8114e
   rfc: "7644"
   section: "3.2"
-  title: "HTTP methods follow SCIM endpoint action table semantics"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "GET retrieves, POST creates, PUT replaces, PATCH updates, DELETE removes"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Service providers that support extended resources SHOULD define resource endpoints using the convention of pluralizing the resource name defined in the extended schema, by appending an 's'."
+  lines: [472, 475]
+  original_lines: [472, 475]
+  record: 25
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.2-R2
+- id: RFC7644-3.2-072594
   rfc: "7644"
   section: "3.2"
-  title: "PUT MUST NOT be used to create new resources"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "PUT targeting non-existent resource returns 404 Not Found"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Given that there are cases where resource pluralization is ambiguous, e.g., a resource named \"Person\" is legitimately \"Persons\" and \"People\", clients SHOULD discover resource endpoints via the \"/ResourceTypes\" endpoint."
+  lines: [475, 478]
+  original_lines: [475, 478]
+  record: 26
+  area: "resources"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
 
-- id: RFC7644-3.3-R1
+- id: RFC7644-3.2-785a94
+  rfc: "7644"
+  section: "3.2"
+  subject: "POST"
+  level: "MAY"
+  polarity: "positive"
+  quote: "Depending on the endpoint, creates new resources, creates a search request, or MAY be used to bulk-modify resources."
+  lines: [485, 486]
+  original_lines: [485, 486]
+  record: 27
+  area: "resources"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.2-bc7273
+  rfc: "7644"
+  section: "3.2"
+  subject: "PUT"
+  level: "MUST"
+  polarity: "negative"
+  quote: "PUT MUST NOT be used to create new resources."
+  lines: [489, 490]
+  original_lines: [489, 490]
+  record: 28
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.2-206bde
+  rfc: "7644"
+  section: "3.2"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Error status codes SHOULD be transmitted via the HTTP status code of the response (if possible) and SHOULD also be specified in the body of the response (see Section 3.12)."
+  lines: [570, 572]
+  original_lines: [570, 572]
+  record: 29
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.3-7490d1
   rfc: "7644"
   section: "3.3"
-  title: "Successful resource creation returns HTTP 201 with Location header and representation"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Location header MUST match resource URI and body includes meta.resourceType"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The server SHALL process attributes according to the following mutability rules:"
+  lines: [580, 581]
+  original_lines: [580, 581]
+  record: 30
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.3-R2
+- id: RFC7644-3.3-ae7143
   rfc: "7644"
   section: "3.3"
-  title: "Duplicate resource creation returns HTTP 409 Conflict with scimType uniqueness"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Attempting to create resource with existing unique attribute (e.g. userName) fails with 409"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "In the request body, attributes whose mutability is \"readOnly\" (see Sections 2.2 and 7 of [RFC7643]) SHALL be ignored."
+  lines: [583, 584]
+  original_lines: [583, 584]
+  record: 31
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.3-R3
+- id: RFC7644-3.3-972658
   rfc: "7644"
   section: "3.3"
-  title: "Missing required attributes in POST returns HTTP 400 Bad Request"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Creating User without userName or Group without displayName returns 400"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Attributes whose mutability is \"readWrite\" (see Section 2.2 of [RFC7643]) and that are omitted from the request body MAY be assumed to be not asserted by the client."
+  lines: [586, 588]
+  original_lines: [586, 588]
+  record: 32
+  area: "resources"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.3-R4
+- id: RFC7644-3.3-552f22
   rfc: "7644"
   section: "3.3"
-  title: "Client-supplied readOnly attributes supplied on create SHALL be ignored"
-  level: MUST
-  capability: none
-  observability: behavior
-  disposition: tested
-  note: "Client-supplied id, meta.created, or groups on User POST are ignored or rejected"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The service provider MAY assign a default value to non-asserted attributes in the final resource representation."
+  lines: [588, 590]
+  original_lines: [588, 590]
+  record: 33
+  area: "resources"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.3-R5
+- id: RFC7644-3.3-6e2147
   rfc: "7644"
   section: "3.3"
-  title: "Null or empty array in POST clears or unassigns attribute"
-  level: MAY
-  capability: none
-  observability: behavior
-  disposition: tested
-  note: "Specifying null for single-valued or [] for multi-valued attribute clears attribute"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Service providers MAY take into account whether or not a client has access to all of the resource's attributes when deciding whether or not non-asserted attributes should be defaulted."
+  lines: [592, 594]
+  original_lines: [592, 594]
+  record: 34
+  area: "resources"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
 
-- id: RFC7644-3.4-R1
+- id: RFC7644-3.3-5fd1bd
+  rfc: "7644"
+  section: "3.3"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients that intend to override existing or server-defaulted values for attributes MAY specify \"null\" for a single-valued attribute or an empty array \"[]\" for a multi-valued attribute to clear all values."
+  lines: [596, 599]
+  original_lines: [596, 599]
+  record: 35
+  area: "resources"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.3-49498f
+  rfc: "7644"
+  section: "3.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When the service provider successfully creates the new resource, an HTTP response SHALL be returned with HTTP status code 201 (Created)."
+  lines: [601, 602]
+  original_lines: [601, 602]
+  record: 36
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.3-5bb6a7
+  rfc: "7644"
+  section: "3.3"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "The response body SHOULD contain the service provider's representation of the newly created resource."
+  lines: [603, 604]
+  original_lines: [603, 604]
+  record: 37
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.3-5035f4
+  rfc: "7644"
+  section: "3.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The URI of the created resource SHALL include, in the HTTP \"Location\" header and the HTTP body, a JSON representation [RFC7159] with the attribute \"meta.location\"."
+  lines: [604, 607]
+  original_lines: [604, 607]
+  record: 38
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.3-91c414
+  rfc: "7644"
+  section: "3.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the service provider determines that the creation of the requested resource conflicts with existing resources (e.g., a \"User\" resource with a duplicate \"userName\"), the service provider MUST return HTTP status code 409 (Conflict) with a \"scimType\" error code of \"uniqueness\", as per Section 3.12."
+  lines: [623, 627]
+  original_lines: [623, 627]
+  record: 39
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.3.1-26f943
+  rfc: "7644"
+  section: "3.3.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When adding a resource to a specific endpoint, the meta attribute \"resourceType\" SHALL be set by the HTTP service provider to the corresponding resource type for the endpoint."
+  lines: [711, 713]
+  original_lines: [711, 713]
+  record: 40
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4-1277b9
   rfc: "7644"
   section: "3.4"
-  title: "Default returned attributes are those whose characteristic returned is always or default"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Unrequested responses omit returned=never and returned=request attributes"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Resources MAY be retrieved via opaque, unique URLs or via queries (see Section 3.4.2)."
+  lines: [719, 720]
+  original_lines: [719, 720]
+  record: 41
+  area: "query"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.4.1-R1
-  rfc: "7644"
-  section: "3.4.1"
-  title: "GET resource by ID returns HTTP 200 with resource representation"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Retrieves existing User or Group by ID"
-
-- id: RFC7644-3.4.1-R2
-  rfc: "7644"
-  section: "3.4.1"
-  title: "GET resource with unknown ID returns HTTP 404 with Error response"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Non-existent resource returns 404 and SCIM Error body"
-
-- id: RFC7644-3.4.2-R1
+- id: RFC7644-3.4.2-ac99e1
   rfc: "7644"
   section: "3.4.2"
-  title: "Query response returns HTTP 200 with ListResponse schema and totalResults"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Response contains urn:ietf:params:scim:api:messages:2.0:ListResponse"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Queries MAY be made against a single resource or a resource type endpoint (e.g., \"/Users\"), or the service provider Base URI."
+  lines: [810, 812]
+  original_lines: [810, 812]
+  record: 42
+  area: "query"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2-R2
+- id: RFC7644-3.4.2-b3cea7
   rfc: "7644"
   section: "3.4.2"
-  title: "Query with no matches returns HTTP 200 with totalResults 0 and empty Resources"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Empty result set is 200 OK, not 404"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "SCIM service providers MAY support additional query parameters not specified here"
+  lines: [812, 815]
+  original_lines: [812, 815]
+  record: 43
+  area: "query"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
 
-- id: RFC7644-3.4.2-R3
+- id: RFC7644-3.4.2-e09c65
   rfc: "7644"
   section: "3.4.2"
-  title: "Unrecognized query parameters SHOULD be ignored"
-  level: SHOULD
-  capability: none
-  observability: behavior
-  disposition: tested
-  note: "Unknown query parameters do not cause query rejection"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "SHOULD ignore any query parameters they do not recognize instead of rejecting the query for versioning compatibility reasons."
+  lines: [812, 815]
+  original_lines: [812, 815]
+  record: 44
+  area: "query"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.4.2-R4
+- id: RFC7644-3.4.2-315e52
   rfc: "7644"
   section: "3.4.2"
-  title: "Resources element is REQUIRED in ListResponse when totalResults is non-zero"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "When totalResults > 0, Resources array must be present"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Responses MUST be identified using the following URI: \"urn:ietf:params:scim:api:messages:2.0:ListResponse\"."
+  lines: [817, 818]
+  original_lines: [817, 818]
+  record: 45
+  area: "query"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.4.2.1-R1
+- id: RFC7644-3.4.2-73b756
+  rfc: "7644"
+  section: "3.4.2"
+  subject: "totalResults"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED."
+  lines: [825, 825]
+  original_lines: [825, 825]
+  record: 46
+  amended_by: ["A003"]
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2-f72e68
+  rfc: "7644"
+  section: "3.4.2"
+  subject: "Resources"
+  level: "MAY"
+  polarity: "positive"
+  quote: "This MAY be a subset of the full set of resources if pagination (Section 3.4.2.4) is requested."
+  lines: [828, 829]
+  original_lines: [828, 829]
+  record: 47
+  area: "query"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2-7e7ed1
+  rfc: "7644"
+  section: "3.4.2"
+  subject: "Resources"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED if \"totalResults\" is non-zero."
+  lines: [829, 830]
+  original_lines: [829, 830]
+  record: 48
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2-233c4c
+  rfc: "7644"
+  section: "3.4.2"
+  subject: "startIndex"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED when partial results are returned due to pagination."
+  lines: [833, 834]
+  original_lines: [833, 834]
+  record: 49
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2-0ae032
+  rfc: "7644"
+  section: "3.4.2"
+  subject: "itemsPerPage"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED when partial results are returned due to pagination."
+  lines: [837, 838]
+  original_lines: [837, 838]
+  record: 50
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2-eb7ca6
+  rfc: "7644"
+  section: "3.4.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "A query that does not return any matches SHALL return success (HTTP status code 200) with \"totalResults\" set to a value of 0."
+  lines: [847, 848]
+  original_lines: [847, 848]
+  record: 51
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2.1-afa90c
   rfc: "7644"
   section: "3.4.2.1"
-  title: "Query against server root indicates all resources included and meta.resourceType filter restricts results"
-  level: MAY
-  capability: search
-  observability: response
-  disposition: optional
-  note: "Root query / returns all types; filter=meta.resourceType eq User limits results"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Queries MAY be performed against a SCIM resource object, a resource type endpoint, or a SCIM server root."
+  lines: [882, 883]
+  original_lines: [882, 883]
+  record: 52
+  area: "query"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.1-R2
+- id: RFC7644-3.4.2.1-fbf07d
   rfc: "7644"
   section: "3.4.2.1"
-  title: "Query exceeding server result limit returns HTTP 400 with scimType tooMany"
-  level: SHOULD
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Returns 400 tooMany when matching results exceed filter.maxResults"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "A query against a server root indicates that all resources within the server SHALL be included, subject to filtering."
+  lines: [903, 904]
+  original_lines: [903, 904]
+  record: 53
+  area: "query"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.4.2.2-R1
+- id: RFC7644-3.4.2.1-b1acaf
+  rfc: "7644"
+  section: "3.4.2.1"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "A filter expression using \"meta.resourceType\" MAY be used to restrict results to one or more specific resource types (to exclude others)."
+  lines: [904, 906]
+  original_lines: [904, 906]
+  record: 54
+  area: "query"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.1-145a1a
+  rfc: "7644"
+  section: "3.4.2.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If a SCIM service provider determines that too many results would be returned (e.g., because a client queried a resource type endpoint or the server base URI), the server SHALL reject the request by returning an HTTP response with HTTP status code 400 (Bad Request) and JSON attribute \"scimType\" set to \"tooMany\" (see Table 9)."
+  lines: [910, 914]
+  original_lines: [910, 914]
+  record: 55
+  area: "query"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-3.4.2.1-c83bbf
+  rfc: "7644"
+  section: "3.4.2.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When processing query operations using endpoints that include more than one SCIM resource type (e.g., a query from the server root endpoint), filters MUST be processed as outlined in Section 3.4.2.2."
+  lines: [916, 918]
+  original_lines: [916, 918]
+  record: 56
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2.1-4abd06
+  rfc: "7644"
+  section: "3.4.2.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "For filtered attributes that are not part of a particular resource type, the service provider SHALL treat the attribute as if there is no attribute value."
+  lines: [919, 921]
+  original_lines: [919, 921]
+  record: 57
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2.2-6a180d
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter eq operator returns exact match respecting caseExact"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Matches exact value; case sensitive only when attribute is caseExact=true"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Filtering is an OPTIONAL parameter for SCIM service providers."
+  lines: [926, 926]
+  original_lines: [926, 926]
+  record: 58
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R2
+- id: RFC7644-3.4.2.2-228889
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter ne operator returns non-matching resources"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Returns resources where attribute is not equal or not present"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients MAY discover service provider filter capabilities by looking at the \"filter\" attribute of the \"ServiceProviderConfig\" endpoint (see Section 4)."
+  lines: [927, 929]
+  original_lines: [927, 929]
+  record: 59
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R3
+- id: RFC7644-3.4.2.2-9a80bb
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter co operator returns substring match"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Substring contains comparison"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients MAY request a subset of resources by specifying the \"filter\" query parameter containing a filter expression."
+  lines: [929, 931]
+  original_lines: [929, 931]
+  record: 60
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R4
+- id: RFC7644-3.4.2.2-f5a131
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter sw operator returns prefix match"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Starts with comparison"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When specified, only those resources matching the filter expression SHALL be returned."
+  lines: [931, 932]
+  original_lines: [931, 932]
+  record: 61
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R5
+- id: RFC7644-3.4.2.2-d8aeaa
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter ew operator returns suffix match"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Ends with comparison"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The filter parameter MUST contain at least one valid expression (see Table 3)."
+  lines: [944, 945]
+  original_lines: [944, 945]
+  record: 62
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R6
+- id: RFC7644-3.4.2.2-9d4485
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter pr operator returns resources where attribute is present and non-null"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Presence check"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Each expression MUST contain an attribute name followed by an attribute operator and optional value."
+  lines: [945, 946]
+  original_lines: [945, 946]
+  record: 63
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R7
+- id: RFC7644-3.4.2.2-1508f0
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter gt, ge, lt, le comparison operators match ordered values"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Greater than, greater than or equal, less than, less than or equal comparisons"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Multiple expressions MAY be combined using logical operators (see Table 4)."
+  lines: [946, 947]
+  original_lines: [946, 947]
+  record: 64
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R8
+- id: RFC7644-3.4.2.2-789ea9
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter and operator requires both expressions evaluate to true"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Logical conjunction"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Expressions MAY be grouped together using round brackets \"(\" and \")\" (see Table 5)."
+  lines: [947, 948]
+  original_lines: [947, 948]
+  record: 65
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R9
+- id: RFC7644-3.4.2.2-a93ea0
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter or operator requires at least one expression evaluates to true"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Logical disjunction"
+  subject: "gt"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Boolean and Binary attributes SHALL cause a failed response (HTTP status code 400) with \"scimType\" of \"invalidFilter\"."
+  lines: [992, 1004]
+  original_lines: [992, 1004]
+  record: 66
+  in_table: true
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R10
+- id: RFC7644-3.4.2.2-baa267
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter not operator inverts expression result"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Logical negation"
+  subject: "ge"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Boolean and Binary attributes SHALL cause a failed response (HTTP status code 400) with \"scimType\" of \"invalidFilter\"."
+  lines: [1015, 1027]
+  original_lines: [1015, 1027]
+  record: 67
+  in_table: true
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R11
+- id: RFC7644-3.4.2.2-e67674
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter parentheses group expressions to alter operator precedence"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Precedence grouping"
+  subject: "lt"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Boolean and Binary attributes SHALL cause a failed response (HTTP status code 400) with \"scimType\" of \"invalidFilter\"."
+  lines: [1029, 1040]
+  original_lines: [1029, 1040]
+  record: 68
+  in_table: true
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R12
+- id: RFC7644-3.4.2.2-0f284b
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Value path filter matches items within multi-valued complex attributes"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "e.g. emails[type eq \"work\" and value co \"@example.com\"]"
+  subject: "le"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Boolean and Binary attributes SHALL cause a failed response (HTTP status code 400) with \"scimType\" of \"invalidFilter\"."
+  lines: [1042, 1054]
+  original_lines: [1042, 1054]
+  record: 69
+  in_table: true
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R13
+- id: RFC7644-3.4.2.2-d9263c
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter on schemas attribute matches resources declaring schema URN"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "e.g. schemas eq \"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User\""
+  subject: "( )"
+  level: "MAY"
+  polarity: "positive"
+  quote: "Boolean expressions MAY be grouped using parentheses to change the standard order of operations, i.e., to evaluate logical \"or\" operators before logical \"and\" operators."
+  lines: [1090, 1094]
+  original_lines: [1090, 1094]
+  record: 70
+  in_table: true
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R14
+- id: RFC7644-3.4.2.2-571b49
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Invalid filter syntax returns HTTP 400 with scimType invalidFilter"
-  level: MUST
-  capability: filter
-  observability: response
-  disposition: optional
-  note: "Malformed filter expression returns 400 invalidFilter"
+  subject: "[ ]"
+  level: "MAY"
+  polarity: "positive"
+  quote: "Service providers MAY support complex filters"
+  lines: [1096, 1106]
+  original_lines: [1096, 1106]
+  record: 71
+  in_table: true
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.2-R15
+- id: RFC7644-3.4.2.2-862c56
   rfc: "7644"
   section: "3.4.2.2"
-  title: "Filter comparison on defaulted attribute uses value returned to creating client"
-  level: MUST
-  capability: filter
-  observability: behavior
-  disposition: optional
-  note: "Defaulted attribute filter evaluates against initial defaulted value"
+  subject: "[ ]"
+  level: "MUST"
+  polarity: "positive"
+  quote: "where expressions MUST be applied to the same value of a parent attribute specified immediately before the left square bracket (\"[\")."
+  lines: [1096, 1106]
+  original_lines: [1096, 1106]
+  record: 72
+  in_table: true
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.3-R1
+- id: RFC7644-3.4.2.2-f97968
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: "[ ]"
+  level: "MUST"
+  polarity: "positive"
+  quote: "The expression within square brackets (\"[\" and \"]\") MUST be a valid filter expression based upon sub-attributes of the parent attribute."
+  lines: [1096, 1106]
+  original_lines: [1096, 1106]
+  record: 73
+  in_table: true
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.2-00617b
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: "[ ]"
+  level: "MAY"
+  polarity: "positive"
+  quote: "Nested expressions MAY be used."
+  lines: [1096, 1106]
+  original_lines: [1096, 1106]
+  record: 74
+  in_table: true
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.2-a8f5e2
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "SCIM filters MUST conform to the following ABNF [RFC5234] rules as specified below:"
+  lines: [1127, 1128]
+  original_lines: [1127, 1128]
+  record: 75
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.2-4bde68
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Filters MUST be evaluated using the following order of operations, in order of precedence:"
+  lines: [1183, 1184]
+  original_lines: [1183, 1184]
+  record: 76
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.2-f5314c
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "For complex attributes, a fully qualified sub-attribute MUST be specified using standard attribute notation (Section 3.10)."
+  lines: [1197, 1198]
+  original_lines: [1197, 1198]
+  record: 77
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.2-a1f250
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When applying a comparison (e.g., \"eq\") or presence filter (e.g., \"pr\") to a defaulted attribute, the service provider SHALL use the value that was returned to the client that last created or modified the attribute."
+  lines: [1202, 1205]
+  original_lines: [1202, 1205]
+  record: 78
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.2-2e8124
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Providers MAY support additional filter operations if they choose."
+  lines: [1207, 1207]
+  original_lines: [1207, 1207]
+  record: 79
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.2-ae3b76
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Providers MUST decline to filter results if the specified filter operation is not recognized and return an HTTP 400 error with a \"scimType\" error of \"invalidFilter\" and an appropriate human-readable response as per Section 3.12."
+  lines: [1208, 1211]
+  original_lines: [1208, 1211]
+  record: 80
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.2-4a0c12
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When comparing attributes of type String, the case sensitivity for String type attributes SHALL be determined by the attribute's \"caseExact\" characteristic (see Section 2.2 of [RFC7643])."
+  lines: [1216, 1218]
+  original_lines: [1216, 1218]
+  record: 81
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.2-a03895
+  rfc: "7644"
+  section: "3.4.2.2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients MAY query by schema or schema extensions by using a filter expression including the \"schemas\" attribute (as shown in Figure 2)."
+  lines: [1220, 1221]
+  original_lines: [1220, 1221]
+  record: 82
+  area: "filtering"
+  capability: "filter"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.3-f280f2
   rfc: "7644"
   section: "3.4.2.3"
-  title: "Sorting ascending orders results in ascending order"
-  level: MUST
-  capability: sort
-  observability: response
-  disposition: optional
-  note: "sortOrder=ascending"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Sort is OPTIONAL."
+  lines: [1297, 1297]
+  original_lines: [1297, 1297]
+  record: 83
+  area: "sorting-pagination"
+  capability: "sort"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.3-R2
+- id: RFC7644-3.4.2.3-d9cb7c
   rfc: "7644"
   section: "3.4.2.3"
-  title: "Sorting descending orders results in descending order"
-  level: MUST
-  capability: sort
-  observability: response
-  disposition: optional
-  note: "sortOrder=descending"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients MAY discover sort capability by looking at the \"sort\" attribute of the service provider configuration (see Section 4)."
+  lines: [1297, 1299]
+  original_lines: [1297, 1299]
+  record: 84
+  area: "sorting-pagination"
+  capability: "sort"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.3-R3
+- id: RFC7644-3.4.2.3-f1660b
   rfc: "7644"
   section: "3.4.2.3"
-  title: "Default sort order when omitted is ascending"
-  level: MUST
-  capability: sort
-  observability: response
-  disposition: optional
-  note: "When sortBy is specified without sortOrder, default is ascending"
+  subject: "sortBy"
+  level: "MUST"
+  polarity: "positive"
+  quote: "The \"sortBy\" parameter specifies the attribute whose value SHALL be used to order the returned responses."
+  lines: [1303, 1304]
+  original_lines: [1303, 1304]
+  record: 85
+  area: "sorting-pagination"
+  capability: "sort"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.3-R4
+- id: RFC7644-3.4.2.3-73f3ba
   rfc: "7644"
   section: "3.4.2.3"
-  title: "Sort order places missing data last for ascending and first for descending"
-  level: MUST
-  capability: sort
-  observability: response
-  disposition: optional
-  note: "Null / unassigned values sorted to end in ascending order"
+  subject: "sortOrder"
+  level: "MUST"
+  polarity: "positive"
+  quote: "If a value for \"sortBy\" is provided and no \"sortOrder\" is specified, \"sortOrder\" SHALL default to ascending."
+  lines: [1317, 1319]
+  original_lines: [1317, 1319]
+  record: 86
+  area: "sorting-pagination"
+  capability: "sort"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.3-R5
+- id: RFC7644-3.4.2.3-64672f
   rfc: "7644"
   section: "3.4.2.3"
-  title: "Sort by multi-valued attribute orders by value where primary is true"
-  level: MUST
-  capability: sort
-  observability: response
-  disposition: optional
-  note: "Sort on complex multi-valued uses primary value"
+  subject: "sortOrder"
+  level: "MUST"
+  polarity: "positive"
+  quote: "\"sortOrder\" MUST sort according to the attribute type; i.e., for case-insensitive attributes, sort the result using case-insensitive Unicode alphabetic sort order with no specific locale implied, and for case-exact attribute types, sort the result using case-sensitive Unicode alphabetic sort order."
+  lines: [1321, 1326]
+  original_lines: [1321, 1326]
+  record: 87
+  area: "sorting-pagination"
+  capability: "sort"
+  disposition: "optional"
 
-- id: RFC7644-3.4.2.4-R1
+- id: RFC7644-3.4.2.4-f5a601
   rfc: "7644"
   section: "3.4.2.4"
-  title: "Pagination startIndex 1-based index default is 1 and values less than 1 interpreted as 1"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "1-based indexing; startIndex < 1 becomes 1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Because pagination is not stateful, clients MUST be prepared to handle inconsistent results."
+  lines: [1332, 1333]
+  original_lines: [1332, 1333]
+  record: 88
+  area: "sorting-pagination"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
 
-- id: RFC7644-3.4.2.4-R2
+- id: RFC7644-3.4.2.4-683173
   rfc: "7644"
   section: "3.4.2.4"
-  title: "Pagination count specifies maximum results; server MUST NOT return more than specified"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "itemsPerPage <= requested count; server MAY return fewer"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "For example, a request for a list of 10 resources beginning with a startIndex of 1 MAY return different results when repeated, since resources on the service provider may have changed between requests."
+  lines: [1333, 1336]
+  original_lines: [1333, 1336]
+  record: 89
+  area: "sorting-pagination"
+  capability: "core"
+  disposition: "na"
+  reason: "process"
 
-- id: RFC7644-3.4.2.4-R3
+- id: RFC7644-3.4.2.4-fecb18
   rfc: "7644"
   section: "3.4.2.4"
-  title: "Negative pagination count SHALL be interpreted as 0"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Negative count returns 0 items in page"
+  subject: "startIndex"
+  level: "MUST"
+  polarity: "positive"
+  quote: "A value less than 1 SHALL be interpreted as 1."
+  lines: [1356, 1359]
+  original_lines: [1356, 1359]
+  record: 90
+  in_table: true
+  area: "sorting-pagination"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.4.2.4-R4
+- id: RFC7644-3.4.2.4-006405
   rfc: "7644"
   section: "3.4.2.4"
-  title: "startIndex and itemsPerPage are REQUIRED when partial results returned due to pagination"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "ListResponse includes startIndex and itemsPerPage when paging"
+  subject: "count"
+  level: "MUST"
+  polarity: "positive"
+  quote: "A negative value SHALL be interpreted as \"0\"."
+  lines: [1361, 1370]
+  original_lines: [1361, 1370]
+  record: 91
+  in_table: true
+  area: "sorting-pagination"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.4.2.5-R1
+- id: RFC7644-3.4.2.4-41250b
+  rfc: "7644"
+  section: "3.4.2.4"
+  subject: "count"
+  level: "MUST"
+  polarity: "negative"
+  quote: "When specified, the service provider MUST NOT return more results than specified"
+  lines: [1361, 1370]
+  original_lines: [1361, 1370]
+  record: 92
+  in_table: true
+  area: "sorting-pagination"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2.4-25a5b1
+  rfc: "7644"
+  section: "3.4.2.4"
+  subject: "count"
+  level: "MAY"
+  polarity: "positive"
+  quote: "although it MAY return fewer results."
+  lines: [1361, 1370]
+  original_lines: [1361, 1370]
+  record: 93
+  in_table: true
+  area: "sorting-pagination"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.4.2.5-bf9c92
   rfc: "7644"
   section: "3.4.2.5"
-  title: "attributes parameter restricts returned attributes to specified set plus minimum set"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Projections: requested attributes plus always-returned attributes"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The following attributes control which attributes SHALL be returned with a returned resource."
+  lines: [1436, 1437]
+  original_lines: [1436, 1437]
+  record: 94
+  area: "query"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.4.2.5-R2
+- id: RFC7644-3.4.2.5-8e9147
   rfc: "7644"
   section: "3.4.2.5"
-  title: "excludedAttributes parameter removes specified attributes from default returned set"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Attribute exclusion; always-returned attributes cannot be excluded"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "SCIM clients MAY use one of these two OPTIONAL parameters"
+  lines: [1437, 1439]
+  original_lines: [1437, 1439]
+  record: 95
+  area: "query"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
 
-- id: RFC7644-3.4.2.5-R3
+- id: RFC7644-3.4.2.5-cf4476
   rfc: "7644"
   section: "3.4.2.5"
-  title: "attributes and excludedAttributes are mutually exclusive"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Providing both in same query returns 400 Bad Request"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "which MUST be supported by SCIM service providers:"
+  lines: [1437, 1439]
+  original_lines: [1437, 1439]
+  record: 96
+  area: "query"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.4.3-R1
+- id: RFC7644-3.4.2.5-058744
+  rfc: "7644"
+  section: "3.4.2.5"
+  subject: "attributes"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Attribute names MUST be in standard attribute notation (Section 3.10) form."
+  lines: [1443, 1444]
+  original_lines: [1443, 1444]
+  record: 97
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2.5-13dfb5
+  rfc: "7644"
+  section: "3.4.2.5"
+  subject: "excludedAttributes"
+  level: "MUST"
+  polarity: "positive"
+  quote: "This parameter SHALL have no effect on attributes whose schema \"returned\" setting is \"always\" (see Sections 2.2 and 7 of [RFC7643])."
+  lines: [1449, 1451]
+  original_lines: [1449, 1451]
+  record: 98
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.2.5-358d12
+  rfc: "7644"
+  section: "3.4.2.5"
+  subject: "excludedAttributes"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Attribute names MUST be in standard attribute notation (Section 3.10) form."
+  lines: [1451, 1452]
+  original_lines: [1451, 1452]
+  record: 99
+  area: "query"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.4.3-af15f2
   rfc: "7644"
   section: "3.4.3"
-  title: "POST to /.search returns HTTP 200 with ListResponse matching SearchRequest"
-  level: MUST
-  capability: search
-  observability: response
-  disposition: optional
-  note: "SearchRequest body supporting filter, sortBy, pagination, and projection"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients MAY execute queries without passing parameters on the URL by using the HTTP POST verb combined with the \"/.search\" path extension."
+  lines: [1465, 1466]
+  original_lines: [1465, 1466]
+  record: 100
+  area: "query"
+  capability: "search"
+  disposition: "optional"
 
-- id: RFC7644-3.5.1-R1
+- id: RFC7644-3.4.3-170248
+  rfc: "7644"
+  section: "3.4.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The inclusion of \"/.search\" on the end of a valid SCIM endpoint SHALL be used to indicate that the HTTP POST verb is intended to be a query operation."
+  lines: [1467, 1469]
+  original_lines: [1467, 1469]
+  record: 101
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-002106
+  rfc: "7644"
+  section: "3.4.3"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The body of the POST request MAY include any of the parameters defined in Section 3.4.2."
+  lines: [1473, 1474]
+  original_lines: [1473, 1474]
+  record: 102
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-706d0b
+  rfc: "7644"
+  section: "3.4.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Query requests MUST be identified using the following URI: \"urn:ietf:params:scim:api:messages:2.0:SearchRequest\"."
+  lines: [1476, 1477]
+  original_lines: [1476, 1477]
+  record: 103
+  area: "query"
+  capability: "search"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-3.4.3-a4f3d6
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "attributes"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Attribute names MUST be in standard attribute notation (Section 3.10) form."
+  lines: [1482, 1483]
+  original_lines: [1482, 1483]
+  record: 104
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-ff19d0
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "attributes"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [1484, 1484]
+  original_lines: [1484, 1484]
+  record: 105
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-4b3e55
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "excludedAttributes"
+  level: "MUST"
+  polarity: "positive"
+  quote: "This parameter SHALL have no effect on attributes whose schema \"returned\" setting is \"always\" (see Sections 2.2 and 7 of [RFC7643])."
+  lines: [1488, 1490]
+  original_lines: [1488, 1490]
+  record: 106
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-93bf33
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "excludedAttributes"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Attribute names MUST be in standard attribute notation (Section 3.10) form."
+  lines: [1490, 1491]
+  original_lines: [1490, 1491]
+  record: 107
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-14f827
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "excludedAttributes"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [1492, 1492]
+  original_lines: [1492, 1492]
+  record: 108
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-25d03c
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "filter"
+  level: "MUST"
+  polarity: "positive"
+  quote: "The filter string MUST be a valid filter (Section 3.4.2.2) expression."
+  lines: [1494, 1495]
+  original_lines: [1494, 1495]
+  record: 109
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-8cda5b
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "filter"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [1496, 1496]
+  original_lines: [1496, 1496]
+  record: 110
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-5e40ee
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "sortBy"
+  level: "MUST"
+  polarity: "positive"
+  quote: "A string indicating the attribute whose value SHALL be used to order the returned responses."
+  lines: [1498, 1499]
+  original_lines: [1498, 1499]
+  record: 111
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-7cbb09
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "sortBy"
+  level: "MUST"
+  polarity: "positive"
+  quote: "The \"sortBy\" attribute MUST be in standard attribute notation (Section 3.10) form."
+  lines: [1499, 1500]
+  original_lines: [1499, 1500]
+  record: 112
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-190de5
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "sortBy"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [1501, 1501]
+  original_lines: [1501, 1501]
+  record: 113
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-73ff3d
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "sortOrder"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [1505, 1505]
+  original_lines: [1505, 1505]
+  record: 114
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-69ead0
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "startIndex"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [1520, 1520]
+  original_lines: [1520, 1520]
+  record: 115
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.4.3-f16b2a
+  rfc: "7644"
+  section: "3.4.3"
+  subject: "count"
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [1523, 1523]
+  original_lines: [1523, 1523]
+  record: 116
+  area: "query"
+  capability: "search"
+  disposition: "optional"
+
+- id: RFC7644-3.5-8de339
+  rfc: "7644"
+  section: "3.5"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Implementers MUST support HTTP PUT as specified in Section 4.3 of [RFC7231]."
+  lines: [1607, 1608]
+  original_lines: [1607, 1608]
+  record: 117
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.5-dff148
+  rfc: "7644"
+  section: "3.5"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Resources such as Groups may be very large; hence, implementers SHOULD support HTTP PATCH [RFC5789] to enable partial resource modifications."
+  lines: [1608, 1610]
+  original_lines: [1608, 1610]
+  record: 118
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.5.1-d0aff3
   rfc: "7644"
   section: "3.5.1"
-  title: "PUT replaces existing resource representation in its entirety"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Full replace semantics; supplied attributes replace existing attributes"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "For example, clients that have previously retrieved the entire resource in advance and revised it MAY replace the resource using an HTTP PUT."
+  lines: [1633, 1635]
+  original_lines: [1633, 1635]
+  record: 119
+  area: "resources"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.5.1-R2
+- id: RFC7644-3.5.1-30e4f0
   rfc: "7644"
   section: "3.5.1"
-  title: "Omitted readWrite attributes in PUT MAY be cleared or assigned default values"
-  level: MAY
-  capability: none
-  observability: behavior
-  disposition: tested
-  note: "Omitted attributes are either set to null or receive server default"
+  subject: ""
+  level: "MUST"
+  polarity: "negative"
+  quote: "Because SCIM resource identifiers are assigned by the service provider, HTTP PUT MUST NOT be used to create new resources."
+  lines: [1635, 1637]
+  original_lines: [1635, 1637]
+  record: 120
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.5.1-R3
+- id: RFC7644-3.5.1-1cde8a
   rfc: "7644"
   section: "3.5.1"
-  title: "Client-supplied readOnly attributes in PUT SHALL be ignored or rejected"
-  level: MUST
-  capability: none
-  observability: behavior
-  disposition: tested
-  note: "Modifying readOnly attributes like id or meta.created fails or is ignored"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "As the operation's intent is to replace all attributes, SCIM clients MAY send all attributes, regardless of each attribute's mutability."
+  lines: [1639, 1640]
+  original_lines: [1639, 1640]
+  record: 121
+  area: "resources"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2-R1
+- id: RFC7644-3.5.1-d5c54c
+  rfc: "7644"
+  section: "3.5.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "readWrite, writeOnly Any values provided SHALL replace the existing attribute values."
+  lines: [1644, 1645]
+  original_lines: [1644, 1645]
+  record: 122
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.5.1-302824
+  rfc: "7644"
+  section: "3.5.1"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Attributes whose mutability is \"readWrite\" that are omitted from the request body MAY be assumed to be not asserted by the client."
+  lines: [1647, 1648]
+  original_lines: [1647, 1648]
+  record: 123
+  area: "resources"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.5.1-669b96
+  rfc: "7644"
+  section: "3.5.1"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The service provider MAY assume that any existing values are to be cleared, or the service provider MAY assign a default value to the final resource representation."
+  lines: [1649, 1651]
+  original_lines: [1649, 1651]
+  record: 124
+  area: "resources"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.5.1-9c5b4d
+  rfc: "7644"
+  section: "3.5.1"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Service providers MAY take into account whether or not a client has access to, or understands, all of the resource's attributes when deciding whether non-asserted attributes SHALL be removed or defaulted."
+  lines: [1651, 1654]
+  original_lines: [1651, 1654]
+  record: 125
+  area: "resources"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
+
+- id: RFC7644-3.5.1-ddbaf9
+  rfc: "7644"
+  section: "3.5.1"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients that want to override a server's defaults MAY specify \"null\" for a single-valued attribute, or an empty array \"[]\" for a multi-valued attribute, to clear all values."
+  lines: [1654, 1657]
+  original_lines: [1654, 1657]
+  record: 126
+  area: "resources"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.5.1-2e5206
+  rfc: "7644"
+  section: "3.5.1"
+  subject: "immutable"
+  level: "MUST"
+  polarity: "positive"
+  quote: "If one or more values are already set for the attribute, the input value(s) MUST match,"
+  lines: [1659, 1661]
+  original_lines: [1659, 1661]
+  record: 127
+  area: "resources"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-3.5.1-019f75
+  rfc: "7644"
+  section: "3.5.1"
+  subject: "immutable"
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "or HTTP status code 400 SHOULD be returned with a \"scimType\" error code of \"mutability\"."
+  lines: [1659, 1661]
+  original_lines: [1659, 1661]
+  record: 128
+  area: "resources"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-3.5.1-56d7a1
+  rfc: "7644"
+  section: "3.5.1"
+  subject: "immutable"
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the service provider has no existing values, the new value(s) SHALL be applied."
+  lines: [1661, 1663]
+  original_lines: [1661, 1663]
+  record: 129
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.5.1-b2f775
+  rfc: "7644"
+  section: "3.5.1"
+  subject: "readOnly"
+  level: "MUST"
+  polarity: "positive"
+  quote: "Any values provided SHALL be ignored."
+  lines: [1665, 1665]
+  original_lines: [1665, 1665]
+  record: 130
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.5.1-bf7a1d
+  rfc: "7644"
+  section: "3.5.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If an attribute is \"required\", clients MUST specify the attribute in the PUT request."
+  lines: [1667, 1668]
+  original_lines: [1667, 1668]
+  record: 131
+  area: "resources"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-3.5.2-708fa7
   rfc: "7644"
   section: "3.5.2"
-  title: "PATCH request SHALL be treated as atomic transaction"
-  level: MUST
-  capability: patch
-  observability: behavior
-  disposition: optional
-  note: "If any operation fails, original resource MUST be restored"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "HTTP PATCH is an OPTIONAL server function that enables clients to update one or more attributes of a SCIM resource using a sequence of operations to \"add\", \"remove\", or \"replace\" values."
+  lines: [1782, 1784]
+  original_lines: [1782, 1784]
+  record: 132
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2-R2
+- id: RFC7644-3.5.2-92e9dc
   rfc: "7644"
   section: "3.5.2"
-  title: "PATCH Operations array MUST contain one or more operation objects"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "Empty Operations array returns 400 Bad Request"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The body of each request MUST contain the \"schemas\" attribute with the URI value of \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"."
+  lines: [1805, 1806]
+  original_lines: [1805, 1806]
+  record: 133
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2-R3
+- id: RFC7644-3.5.2-2aa964
   rfc: "7644"
   section: "3.5.2"
-  title: "Each PATCH operation object MUST have exactly one op member"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "Operation missing op or containing multiple op members returns 400"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The body of an HTTP PATCH request MUST contain the attribute \"Operations\", whose value is an array of one or more PATCH operations."
+  lines: [1808, 1810]
+  original_lines: [1808, 1810]
+  record: 134
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2-R4
+- id: RFC7644-3.5.2-437ab3
   rfc: "7644"
   section: "3.5.2"
-  title: "PATCH response MUST return HTTP 200 with representation or MAY return HTTP 204"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "Server returns 200 with body or 204 No Content"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Each PATCH operation object MUST have exactly one \"op\" member, whose value indicates the operation to perform"
+  lines: [1810, 1812]
+  original_lines: [1810, 1812]
+  record: 135
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2-R5
+- id: RFC7644-3.5.2-fe207c
   rfc: "7644"
   section: "3.5.2"
-  title: "PATCH with attributes query parameter MUST return HTTP 200 OK"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "When attributes parameter specified, server cannot return 204"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "MAY be one of \"add\", \"remove\", or \"replace\"."
+  lines: [1810, 1812]
+  original_lines: [1810, 1812]
+  record: 136
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2-R6
+- id: RFC7644-3.5.2-ebfd50
   rfc: "7644"
   section: "3.5.2"
-  title: "PATCH setting primary true SHALL automatically set primary false for any other values"
-  level: MUST
-  capability: patch
-  observability: behavior
-  disposition: optional
-  note: "Multi-valued primary unset rule"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The \"path\" attribute is OPTIONAL for \"add\" and \"replace\""
+  lines: [1856, 1858]
+  original_lines: [1856, 1858]
+  record: 137
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2.1-R1
+- id: RFC7644-3.5.2-d42806
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "and is REQUIRED for \"remove\" operations."
+  lines: [1856, 1858]
+  original_lines: [1856, 1858]
+  record: 138
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-d91a0f
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Each operation against an attribute MUST be compatible with the attribute's mutability and schema as defined in Sections 2.2 and 2.3 of [RFC7643]."
+  lines: [1886, 1888]
+  original_lines: [1886, 1888]
+  record: 139
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-0c04e7
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "negative"
+  quote: "For example, a client MUST NOT modify an attribute that has mutability \"readOnly\" or \"immutable\"."
+  lines: [1888, 1889]
+  original_lines: [1888, 1889]
+  record: 140
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-0cc87d
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "However, a client MAY \"add\" a value to an \"immutable\" attribute if the attribute had no previous value."
+  lines: [1889, 1891]
+  original_lines: [1889, 1891]
+  record: 141
+  area: "patch"
+  capability: "patch"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-3.5.2-5a70a0
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "An operation that is not compatible with an attribute's mutability or schema SHALL return the appropriate HTTP response status code and a JSON detail error response as defined in Section 3.12."
+  lines: [1891, 1894]
+  original_lines: [1891, 1894]
+  record: 142
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-583272
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "For all operations, the value of the \"schemas\" attribute on the SCIM service provider's representation of the resource SHALL be assumed by default."
+  lines: [1897, 1899]
+  original_lines: [1897, 1899]
+  record: 143
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-de207f
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If one of the PATCH operations modifies the \"schemas\" attribute, subsequent operations SHALL assume the modified state of the \"schemas\" attribute."
+  lines: [1899, 1901]
+  original_lines: [1899, 1901]
+  record: 144
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-f35aca
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients MAY implicitly modify the \"schemas\" attribute by adding (or replacing) an attribute with its fully qualified name, including schema URN."
+  lines: [1901, 1912]
+  original_lines: [1901, 1912]
+  record: 145
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-5c4fa1
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "For multi-valued attributes, a PATCH operation that sets a value's \"primary\" sub-attribute to \"true\" SHALL cause the server to automatically set \"primary\" to \"false\" for any other values in the array."
+  lines: [1926, 1929]
+  original_lines: [1926, 1929]
+  record: 146
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-bd4c14
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "A PATCH request, regardless of the number of operations, SHALL be treated as atomic."
+  lines: [1931, 1932]
+  original_lines: [1931, 1932]
+  record: 147
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-710b2a
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If a single operation encounters an error condition, the original SCIM resource MUST be restored, and a failure status SHALL be returned."
+  lines: [1932, 1934]
+  original_lines: [1932, 1934]
+  record: 148
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-8c00a5
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If a request fails, the server SHALL return an HTTP response status code and a JSON detail error response as defined in Section 3.12."
+  lines: [1936, 1937]
+  original_lines: [1936, 1937]
+  record: 149
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-ba1a04
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "On successful completion, the server either MUST return a 200 OK response code and the entire resource within the response body, subject to the \"attributes\" query parameter (see Section 3.9),"
+  lines: [1939, 1943]
+  original_lines: [1939, 1943]
+  record: 150
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-8b4d7a
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "or MAY return HTTP status code 204 (No Content) and the appropriate response headers for a successful PATCH request."
+  lines: [1939, 1943]
+  original_lines: [1939, 1943]
+  record: 151
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2-3a0860
+  rfc: "7644"
+  section: "3.5.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The server MUST return a 200 OK if the \"attributes\" parameter is specified in the request."
+  lines: [1943, 1944]
+  original_lines: [1943, 1944]
+  record: 152
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2.1-952117
   rfc: "7644"
   section: "3.5.2.1"
-  title: "PATCH add operation MUST contain value member"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "add without value returns 400 invalidValue"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The operation MUST contain a \"value\" member whose content specifies the value to be added."
+  lines: [1972, 1973]
+  original_lines: [1972, 1973]
+  record: 153
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2.1-R2
+- id: RFC7644-3.5.2.1-1d8023
   rfc: "7644"
   section: "3.5.2.1"
-  title: "PATCH add appends to multi-valued attribute or sets single-valued attribute"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "Appends elements to existing array"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The value MAY be a quoted value, or it may be a JSON object containing the sub-attributes of the complex attribute specified in the operation's \"path\"."
+  lines: [1973, 1975]
+  original_lines: [1973, 1975]
+  record: 154
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2.1-R3
+- id: RFC7644-3.5.2.1-892fce
   rfc: "7644"
   section: "3.5.2.1"
-  title: "PATCH add without path adds attributes specified in value object to target resource"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "Pathless add merges attributes into resource"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the target location specifies a complex attribute, a set of sub-attributes SHALL be specified in the \"value\" parameter."
+  lines: [1987, 1988]
+  original_lines: [1987, 1988]
+  record: 155
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2.2-R1
+- id: RFC7644-3.5.2.1-b61229
+  rfc: "7644"
+  section: "3.5.2.1"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "If the target location already contains the value specified, no changes SHOULD be made to the resource, and a success response SHOULD be returned."
+  lines: [2001, 2003]
+  original_lines: [2001, 2003]
+  record: 156
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2.1-070c8d
+  rfc: "7644"
+  section: "3.5.2.1"
+  subject: ""
+  level: "MUST"
+  polarity: "negative"
+  quote: "Unless other operations change the resource, this operation SHALL NOT change the modify timestamp of the resource."
+  lines: [2003, 2005]
+  original_lines: [2003, 2005]
+  record: 157
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2.2-abf3c3
   rfc: "7644"
   section: "3.5.2.2"
-  title: "PATCH remove without path returns HTTP 400 with scimType noTarget"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "Path is required for remove operation"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the target location is a single-value attribute, the attribute and its associated value is removed, and the attribute SHALL be considered unassigned."
+  lines: [2146, 2148]
+  original_lines: [2145, 2147]
+  record: 158
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2.2-R2
+- id: RFC7644-3.5.2.2-3e0053
   rfc: "7644"
   section: "3.5.2.2"
-  title: "PATCH remove with path clears single-valued attribute or removes matching multi-valued items"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "Removes attribute or filtered array entries"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the target location is a multi-valued attribute and no filter is specified, the attribute and all values are removed, and the attribute SHALL be considered unassigned."
+  lines: [2150, 2152]
+  original_lines: [2149, 2151]
+  record: 159
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2.3-R1
+- id: RFC7644-3.5.2.2-bc4586
+  rfc: "7644"
+  section: "3.5.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If no other values remain after removal of the selected values, the multi-valued attribute SHALL be considered unassigned."
+  lines: [2156, 2158]
+  original_lines: [2155, 2157]
+  record: 160
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2.2-9a5a54
+  rfc: "7644"
+  section: "3.5.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Sub-attributes whose values have been removed SHALL be considered unassigned."
+  lines: [2162, 2163]
+  original_lines: [2161, 2162]
+  record: 161
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2.2-4e484f
+  rfc: "7644"
+  section: "3.5.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the complex multi-valued attribute has no remaining records, the attribute SHALL be considered unassigned."
+  lines: [2163, 2165]
+  original_lines: [2162, 2164]
+  record: 162
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2.2-817cea
+  rfc: "7644"
+  section: "3.5.2.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If an attribute is removed or becomes unassigned and is defined as a required attribute or a read-only attribute, the server SHALL return an HTTP response status code and a JSON detail error response as defined in Section 3.12, with a \"scimType\" error code of \"mutability\"."
+  lines: [2167, 2171]
+  original_lines: [2166, 2170]
+  record: 163
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2.3-5ae8fc
   rfc: "7644"
   section: "3.5.2.3"
-  title: "PATCH replace replaces existing attribute value"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "Overwrites existing value"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "In this case, the \"value\" attribute SHALL contain a list of one or more attributes that are to be replaced."
+  lines: [2367, 2368]
+  original_lines: [2366, 2367]
+  record: 164
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.5.2.3-R2
+- id: RFC7644-3.5.2.3-8226cc
   rfc: "7644"
   section: "3.5.2.3"
-  title: "PATCH replace on absent target attribute is treated as add operation"
-  level: MUST
-  capability: patch
-  observability: response
-  disposition: optional
-  note: "Target attribute not existing is created"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the target location path specifies an attribute that does not exist, the service provider SHALL treat the operation as an \"add\"."
+  lines: [2376, 2377]
+  original_lines: [2375, 2376]
+  record: 165
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
 
-- id: RFC7644-3.6-R1
+- id: RFC7644-3.5.2.3-6a49e4
+  rfc: "7644"
+  section: "3.5.2.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the target location specifies a complex attribute, a set of sub-attributes SHALL be specified in the \"value\" parameter, which replaces any existing values or adds where an attribute did not previously exist."
+  lines: [2379, 2382]
+  original_lines: [2378, 2381]
+  record: 166
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2.3-994959
+  rfc: "7644"
+  section: "3.5.2.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the target location is a multi-valued attribute and a value selection (\"valuePath\") filter is specified that matches one or more values of the multi-valued attribute, then all matching record values SHALL be replaced."
+  lines: [2385, 2388]
+  original_lines: [2384, 2387]
+  record: 167
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.5.2.3-47ad6c
+  rfc: "7644"
+  section: "3.5.2.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If the target location is a multi-valued attribute for which a value selection filter (\"valuePath\") has been supplied and no record match was made, the service provider SHALL indicate failure by returning HTTP status code 400 and a \"scimType\" error code of \"noTarget\"."
+  lines: [2395, 2399]
+  original_lines: [2394, 2398]
+  record: 168
+  area: "patch"
+  capability: "patch"
+  disposition: "optional"
+
+- id: RFC7644-3.6-829ea9
   rfc: "7644"
   section: "3.6"
-  title: "DELETE returns HTTP 204 No Content on successful deletion"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Resource deleted with empty response body"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Service providers MAY choose not to permanently delete the resource"
+  lines: [2642, 2645]
+  original_lines: [2641, 2644]
+  record: 169
+  area: "resources"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
 
-- id: RFC7644-3.6-R2
+- id: RFC7644-3.6-272626
   rfc: "7644"
   section: "3.6"
-  title: "Subsequent requests for deleted resource return HTTP 404 Not Found"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "GET, PUT, PATCH, DELETE after deletion returns 404"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "but MUST return a 404 (Not Found) error code for all operations associated with the previously deleted resource."
+  lines: [2642, 2645]
+  original_lines: [2641, 2644]
+  record: 170
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.6-R3
+- id: RFC7644-3.6-df3854
   rfc: "7644"
   section: "3.6"
-  title: "Soft-deleted resources SHALL NOT be returned in query responses"
-  level: MUST
-  capability: none
-  observability: behavior
-  disposition: tested
-  note: "Deleted resources excluded from queries"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Service providers MUST omit the resource from future query results."
+  lines: [2645, 2646]
+  original_lines: [2644, 2645]
+  record: 171
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.6-R4
+- id: RFC7644-3.6-1edaa3
   rfc: "7644"
   section: "3.6"
-  title: "Service provider SHOULD NOT consider deleted resource in uniqueness conflict calculation"
-  level: SHOULD
-  capability: none
-  observability: behavior
-  disposition: tested
-  note: "Re-creating resource with same unique attribute after deletion succeeds"
+  subject: ""
+  level: "SHOULD"
+  polarity: "negative"
+  quote: "In addition, the service provider SHOULD NOT consider the deleted resource in conflict calculation."
+  lines: [2646, 2648]
+  original_lines: [2645, 2647]
+  record: 172
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.6-R5
+- id: RFC7644-3.6-eef22e
   rfc: "7644"
   section: "3.6"
-  title: "DELETE supports If-Match header for conditional deletion"
-  level: MAY
-  capability: etag
-  observability: response
-  disposition: optional
-  note: "Conditional DELETE returns 412 if version does not match"
+  subject: ""
+  level: "SHOULD"
+  polarity: "negative"
+  quote: "For example, if a User resource is deleted, a CREATE request for a User resource with the same userName as the previously deleted resource SHOULD NOT fail with a 409 error due to userName conflict."
+  lines: [2648, 2651]
+  original_lines: [2647, 2650]
+  record: 173
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.7-R1
+- id: RFC7644-3.6-63d00b
+  rfc: "7644"
+  section: "3.6"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "In response to a successful DELETE, the server SHALL return a successful HTTP status code 204 (No Content)."
+  lines: [2658, 2659]
+  original_lines: [2657, 2658]
+  record: 174
+  area: "resources"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.7-37e095
   rfc: "7644"
   section: "3.7"
-  title: "POST to /Bulk executes multiple resource operations in single request"
-  level: MUST
-  capability: bulk
-  observability: response
-  disposition: optional
-  note: "BulkRequest containing Operations array"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL in a request."
+  lines: [2720, 2720]
+  original_lines: [2719, 2719]
+  record: 175
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
 
-- id: RFC7644-3.7-R2
+- id: RFC7644-3.7-a1972c
   rfc: "7644"
   section: "3.7"
-  title: "bulkId is REQUIRED for each operation when method is POST"
-  level: MUST
-  capability: bulk
-  observability: response
-  disposition: optional
-  note: "Missing bulkId on POST operation returns 400"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED."
+  lines: [2728, 2728]
+  original_lines: [2727, 2727]
+  record: 176
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
 
-- id: RFC7644-3.7-R3
+- id: RFC7644-3.7-1795ed
   rfc: "7644"
   section: "3.7"
-  title: "Bulk response echoes bulkId and location for created resources"
-  level: MUST
-  capability: bulk
-  observability: response
-  disposition: optional
-  note: "Response operation includes bulkId and location"
+  subject: "method"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED."
+  lines: [2732, 2732]
+  original_lines: [2731, 2731]
+  record: 177
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
 
-- id: RFC7644-3.7-R4
+- id: RFC7644-3.7-5382b9
   rfc: "7644"
   section: "3.7"
-  title: "Bulk operations support bulkId cross-referencing in data and path"
-  level: MUST
-  capability: bulk
-  observability: behavior
-  disposition: optional
-  note: "bulkId:id reference resolution across operations"
+  subject: "bulkId"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED when \"method\" is \"POST\"."
+  lines: [2739, 2739]
+  original_lines: [2738, 2738]
+  record: 178
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
 
-- id: RFC7644-3.7-R5
+- id: RFC7644-3.7-75a335
   rfc: "7644"
   section: "3.7"
-  title: "Bulk operations continue performing subsequent operations after partial failure"
-  level: MUST
-  capability: bulk
-  observability: behavior
-  disposition: optional
-  note: "Server disregards partial failure and continues unless failOnErrors limit reached"
+  subject: "version"
+  level: "MAY"
+  polarity: "positive"
+  quote: "Version MAY be used if the service provider supports entity-tags (ETags) (Section 2.3 of [RFC7232]) and \"method\" is \"PUT\", \"PATCH\", or \"DELETE\"."
+  lines: [2741, 2743]
+  original_lines: [2740, 2742]
+  record: 179
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
 
-- id: RFC7644-3.7-R6
+- id: RFC7644-3.7-f8b48e
   rfc: "7644"
   section: "3.7"
-  title: "Bulk operations stop and return when failOnErrors count exceeded"
-  level: MUST
-  capability: bulk
-  observability: response
-  disposition: optional
-  note: "failOnErrors limit aborts remaining operations"
+  subject: "path"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED in a request."
+  lines: [2756, 2757]
+  original_lines: [2755, 2756]
+  record: 180
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
 
-- id: RFC7644-3.7-R7
+- id: RFC7644-3.7-724600
   rfc: "7644"
   section: "3.7"
-  title: "Bulk operation supports version attribute for conditional updates"
-  level: MAY
-  capability: bulk
-  observability: response
-  disposition: optional
-  note: "Per-op version ETag on PUT, PATCH, DELETE"
+  subject: "data"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED in a request when \"method\" is \"POST\", \"PUT\", or \"PATCH\"."
+  lines: [2760, 2761]
+  original_lines: [2759, 2760]
+  record: 181
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
 
-- id: RFC7644-3.7.4-R1
+- id: RFC7644-3.7-43292f
+  rfc: "7644"
+  section: "3.7"
+  subject: "location"
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED in a response, except in the event of a POST failure."
+  lines: [2763, 2764]
+  original_lines: [2762, 2763]
+  record: 182
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7-96ff6c
+  rfc: "7644"
+  section: "3.7"
+  subject: "response"
+  level: "MUST"
+  polarity: "positive"
+  quote: "When indicating a response with an HTTP status other than a 200-series response, the response body MUST be included."
+  lines: [2767, 2769]
+  original_lines: [2766, 2768]
+  record: 183
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7-93252a
+  rfc: "7644"
+  section: "3.7"
+  subject: "response"
+  level: "MAY"
+  polarity: "positive"
+  quote: "For normal completion, the server MAY elect to omit the response body."
+  lines: [2769, 2770]
+  original_lines: [2768, 2769]
+  record: 184
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7-3d9e9e
+  rfc: "7644"
+  section: "3.7"
+  subject: "status"
+  level: "MUST"
+  polarity: "positive"
+  quote: "When indicating an error, the \"response\" attribute MUST contain the detail error response as per Section 3.12."
+  lines: [2773, 2774]
+  original_lines: [2772, 2773]
+  record: 185
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7-51afc1
+  rfc: "7644"
+  section: "3.7"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If a bulk job is processed successfully, HTTP response code 200 OK MUST be returned; otherwise, an appropriate HTTP error code MUST be returned."
+  lines: [2776, 2778]
+  original_lines: [2775, 2777]
+  record: 186
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7-76a97d
+  rfc: "7644"
+  section: "3.7"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The service provider MUST continue performing as many changes as possible and disregard partial failures."
+  lines: [2780, 2781]
+  original_lines: [2779, 2780]
+  record: 187
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7-0dbbdc
+  rfc: "7644"
+  section: "3.7"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The client MAY override this behavior by specifying a value for the \"failOnErrors\" attribute."
+  lines: [2781, 2782]
+  original_lines: [2780, 2781]
+  record: 188
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7-cda80e
+  rfc: "7644"
+  section: "3.7"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "To be able to reference a newly created resource, the bulkId attribute MAY be specified when creating new resources."
+  lines: [2787, 2788]
+  original_lines: [2786, 2787]
+  record: 189
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7-47e193
+  rfc: "7644"
+  section: "3.7"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The service provider MUST return the same \"bulkId\" together with the newly created resource."
+  lines: [2790, 2791]
+  original_lines: [2789, 2790]
+  record: 190
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7-642834
+  rfc: "7644"
+  section: "3.7"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "A SCIM service provider MAY elect to optimize the sequence of operations received (e.g., to improve processing performance)."
+  lines: [2795, 2796]
+  original_lines: [2794, 2795]
+  record: 191
+  area: "bulk"
+  capability: "bulk"
+  disposition: "na"
+  reason: "not-observable"
+
+- id: RFC7644-3.7-b0e958
+  rfc: "7644"
+  section: "3.7"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When doing so, the service provider MUST ensure that the client's intent is preserved and the same stateful result is achieved as for non-optimized processing."
+  lines: [2796, 2808]
+  original_lines: [2795, 2807]
+  record: 192
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.1-8bd1ce
+  rfc: "7644"
+  section: "3.7.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The service provider MUST try to resolve circular cross-references between resources in a single bulk job"
+  lines: [2815, 2817]
+  original_lines: [2814, 2816]
+  record: 193
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.1-320758
+  rfc: "7644"
+  section: "3.7.1"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "but MAY stop after a failed attempt and instead return HTTP status code 409 (Conflict)."
+  lines: [2815, 2817]
+  original_lines: [2814, 2816]
+  record: 194
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.2-a2687c
+  rfc: "7644"
+  section: "3.7.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The service provider MUST replace the string \"bulkId:qwerty\" with the permanent resource id once created."
+  lines: [2961, 2962]
+  original_lines: [2960, 2961]
+  record: 195
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.2-14c13f
+  rfc: "7644"
+  section: "3.7.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Extensions that include references to other resources MUST be handled in the same way by the service provider."
+  lines: [3144, 3145]
+  original_lines: [3143, 3144]
+  record: 196
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.3-4eef65
+  rfc: "7644"
+  section: "3.7.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The service provider response MUST include the result of all processed operations."
+  lines: [3202, 3203]
+  original_lines: [3201, 3202]
+  record: 197
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.3-dd7b62
+  rfc: "7644"
+  section: "3.7.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "A \"location\" attribute that includes the resource's endpoint MUST be returned for all operations except for failed POST operations (which have no location)."
+  lines: [3203, 3205]
+  original_lines: [3202, 3204]
+  record: 198
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.3-21bff2
+  rfc: "7644"
+  section: "3.7.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The status attribute MUST include the code attribute that holds the HTTP response code that would have been returned if a single HTTP request would have been used."
+  lines: [3207, 3209]
+  original_lines: [3206, 3208]
+  record: 199
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.3-5e0949
+  rfc: "7644"
+  section: "3.7.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If an error occurred, the status MUST also include the description attribute containing a human-readable explanation of the error."
+  lines: [3209, 3211]
+  original_lines: [3208, 3223]
+  record: 200
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.4-215282
   rfc: "7644"
   section: "3.7.4"
-  title: "Bulk payload exceeding maxOperations or maxPayloadSize returns HTTP 413 specifying limit"
-  level: MUST
-  capability: bulk
-  observability: response
-  disposition: optional
-  note: "HTTP 413 Payload Too Large with exceeded limit in error body"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The service provider MUST define the maximum number of operations and maximum payload size a client may send in a single request."
+  lines: [3492, 3493]
+  original_lines: [3495, 3496]
+  record: 201
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
 
-- id: RFC7644-3.8-R1
+- id: RFC7644-3.7.4-77d179
+  rfc: "7644"
+  section: "3.7.4"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "These limits MAY be retrieved from the service provider configuration (see 'bulk' in Sections 5 and 8.5 of [RFC7643])."
+  lines: [3493, 3495]
+  original_lines: [3496, 3498]
+  record: 202
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.4-155753
+  rfc: "7644"
+  section: "3.7.4"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If either limit is exceeded, the service provider MUST return HTTP response code 413 (Payload Too Large)."
+  lines: [3495, 3497]
+  original_lines: [3498, 3500]
+  record: 203
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.7.4-1bc850
+  rfc: "7644"
+  section: "3.7.4"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The returned response MUST specify the limit exceeded in the body of the error response."
+  lines: [3497, 3498]
+  original_lines: [3500, 3501]
+  record: 204
+  area: "bulk"
+  capability: "bulk"
+  disposition: "optional"
+
+- id: RFC7644-3.8-325a8b
   rfc: "7644"
   section: "3.8"
-  title: "Servers MUST accept requests and return JSON-structured responses using UTF-8"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "UTF-8 character encoding"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Servers MUST accept requests and be able to return JSON-structured responses using UTF-8 encoding [RFC3629]."
+  lines: [3534, 3535]
+  original_lines: [3537, 3538]
+  record: 205
+  area: "formats"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.8-R2
+- id: RFC7644-3.8-677ce9
   rfc: "7644"
   section: "3.8"
-  title: "Format defaults to application/scim+json when no format is specified"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Default SCIM media type"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "UTF-8 SHALL be the default encoding format."
+  lines: [3535, 3536]
+  original_lines: [3538, 3539]
+  record: 206
+  area: "formats"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.8-R3
+- id: RFC7644-3.8-8c283c
   rfc: "7644"
   section: "3.8"
-  title: "Servers MUST support Accept application/scim+json and SHOULD support application/json"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Content negotiation media types"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Other media types MAY be supported by service providers but are beyond the scope of this specification."
+  lines: [3536, 3537]
+  original_lines: [3539, 3540]
+  record: 207
+  area: "formats"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.9-R1
+- id: RFC7644-3.8-198e59
+  rfc: "7644"
+  section: "3.8"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Clients using other encodings MUST specify the format in which the data is submitted via an HTTP \"Content-Type\" header as specified in Section 3.1.1.5 of [RFC7231]"
+  lines: [3539, 3543]
+  original_lines: [3542, 3546]
+  record: 208
+  area: "formats"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-3.8-e065ed
+  rfc: "7644"
+  section: "3.8"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "MAY specify the desired response data format via an HTTP \"Accept\" header (Section 5.3.2 of [RFC7231]), e.g., \"Accept: application/scim+json\", or via URI suffix:"
+  lines: [3539, 3543]
+  original_lines: [3542, 3546]
+  record: 209
+  area: "formats"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.8-033fa1
+  rfc: "7644"
+  section: "3.8"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Service providers MUST support the \"Accept\" header \"Accept: application/scim+json\""
+  lines: [3548, 3551]
+  original_lines: [3551, 3554]
+  record: 210
+  area: "formats"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.8-6c502b
+  rfc: "7644"
+  section: "3.8"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "SHOULD support the header \"Accept: application/json\", both of which specify JSON documents conforming to [RFC7159]."
+  lines: [3548, 3551]
+  original_lines: [3551, 3554]
+  record: 211
+  area: "formats"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.9-c96999
   rfc: "7644"
   section: "3.9"
-  title: "Minimum attribute set composed of returned always attributes is never omitted"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "schemas, id, meta are always returned"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients MAY request a partial resource representation on any operation that returns a resource within the response by specifying either of the mutually exclusive URL query parameters \"attributes\" or \"excludedAttributes\", as follows:"
+  lines: [3588, 3591]
+  original_lines: [3591, 3594]
+  record: 212
+  area: "formats"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.11-R1
+- id: RFC7644-3.9-0a40b1
+  rfc: "7644"
+  section: "3.9"
+  subject: "attributes"
+  level: "MUST"
+  polarity: "positive"
+  quote: "When specified, the default list of attributes SHALL be overridden, and each resource returned MUST contain the minimum set of resource attributes and any attributes or sub-attributes explicitly requested by the \"attributes\" parameter."
+  lines: [3593, 3597]
+  original_lines: [3596, 3600]
+  record: 213
+  area: "formats"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.9-6f81ed
+  rfc: "7644"
+  section: "3.9"
+  subject: "excludedAttributes"
+  level: "MUST"
+  polarity: "positive"
+  quote: "When specified, each resource returned MUST contain the minimum set of resource attributes."
+  lines: [3602, 3603]
+  original_lines: [3605, 3606]
+  record: 214
+  area: "formats"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.10-8d8c10
+  rfc: "7644"
+  section: "3.10"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Clients MAY omit core schema attribute URN prefixes"
+  lines: [3651, 3654]
+  original_lines: [3654, 3657]
+  record: 215
+  area: "formats"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.10-9a3491
+  rfc: "7644"
+  section: "3.10"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "but SHOULD fully qualify extended attributes with the associated schema extension URN to avoid naming conflicts."
+  lines: [3651, 3654]
+  original_lines: [3654, 3657]
+  record: 216
+  area: "formats"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-3.11-cd44de
   rfc: "7644"
   section: "3.11"
-  title: "/Me endpoint returns 200 representation, 308 redirect, or 501 Not Implemented"
-  level: SHOULD
-  capability: none
-  observability: response
-  disposition: tested
-  note: "RFC 7644 §3.11 allows 200 (authenticated subject), 308 (permanent redirect), or 501"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "A client MAY use a URL of the form \"<base-URI>/Me\" as a URI alias for the User or other resource associated with the currently authenticated subject for any SCIM operation."
+  lines: [3666, 3668]
+  original_lines: [3669, 3671]
+  record: 217
+  area: "me"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.12-R1
+- id: RFC7644-3.11-79fd56
+  rfc: "7644"
+  section: "3.11"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "A service provider MAY respond in one of three ways:"
+  lines: [3668, 3669]
+  original_lines: [3671, 3672]
+  record: 218
+  area: "me"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.11-87600c
+  rfc: "7644"
+  section: "3.11"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "A service provider that does NOT support this feature SHOULD respond with HTTP status code 501 (Not Implemented)."
+  lines: [3671, 3672]
+  original_lines: [3674, 3675]
+  record: 219
+  area: "me"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.11-76832a
+  rfc: "7644"
+  section: "3.11"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "A service provider MAY choose to redirect the client using HTTP status code 308 (Permanent Redirect) to the resource associated with the authenticated subject."
+  lines: [3674, 3676]
+  original_lines: [3677, 3679]
+  record: 220
+  area: "me"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.11-8d5f66
+  rfc: "7644"
+  section: "3.11"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The client MAY then repeat the request at the indicated location."
+  lines: [3676, 3677]
+  original_lines: [3679, 3680]
+  record: 221
+  area: "me"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.11-c8572b
+  rfc: "7644"
+  section: "3.11"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "A service provider MAY process the SCIM request directly."
+  lines: [3679, 3679]
+  original_lines: [3682, 3682]
+  record: 222
+  area: "me"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.11-148635
+  rfc: "7644"
+  section: "3.11"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "In any response, the HTTP \"Location\" header MUST be the permanent location of the aliased resource associated with the authenticated subject."
+  lines: [3679, 3682]
+  original_lines: [3682, 3685]
+  record: 223
+  area: "me"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-3.12-2ff503
   rfc: "7644"
   section: "3.12"
-  title: "Error responses return Error schema and status code as string"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "schemas contains urn:ietf:params:scim:api:messages:2.0:Error and status is string"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "In addition to returning an HTTP response code, implementers MUST return the errors in the body of the response in a JSON format, using the attributes described below."
+  lines: [3703, 3706]
+  original_lines: [3706, 3709]
+  record: 224
+  area: "errors"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.12-R2
+- id: RFC7644-3.12-f6e413
   rfc: "7644"
   section: "3.12"
-  title: "Error responses include human-readable detail attribute"
-  level: MAY
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Error detail explanation"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "REQUIRED."
+  lines: [3713, 3713]
+  original_lines: [3716, 3716]
+  record: 225
+  area: "errors"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-3.12-R3
+- id: RFC7644-3.12-4d3b9d
   rfc: "7644"
   section: "3.12"
-  title: "HTTP 401 and 403 error responses MUST return JSON error body"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Security rejection returns standard SCIM Error representation"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [3716, 3716]
+  original_lines: [3719, 3719]
+  record: 226
+  area: "errors"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.12-R4
+- id: RFC7644-3.12-79433f
   rfc: "7644"
   section: "3.12"
-  title: "scimType invalidVers returned when ETag / If-Match version is invalid"
-  level: MUST
-  capability: etag
-  observability: response
-  disposition: optional
-  note: "400 with scimType invalidVers"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "OPTIONAL."
+  lines: [3719, 3719]
+  original_lines: [3722, 3722]
+  record: 227
+  area: "errors"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.13-R1
+- id: RFC7644-3.12-c3e92c
+  rfc: "7644"
+  section: "3.12"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Implementers SHOULD handle the identified HTTP status codes as described below."
+  lines: [3721, 3722]
+  original_lines: [3724, 3725]
+  record: 228
+  area: "errors"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.12-89dfba
+  rfc: "7644"
+  section: "3.12"
+  subject: "307 (Temporary Redirect)"
+  level: "SHOULD"
+  polarity: "negative"
+  quote: "The client SHOULD NOT use the location provided in the response as a permanent reference to the resource"
+  lines: [3727, 3735]
+  original_lines: [3730, 3738]
+  record: 229
+  in_table: true
+  area: "errors"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-3.12-d486de
+  rfc: "7644"
+  section: "3.12"
+  subject: "307 (Temporary Redirect)"
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "SHOULD continue to use the original request URI [RFC7231]."
+  lines: [3727, 3735]
+  original_lines: [3730, 3738]
+  record: 230
+  in_table: true
+  area: "errors"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-3.12-6c0450
+  rfc: "7644"
+  section: "3.12"
+  subject: "308 (Permanent Redirect)"
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "The client SHOULD use the location provided in the response as the permanent reference to the resource [RFC7538]."
+  lines: [3737, 3743]
+  original_lines: [3740, 3746]
+  record: 231
+  in_table: true
+  area: "errors"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-3.12-991537
+  rfc: "7644"
+  section: "3.12"
+  subject: "500 (Internal Server Error)"
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Implementers SHOULD provide descriptive debugging advice."
+  lines: [3783, 3785]
+  original_lines: [3786, 3788]
+  record: 232
+  in_table: true
+  area: "errors"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
+
+- id: RFC7644-3.12-40cb84
+  rfc: "7644"
+  section: "3.12"
+  subject: "tooMany"
+  level: "MAY"
+  polarity: "positive"
+  quote: "For example, a filter such as \"(userName pr)\" by itself would return all entries with a \"userName\" and MAY not be acceptable to the service provider."
+  lines: [3826, 3834]
+  original_lines: [3829, 3837]
+  record: 233
+  in_table: true
+  area: "errors"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-3.12-d1a430
+  rfc: "7644"
+  section: "3.12"
+  subject: "sensitive"
+  level: "MUST"
+  polarity: "negative"
+  quote: "For example, personal information SHALL NOT be transmitted over request URIs."
+  lines: [3898, 3905]
+  original_lines: [3901, 3908]
+  record: 234
+  in_table: true
+  area: "errors"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-3.12-175ffa
+  rfc: "7644"
+  section: "3.12"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Note that in Table 9 above, the information in the Applicability column applies to the normal HTTP method but MAY apply within a SCIM bulk operation (via HTTP POST)."
+  lines: [3910, 3912]
+  original_lines: [3913, 3915]
+  record: 235
+  area: "errors"
+  capability: "core"
+  disposition: "optional"
+
+- id: RFC7644-3.13-7dcf1a
   rfc: "7644"
   section: "3.13"
-  title: "URL version segment /v2 supported or negotiated"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Server handles standard /v2 path segment"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The Base URL MAY be appended with a version identifier as a separate segment in the URL path."
+  lines: [3947, 3948]
+  original_lines: [3950, 3951]
+  record: 236
+  area: "versioning"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-3.14-R1
+- id: RFC7644-3.13-7682c8
+  rfc: "7644"
+  section: "3.13"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "If specified, the version identifier MUST appear in the URL path immediately preceding the resource endpoint and conform to the following scheme: the character 'v' followed by the desired SCIM version number, e.g., a version 'v2' User request is specified as /v2/Users."
+  lines: [3949, 3953]
+  original_lines: [3952, 3956]
+  record: 237
+  area: "versioning"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.13-636fed
+  rfc: "7644"
+  section: "3.13"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When specified, service providers MUST perform the operation using the desired version or reject the request."
+  lines: [3953, 3954]
+  original_lines: [3956, 3957]
+  record: 238
+  area: "versioning"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.13-159e35
+  rfc: "7644"
+  section: "3.13"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "When omitted, service providers SHOULD perform the operation using the most recent SCIM protocol version supported by the service provider."
+  lines: [3954, 3956]
+  original_lines: [3957, 3959]
+  record: 239
+  area: "versioning"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-3.14-d7fe9f
   rfc: "7644"
   section: "3.14"
-  title: "If-Match header with matching ETag allows conditional modification"
-  level: MUST
-  capability: etag
-  observability: response
-  disposition: optional
-  note: "Matching ETag succeeds"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Service providers MAY support weak ETags as the preferred mechanism for performing conditional retrievals and ensuring that clients do not inadvertently overwrite each other's changes, respectively."
+  lines: [3961, 3964]
+  original_lines: [3964, 3967]
+  record: 240
+  area: "versioning"
+  capability: "etag"
+  disposition: "optional"
 
-- id: RFC7644-3.14-R2
+- id: RFC7644-3.14-9216ff
   rfc: "7644"
   section: "3.14"
-  title: "If-Match header with non-matching ETag returns HTTP 412 Precondition Failed"
-  level: MUST
-  capability: etag
-  observability: response
-  disposition: optional
-  note: "Mismatched ETag returns 412"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When supported, SCIM ETags MUST be specified as an HTTP header"
+  lines: [3964, 3966]
+  original_lines: [3967, 3969]
+  record: 241
+  area: "versioning"
+  capability: "etag"
+  disposition: "optional"
 
-- id: RFC7644-3.14-R3
+- id: RFC7644-3.14-1830df
   rfc: "7644"
   section: "3.14"
-  title: "If-None-Match header with matching ETag returns HTTP 304 Not Modified"
-  level: MUST
-  capability: etag
-  observability: response
-  disposition: optional
-  note: "GET with current ETag returns 304"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "SHOULD be specified within the 'version' attribute contained in the resource's 'meta' attribute."
+  lines: [3964, 3966]
+  original_lines: [3967, 3969]
+  record: 242
+  area: "versioning"
+  capability: "etag"
+  disposition: "optional"
 
-- id: RFC7644-4-R1
+- id: RFC7644-3.14-03e418
+  rfc: "7644"
+  section: "3.14"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "With the returned ETag, clients MAY choose to retrieve the resource only if the resource has been modified."
+  lines: [4036, 4037]
+  original_lines: [4039, 4040]
+  record: 243
+  area: "versioning"
+  capability: "etag"
+  disposition: "optional"
+
+- id: RFC7644-3.14-8a6c49
+  rfc: "7644"
+  section: "3.14"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "If the service provider supports versioning of resources, the client MAY supply an If-Match header (Section 3.1 of [RFC7232]) for PUT and PATCH operations to ensure that the requested operation succeeds only if the supplied ETag matches the latest service provider resource, e.g., If-Match: W/\"e180ee84f0671b1\"."
+  lines: [4051, 4055]
+  original_lines: [4054, 4058]
+  record: 244
+  area: "versioning"
+  capability: "etag"
+  disposition: "optional"
+
+- id: RFC7644-4-2b0f28
   rfc: "7644"
   section: "4"
-  title: "Discovery endpoints /ServiceProviderConfig, /ResourceTypes, /Schemas return HTTP 200"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Standard discovery GET requests"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "SCIM defines three endpoints to facilitate discovery of SCIM service provider features and schema that MAY be retrieved using HTTP GET:"
+  lines: [4059, 4060]
+  original_lines: [4062, 4063]
+  record: 245
+  area: "service-provider-config"
+  capability: "core"
+  disposition: "optional"
 
-- id: RFC7644-4-R2
+- id: RFC7644-4-9c8720
   rfc: "7644"
   section: "4"
-  title: "Discovery endpoints /Schemas/{id} and /ResourceTypes/{id} return single resource object"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Direct retrieval returns single object, not ListResponse"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "This endpoint SHALL return responses with a JSON object using a \"schemas\" attribute of \"urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig\"."
+  lines: [4065, 4067]
+  original_lines: [4068, 4070]
+  record: 246
+  area: "service-provider-config"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-4-R3
+- id: RFC7644-4-6dbf7b
   rfc: "7644"
   section: "4"
-  title: "Discovery endpoints only support HTTP GET; unsupported methods return 4xx"
-  level: MUST
-  capability: none
-  observability: response
-  disposition: tested
-  note: "POST, PUT, DELETE against discovery endpoints rejected"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "An HTTP GET to the endpoint \"/Schemas\" SHALL return all supported schemas in ListResponse format (see Figure 3)."
+  lines: [4094, 4096]
+  original_lines: [4097, 4099]
+  record: 247
+  area: "service-provider-config"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-4-R4
+- id: RFC7644-4-85421e
   rfc: "7644"
   section: "4"
-  title: "Discovery endpoints SHOULD be accessible without authentication"
-  level: SHOULD
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Anonymous access to discovery endpoints"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When returning multiple ResourceTypes or Schemas, the message form described by the \"urn:ietf:params:scim:api:messages:2.0:ListResponse\" (ListResponse) form SHALL be used as shown in Figure 3 and in Figure 9 below."
+  lines: [4117, 4121]
+  original_lines: [4120, 4124]
+  record: 248
+  area: "service-provider-config"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-5-R1
+- id: RFC7644-4-a7b711
+  rfc: "7644"
+  section: "4"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Query parameters described in Section 3.4.2, such as filtering, sorting, and pagination, SHALL be ignored."
+  lines: [4121, 4122]
+  original_lines: [4124, 4125]
+  record: 249
+  area: "service-provider-config"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-4-54391c
+  rfc: "7644"
+  section: "4"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "If a \"filter\" is provided, the service provider SHOULD respond with HTTP status code 403 (Forbidden) to ensure that clients cannot incorrectly assume that any matching conditions specified in a filter are true."
+  lines: [4122, 4125]
+  original_lines: [4125, 4128]
+  record: 250
+  area: "service-provider-config"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-5-a9696d
   rfc: "7644"
   section: "5"
-  title: "User uniqueness checks apply PRECIS preparation for case-insensitive comparisons"
-  level: MUST
-  capability: none
-  observability: behavior
-  disposition: tested
-  note: "Case-insensitive username conflicts properly detected"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Before comparing or evaluating the uniqueness of a \"userName\" or \"password\" attribute, service providers MUST use the preparation, enforcement, and comparison of internationalized strings (PRECIS) preparation and comparison rules described in Sections 3 and 4, respectively, of [RFC7613], which is based on the PRECIS framework specification [RFC7564]."
+  lines: [4210, 4215]
+  original_lines: [4213, 4218]
+  record: 251
+  area: "general"
+  capability: "core"
+  disposition: "tested"
 
-- id: RFC7644-7.2-R1
+- id: RFC7644-6-8ddf3d
+  rfc: "7644"
+  section: "6"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Multi-tenancy is OPTIONAL."
+  lines: [4245, 4245]
+  original_lines: [4248, 4248]
+  record: 252
+  area: "multi-tenancy"
+  capability: "core"
+  disposition: "na"
+  reason: "process"
+
+- id: RFC7644-6.1-26ac86
+  rfc: "7644"
+  section: "6.1"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The service provider MAY use one of the authentication mechanisms discussed in Section 2 to determine the identity of the client and thus infer the associated Tenant."
+  lines: [4272, 4274]
+  original_lines: [4275, 4277]
+  record: 253
+  area: "multi-tenancy"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
+
+- id: RFC7644-6.1-60ca92
+  rfc: "7644"
+  section: "6.1"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "For implementations where a client is associated with more than one Tenant, the service provider MAY use one of the three methods below for explicit specification of the Tenant."
+  lines: [4276, 4278]
+  original_lines: [4279, 4281]
+  record: 254
+  area: "multi-tenancy"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.1-a87607
+  rfc: "7644"
+  section: "7.1"
+  subject: ""
+  level: "MUST"
+  polarity: "negative"
+  quote: "As stated in Section 2.7.1 of [RFC7230], a SCIM client MUST NOT generate the \"userinfo\" (i.e., username and password) component (and its \"@\" delimiter) when an \"http\" URI reference is generated with a message, as userinfo and its \"@\" delimiter are now disallowed in HTTP."
+  lines: [4335, 4339]
+  original_lines: [4338, 4342]
+  record: 255
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-7.2-011e97
   rfc: "7644"
   section: "7.2"
-  title: "TLS transport security enforced for SCIM communication"
-  level: MUST
-  capability: none
-  observability: behavior
-  disposition: na
-  note: "Enforced when running over https in target deployment"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Therefore, SCIM clients and service providers MUST require the use of a transport-layer security mechanism when communicating with SCIM service providers."
+  lines: [4344, 4346]
+  original_lines: [4347, 4349]
+  record: 256
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
 
-- id: RFC7644-7.5.2-R1
+- id: RFC7644-7.2-b2c3cc
+  rfc: "7644"
+  section: "7.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The SCIM service provider MUST support TLS 1.2 [RFC5246]"
+  lines: [4346, 4349]
+  original_lines: [4349, 4352]
+  record: 257
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.2-ae1794
+  rfc: "7644"
+  section: "7.2"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "MAY support additional transport-layer mechanisms meeting its security requirements."
+  lines: [4346, 4349]
+  original_lines: [4349, 4352]
+  record: 258
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.2-2141b4
+  rfc: "7644"
+  section: "7.2"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When using TLS, the client MUST perform a TLS/SSL server identity check, per [RFC6125]."
+  lines: [4349, 4350]
+  original_lines: [4352, 4353]
+  record: 259
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-7.3-01804a
+  rfc: "7644"
+  section: "7.3"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When using authorization tokens such as those issued by OAuth 2.0 [RFC6749], implementers MUST take into account threats and countermeasures as documented in Section 8 of [RFC7521]."
+  lines: [4355, 4357]
+  original_lines: [4358, 4360]
+  record: 260
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "process"
+
+- id: RFC7644-7.4-cb7a78
+  rfc: "7644"
+  section: "7.4"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Since the possession of a bearer token or cookie MAY authorize the holder to potentially read, modify, or delete resources, bearer tokens and cookies MUST contain sufficient entropy to prevent a random guessing attack; for example, see Section 5.2 of [RFC6750] and Section 5.1.4.2.2 of [RFC6819]."
+  lines: [4374, 4378]
+  original_lines: [4377, 4381]
+  record: 261
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
+
+- id: RFC7644-7.4-fa50f2
+  rfc: "7644"
+  section: "7.4"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "As with all SCIM communications, bearer tokens and HTTP cookies MUST be exchanged using TLS."
+  lines: [4380, 4381]
+  original_lines: [4383, 4384]
+  record: 262
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.4-66599e
+  rfc: "7644"
+  section: "7.4"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "Bearer tokens MUST have a limited lifetime that can be determined directly or indirectly (e.g., by checking with a validation service) by the service provider."
+  lines: [4383, 4385]
+  original_lines: [4386, 4388]
+  record: 263
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "not-observable"
+
+- id: RFC7644-7.4-ef53b4
+  rfc: "7644"
+  section: "7.4"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "For example, in OAuth 2.0, a client MAY use OAuth token refresh to obtain a new bearer token after authenticating to an authorization server."
+  lines: [4387, 4389]
+  original_lines: [4390, 4392]
+  record: 264
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-7.4-2ae034
+  rfc: "7644"
+  section: "7.4"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "As with bearer tokens, an HTTP cookie SHOULD last no longer than the lifetime of a browser session."
+  lines: [4392, 4393]
+  original_lines: [4395, 4396]
+  record: 265
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.5.1-1a894d
+  rfc: "7644"
+  section: "7.5.1"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "The privacy considerations in the Security Considerations section of [RFC7643] MUST be considered."
+  lines: [4413, 4414]
+  original_lines: [4416, 4417]
+  record: 266
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "process"
+
+- id: RFC7644-7.5.2-461c09
   rfc: "7644"
   section: "7.5.2"
-  title: "Filtering on sensitive attributes returns HTTP 403 or scimType sensitive"
-  level: SHOULD
-  capability: none
-  observability: response
-  disposition: tested
-  note: "Filtering on sensitive attributes returns 403 or scimType sensitive"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "As mentioned in Section 9.4 of [RFC7231], SCIM clients requesting information using query filters that use HTTP GET SHOULD give consideration to the information content of the filters and whether or not their exposure in a URI would represent a breach of security or confidentiality through leakage in web browsers or server logs."
+  lines: [4430, 4434]
+  original_lines: [4433, 4437]
+  record: 267
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-7.5.2-3e7c01
+  rfc: "7644"
+  section: "7.5.2"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "In these situations, to ensure maximum security and confidentiality, clients SHOULD query using HTTP POST (see Section 3.4.3)."
+  lines: [4437, 4439]
+  original_lines: [4440, 4442]
+  record: 268
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "client-side"
+
+- id: RFC7644-7.5.2-8e40db
+  rfc: "7644"
+  section: "7.5.2"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Servers that receive HTTP GET requests using filters that contain sensitive or confidential personal information SHOULD respond with HTTP status code 403 to indicate that the operation is forbidden."
+  lines: [4441, 4443]
+  original_lines: [4444, 4446]
+  record: 269
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.6-5c616c
+  rfc: "7644"
+  section: "7.6"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "The following countermeasures MAY be used:"
+  lines: [4463, 4463]
+  original_lines: [4466, 4466]
+  record: 270
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "process"
+
+- id: RFC7644-7.6-deed30
+  rfc: "7644"
+  section: "7.6"
+  subject: ""
+  level: "MAY"
+  polarity: "positive"
+  quote: "Limit the number of requests that any particular client MAY make in a period of time."
+  lines: [4474, 4475]
+  original_lines: [4477, 4478]
+  record: 271
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.7-f11467
+  rfc: "7644"
+  section: "7.7"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Administrators should undertake industry best practices to protect the storage of credentials and, in particular, SHOULD follow recommendations outlined in Section 5.1.4.1 of [RFC6819]."
+  lines: [4498, 4500]
+  original_lines: [4501, 4503]
+  record: 272
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.7-df27c4
+  rfc: "7644"
+  section: "7.7"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "As outlined in Section 5.1.4.2 of [RFC6819], administrators SHOULD take countermeasures such as the following, to prevent online attacks on secrets:"
+  lines: [4515, 4517]
+  original_lines: [4518, 4520]
+  record: 273
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.7-5cc3ed
+  rfc: "7644"
+  section: "7.7"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Service providers SHOULD define an access control model that differentiates between individual client applications and their specific need to access information, and any User self-service rights to review and update personal profile information."
+  lines: [4544, 4547]
+  original_lines: [4547, 4550]
+  record: 274
+  area: "security"
+  capability: "core"
+  disposition: "na"
+  reason: "deployment"
+
+- id: RFC7644-7.8-432b0b
+  rfc: "7644"
+  section: "7.8"
+  subject: ""
+  level: "MUST"
+  polarity: "positive"
+  quote: "When comparing Unicode strings such as those in query filters or testing for uniqueness of usernames and passwords, strings MUST be appropriately prepared before comparison."
+  lines: [4553, 4555]
+  original_lines: [4556, 4558]
+  record: 275
+  area: "security"
+  capability: "core"
+  disposition: "tested"
+
+- id: RFC7644-8.1-98ef08
+  rfc: "7644"
+  section: "8.1"
+  subject: ""
+  level: "SHOULD"
+  polarity: "positive"
+  quote: "Applications intending to use the SCIM protocol SHOULD use the \"application/scim+json\" media type."
+  lines: [4622, 4623]
+  original_lines: [4625, 4626]
+  record: 276
+  area: "registry"
+  capability: "core"
+  disposition: "tested"

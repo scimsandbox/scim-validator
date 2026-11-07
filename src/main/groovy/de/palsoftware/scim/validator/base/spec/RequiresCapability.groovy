@@ -12,17 +12,18 @@ import org.spockframework.runtime.extension.ExtensionAnnotation
  * Declares that a test method (or spec class) requires an optional SCIM server
  * capability advertised in /ServiceProviderConfig (or schema discovery).
  *
- * Supported capability values:
+ * Capability vocabulary (matches the "capability" field of the requirement catalogs):
+ * - "core": no gating, always run (the default; same as omitting the annotation)
  * - "patch"
- * - "bulk"
  * - "filter"
  * - "sort"
  * - "etag"
+ * - "bulk"
  * - "search"
  * - "changePassword"
  * - "enterprise"
  * - "cursorPagination"
- * - "securityEvents" (or "async")
+ * - "async"
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

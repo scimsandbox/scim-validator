@@ -8,7 +8,7 @@ with Testcontainers.
 ## What Is In This Repo
 
 - `src/main/groovy/de/palsoftware/scim/validator/ScimValidatorSuite.groovy`
-  selects the full A1-A9 suite.
+  selects the generated `Rfc*Spec` classes in the specs package.
 - `src/main/groovy/de/palsoftware/scim/validator/base` contains shared request
   setup, configuration loading, capture, and the `ScimBootstrapProvider` SPI.
 - `src/main/groovy/de/palsoftware/scim/validator/specs` contains the compliance
@@ -24,15 +24,9 @@ with Testcontainers.
 
 ## Coverage
 
-- A1 Service discovery
-- A2 Schema validation
-- A3 User CRUD
-- A4 PATCH operations
-- A5 Filtering, pagination, and sorting
-- A6 Group lifecycle
-- A7 Bulk operations
-- A8 Security and robustness
-- A9 Negative and edge cases
+One spec class per RFC and area (`Rfc7643*`, `Rfc7644*`, `Rfc9865*`, `Rfc9967*`),
+one feature per catalogued requirement. See `docs/SCIM_SPEC_COVERAGE.md` and
+`docs/TEST_SPEC_MAP.md` (generated) for the current status.
 
 ## Using as a Library Dependency
 
@@ -149,6 +143,12 @@ Supported capability keys: `patch`, `bulk`, `sort`, `etag`, `filter`, `changepas
   `java.util.ServiceLoader<ScimBootstrapProvider>`.
 - The base helpers capture HTTP exchanges and remove `Authorization` from the
   recorded request headers.
+
+## Breaking Changes (0.0.6)
+
+- Removed `Deviation`, `DeviationCollector`, `ScimBaseSpec.recordDeviation(...)`, and `ScimOutput.deviation(...)`.
+- All `MUST` and `SHOULD` RFC requirements are now validated via direct assertions mapped to single-purpose `@SpecRef` tests.
+- Valid RFC alternative outcomes are asserted directly in the test logic, while unsupported `MAY` / `OPTIONAL` features abort cleanly via `TestAbortedException` (or `@RequiresCapability` gating).
 
 ## Versioning
 

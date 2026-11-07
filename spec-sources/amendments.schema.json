@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "amendments.schema.json",
+  "title": "Amendments of RFC 7643 / RFC 7644 by RFC 9865 / RFC 9967",
+  "description": "Curated list of places where a newer RFC (9865 cursor pagination, 9967 SCIM events; both say 'Updates: 7643, 7644') adds to, changes, relaxes or replaces something an older RFC defines. Candidates are generated mechanically (amendment-candidates.json, find_amendment_candidates.py); classifying them is judgment, so entries start as 'proposed' and are checked mechanically by check_amendments.py (quotes exist at the cited lines, target sections exist, target records lie in the target section, every candidate is covered once). Line numbers are 1-based and refer to the rfcNNNN-fixed.txt files. Implementers should apply an amendment only when its 'condition' holds: most amendments add requirements that apply only if an optional feature is used (cursor pagination, asynchronous requests).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["amendments", "not_amendments"],
+  "properties": {
+    "amendments": { "type": "array", "items": { "$ref": "#/$defs/amendment" } },
+    "not_amendments": {
+      "type": "array",
+      "description": "Candidates that turned out to be plain references or reuse of an older definition.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidate", "reason"],
+        "properties": {
+          "candidate": { "type": "string", "description": "Candidate id from amendment-candidates.json, for example 'C9865-004'." },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "lineRange": {
+      "type": "array",
+      "prefixItems": [{ "type": "integer", "minimum": 1 }, { "type": "integer", "minimum": 1 }],
+      "items": false, "minItems": 2, "maxItems": 2,
+      "description": "[first, last] 1-based line numbers, inclusive."
+    },
+    "amendment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "candidates", "newer", "target", "relation", "condition", "effect", "confidence", "status"],
+      "properties": {
+        "id": { "type": "string", "description": "Unique id, for example 'A001'." },
+        "candidates": { "type": "array", "items": { "type": "string" }, "description": "Candidate ids (amendment-candidates.json) this amendment covers; every candidate must be covered exactly once across 'amendments' and 'not_amendments'." },
+        "newer": {
+          "type": "object", "additionalProperties": false, "required": ["rfc", "lines", "quote"],
+          "description": "The amending text.",
+          "properties": {
+            "rfc": { "enum": ["9865", "9967"] },
+            "lines": { "$ref": "#/$defs/lineRange" },
+            "quote": { "type": "string", "description": "Verbatim passage (whitespace-insensitive) from rfcNEWER-fixed.txt inside 'lines'." }
+          }
+        },
+        "target": {
+          "type": "object", "additionalProperties": false, "required": ["rfc", "section", "lines", "quote", "subject", "records"],
+          "description": "The older definition that is amended.",
+          "properties": {
+            "rfc": { "enum": ["7643", "7644"] },
+            "section": { "type": "string", "description": "Section of the older RFC; must exist." },
+            "lines": { "$ref": "#/$defs/lineRange" },
+            "quote": { "type": "string", "description": "Verbatim passage from rfcOLD-fixed.txt inside 'lines': the text that is added to or changed." },
+            "subject": { "type": ["string", "null"], "description": "Attribute, parameter or structure concerned, for example 'count'." },
+            "records": { "type": "array", "items": { "type": "integer" }, "description": "Record numbers 'n' of the affected keyword records in normative-rfcOLD.json (all inside 'section'); empty if the amendment only adds something new." }
+          }
+        },
+        "relation": {
+          "enum": ["extends", "modifies", "supersedes"],
+          "description": "'extends': the newer RFC adds something next to the old requirement, which stays fully valid. 'modifies': the newer RFC changes or relaxes an older requirement under a condition. 'supersedes': the older requirement no longer applies at all (unconditional); expected to be rare."
+        },
+        "condition": { "type": ["string", "null"], "description": "When the newer rule applies, for example 'when cursor-based pagination is used'. Required (non-empty) for 'modifies' and 'supersedes'." },
+        "effect": { "type": "string", "description": "One sentence: what changes for an implementer." },
+        "confidence": { "enum": ["high", "medium", "low"] },
+        "status": { "enum": ["proposed", "confirmed"], "description": "'proposed' until a person has checked the entry." }
+      }
+    }
+  }
+}

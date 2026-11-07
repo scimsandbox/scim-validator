@@ -18,7 +18,7 @@ import java.lang.annotation.Target
 @interface SpecRef {
     /**
      * Requirement ID matching a row in the requirement catalog
-     * (e.g. "RFC7644-3.4.2.2-R1").
+     * (e.g. "RFC7644-3.4.2.2-1a2b3c").
      */
     String value()
 

@@ -1,0 +1,975 @@
+[
+  {
+    "section": "1.1",
+    "section_title": "Notational Conventions",
+    "label_path": "",
+    "kind": "notation",
+    "keywords": [
+      "MUST",
+      "MUST NOT",
+      "REQUIRED",
+      "SHALL",
+      "SHALL NOT",
+      "SHOULD",
+      "SHOULD NOT",
+      "RECOMMENDED",
+      "NOT RECOMMENDED",
+      "MAY",
+      "OPTIONAL"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": true,
+    "lines": [
+      115,
+      119
+    ],
+    "paragraph_lines": [
+      115,
+      119
+    ],
+    "text": "The key words \"MUST\", \"MUST NOT\", \"REQUIRED\", \"SHALL\", \"SHALL NOT\", \"SHOULD\", \"SHOULD NOT\", \"RECOMMENDED\", \"NOT RECOMMENDED\", \"MAY\", and \"OPTIONAL\" in this document are to be interpreted as described in BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all capitals, as shown here.",
+    "paragraph": "The key words \"MUST\", \"MUST NOT\", \"REQUIRED\", \"SHALL\", \"SHALL NOT\", \"SHOULD\", \"SHOULD NOT\", \"RECOMMENDED\", \"NOT RECOMMENDED\", \"MAY\", and \"OPTIONAL\" in this document are to be interpreted as described in BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all capitals, as shown here.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "n": 1,
+    "original_lines": [
+      115,
+      119
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "cursor",
+    "kind": "keyword",
+    "keywords": [
+      "MUST"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      133,
+      138
+    ],
+    "paragraph_lines": [
+      130,
+      148
+    ],
+    "text": "The cursor value MUST be empty or omitted for the first request of a cursor-paginated query.",
+    "paragraph": "Parameter: cursor | Description: The string value of the nextCursor attribute from a previous result page. The cursor value MUST be empty or omitted for the first request of a cursor-paginated query. This value may only contain characters from the unreserved character set defined in Section 2.3 of [RFC3986].",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "n": 2,
+    "original_lines": [
+      133,
+      138
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "count",
+    "kind": "keyword",
+    "keywords": [
+      "SHALL"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      140,
+      147
+    ],
+    "paragraph_lines": [
+      130,
+      148
+    ],
+    "text": "A negative value SHALL be interpreted as \"0\".",
+    "paragraph": "Parameter: count | Description: Specifies the desired maximum number of query results per page, e.g., 10. A negative value SHALL be interpreted as \"0\". A value of \"0\" indicates that no resource results are to be returned except for \"totalResults\". When specified, the service provider MUST NOT return more, although it MAY return fewer, results. If unspecified, the maximum number returned is set by the service provider.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "n": 3,
+    "original_lines": [
+      140,
+      147
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "count",
+    "kind": "keyword",
+    "keywords": [
+      "MUST NOT"
+    ],
+    "level": "MUST",
+    "polarity": "negative",
+    "mixed": false,
+    "lines": [
+      140,
+      147
+    ],
+    "paragraph_lines": [
+      130,
+      148
+    ],
+    "text": "When specified, the service provider MUST NOT return more, although it MAY return fewer, results.",
+    "paragraph": "Parameter: count | Description: Specifies the desired maximum number of query results per page, e.g., 10. A negative value SHALL be interpreted as \"0\". A value of \"0\" indicates that no resource results are to be returned except for \"totalResults\". When specified, the service provider MUST NOT return more, although it MAY return fewer, results. If unspecified, the maximum number returned is set by the service provider.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "clause": "When specified, the service provider MUST NOT return more",
+    "clause_lines": [
+      140,
+      147
+    ],
+    "split": true,
+    "n": 4,
+    "original_lines": [
+      140,
+      147
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "count",
+    "kind": "keyword",
+    "keywords": [
+      "MAY"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      140,
+      147
+    ],
+    "paragraph_lines": [
+      130,
+      148
+    ],
+    "text": "When specified, the service provider MUST NOT return more, although it MAY return fewer, results.",
+    "paragraph": "Parameter: count | Description: Specifies the desired maximum number of query results per page, e.g., 10. A negative value SHALL be interpreted as \"0\". A value of \"0\" indicates that no resource results are to be returned except for \"totalResults\". When specified, the service provider MUST NOT return more, although it MAY return fewer, results. If unspecified, the maximum number returned is set by the service provider.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "clause": "although it MAY return fewer, results.",
+    "clause_lines": [
+      140,
+      147
+    ],
+    "split": true,
+    "n": 5,
+    "original_lines": [
+      140,
+      147
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "nextCursor",
+    "kind": "keyword",
+    "keywords": [
+      "MAY"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      158,
+      165
+    ],
+    "paragraph_lines": [
+      155,
+      172
+    ],
+    "text": "A cursor value string that MAY be used in a subsequent request to obtain the next page of results.",
+    "paragraph": "Element: nextCursor | Description: A cursor value string that MAY be used in a subsequent request to obtain the next page of results. Service providers supporting cursor-based pagination MUST include nextCursor in all paged query responses except when returning the last page. nextCursor MUST be omitted from a response only to indicate that there are no more result pages.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "n": 6,
+    "original_lines": [
+      158,
+      165
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "nextCursor",
+    "kind": "keyword",
+    "keywords": [
+      "MUST"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      158,
+      165
+    ],
+    "paragraph_lines": [
+      155,
+      172
+    ],
+    "text": "Service providers supporting cursor-based pagination MUST include nextCursor in all paged query responses except when returning the last page.",
+    "paragraph": "Element: nextCursor | Description: A cursor value string that MAY be used in a subsequent request to obtain the next page of results. Service providers supporting cursor-based pagination MUST include nextCursor in all paged query responses except when returning the last page. nextCursor MUST be omitted from a response only to indicate that there are no more result pages.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "n": 7,
+    "original_lines": [
+      158,
+      165
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "nextCursor",
+    "kind": "keyword",
+    "keywords": [
+      "MUST"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      158,
+      165
+    ],
+    "paragraph_lines": [
+      155,
+      172
+    ],
+    "text": "nextCursor MUST be omitted from a response only to indicate that there are no more result pages.",
+    "paragraph": "Element: nextCursor | Description: A cursor value string that MAY be used in a subsequent request to obtain the next page of results. Service providers supporting cursor-based pagination MUST include nextCursor in all paged query responses except when returning the last page. nextCursor MUST be omitted from a response only to indicate that there are no more result pages.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "n": 8,
+    "original_lines": [
+      158,
+      165
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "previousCursor",
+    "kind": "keyword",
+    "keywords": [
+      "MAY"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      167,
+      171
+    ],
+    "paragraph_lines": [
+      155,
+      172
+    ],
+    "text": "A cursor value string that MAY be used in a subsequent request to obtain the previous page of results.",
+    "paragraph": "Element: previousCursor | Description: A cursor value string that MAY be used in a subsequent request to obtain the previous page of results. Returning previousCursor is OPTIONAL. previousCursor MUST NOT be returned with the first page.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "n": 9,
+    "original_lines": [
+      167,
+      171
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "previousCursor",
+    "kind": "keyword",
+    "keywords": [
+      "OPTIONAL"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      167,
+      171
+    ],
+    "paragraph_lines": [
+      155,
+      172
+    ],
+    "text": "Returning previousCursor is OPTIONAL.",
+    "paragraph": "Element: previousCursor | Description: A cursor value string that MAY be used in a subsequent request to obtain the previous page of results. Returning previousCursor is OPTIONAL. previousCursor MUST NOT be returned with the first page.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "n": 10,
+    "original_lines": [
+      167,
+      171
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "previousCursor",
+    "kind": "keyword",
+    "keywords": [
+      "MUST NOT"
+    ],
+    "level": "MUST",
+    "polarity": "negative",
+    "mixed": false,
+    "lines": [
+      167,
+      171
+    ],
+    "paragraph_lines": [
+      155,
+      172
+    ],
+    "text": "previousCursor MUST NOT be returned with the first page.",
+    "paragraph": "Element: previousCursor | Description: A cursor value string that MAY be used in a subsequent request to obtain the previous page of results. Returning previousCursor is OPTIONAL. previousCursor MUST NOT be returned with the first page.",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "n": 11,
+    "original_lines": [
+      167,
+      171
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "MUST"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      176,
+      181
+    ],
+    "paragraph_lines": [
+      176,
+      181
+    ],
+    "text": "To retrieve another result page for a query, the client MUST query the same service provider endpoint with all query parameters and values being identical to the initial query with the exception of the cursor value, which SHOULD be set to a nextCursor (or previousCursor) value that was returned by the service provider in a previous response.",
+    "paragraph": "Cursor values are URL-safe strings that are opaque to the client. To retrieve another result page for a query, the client MUST query the same service provider endpoint with all query parameters and values being identical to the initial query with the exception of the cursor value, which SHOULD be set to a nextCursor (or previousCursor) value that was returned by the service provider in a previous response.",
+    "previous_paragraph": "Table 2: Response Attributes",
+    "next_paragraph": "For example, to retrieve the first 10 users with userName starting with J, use an empty cursor and set the count to 10:",
+    "clause": "To retrieve another result page for a query, the client MUST query the same service provider endpoint with all query parameters and values being identical to the initial query with the exception of the cursor value",
+    "clause_lines": [
+      176,
+      180
+    ],
+    "split": true,
+    "n": 12,
+    "original_lines": [
+      176,
+      181
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "SHOULD"
+    ],
+    "level": "SHOULD",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      176,
+      181
+    ],
+    "paragraph_lines": [
+      176,
+      181
+    ],
+    "text": "To retrieve another result page for a query, the client MUST query the same service provider endpoint with all query parameters and values being identical to the initial query with the exception of the cursor value, which SHOULD be set to a nextCursor (or previousCursor) value that was returned by the service provider in a previous response.",
+    "paragraph": "Cursor values are URL-safe strings that are opaque to the client. To retrieve another result page for a query, the client MUST query the same service provider endpoint with all query parameters and values being identical to the initial query with the exception of the cursor value, which SHOULD be set to a nextCursor (or previousCursor) value that was returned by the service provider in a previous response.",
+    "previous_paragraph": "Table 2: Response Attributes",
+    "next_paragraph": "For example, to retrieve the first 10 users with userName starting with J, use an empty cursor and set the count to 10:",
+    "clause": "which SHOULD be set to a nextCursor (or previousCursor) value that was returned by the service provider in a previous response.",
+    "clause_lines": [
+      180,
+      181
+    ],
+    "split": true,
+    "n": 13,
+    "original_lines": [
+      176,
+      181
+    ]
+  },
+  {
+    "section": "2",
+    "section_title": "Query Parameters and Response Attributes",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "MAY"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      239,
+      241
+    ],
+    "paragraph_lines": [
+      237,
+      241
+    ],
+    "text": "Service providers implementing cursor pagination that are unable to estimate totalResults MAY choose to omit the totalResults attribute.",
+    "paragraph": "As described in Section 3.4.1 of [RFC7644], service providers should return an accurate value for totalResults, which is the total number of resources for all pages. Service providers implementing cursor pagination that are unable to estimate totalResults MAY choose to omit the totalResults attribute.",
+    "previous_paragraph": "In the example above, the response includes the optional previousCursor indicating that the service provider supports forward and reverse traversal of result pages.",
+    "next_paragraph": "",
+    "n": 14,
+    "original_lines": [
+      239,
+      241
+    ]
+  },
+  {
+    "section": "2.1",
+    "section_title": "Pagination Errors",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "SHOULD"
+    ],
+    "level": "SHOULD",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      245,
+      249
+    ],
+    "paragraph_lines": [
+      245,
+      249
+    ],
+    "text": "If a service provider encounters invalid pagination query parameters (invalid cursor value, count value, etc) or other error conditions, the service provider SHOULD return the appropriate HTTP response status code and detailed JSON error response as defined in Section 3.12 of [RFC7644].",
+    "paragraph": "If a service provider encounters invalid pagination query parameters (invalid cursor value, count value, etc) or other error conditions, the service provider SHOULD return the appropriate HTTP response status code and detailed JSON error response as defined in Section 3.12 of [RFC7644].",
+    "previous_paragraph": "",
+    "next_paragraph": "For HTTP status code 400 (Bad Request) responses, the following detail error types are defined.  These error types extend the list defined in Table 9 (\"SCIM Detail Error Keyword Values\") of Section 3.12 of [RFC7644]",
+    "n": 15,
+    "original_lines": [
+      245,
+      249
+    ]
+  },
+  {
+    "section": "2.1",
+    "section_title": "Pagination Errors",
+    "label_path": "invalidCursor",
+    "kind": "keyword",
+    "keywords": [
+      "SHOULD"
+    ],
+    "level": "SHOULD",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      259,
+      263
+    ],
+    "paragraph_lines": [
+      256,
+      275
+    ],
+    "text": "Cursor value SHOULD be empty to request the first page and set to the nextCursor or previousCursor value for subsequent queries.",
+    "paragraph": "scimType: invalidCursor | Description: Cursor value is invalid. Cursor value SHOULD be empty to request the first page and set to the nextCursor or previousCursor value for subsequent queries. | Applicability: GET (Section 3.4.2 of [RFC7644])",
+    "previous_paragraph": "",
+    "next_paragraph": "",
+    "in_table": true,
+    "n": 16,
+    "original_lines": [
+      259,
+      263
+    ]
+  },
+  {
+    "section": "2.3",
+    "section_title": "Implementing Cursors as the Only Pagination Method",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "MAY"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      286,
+      288
+    ],
+    "paragraph_lines": [
+      286,
+      288
+    ],
+    "text": "A service provider MAY require cursor-based pagination to retrieve all results for a query by including a nextCursor value in the response, even when the query does not include the cursor parameter.",
+    "paragraph": "A service provider MAY require cursor-based pagination to retrieve all results for a query by including a nextCursor value in the response, even when the query does not include the cursor parameter.",
+    "previous_paragraph": "",
+    "next_paragraph": "For example:",
+    "n": 17,
+    "original_lines": [
+      286,
+      288
+    ]
+  },
+  {
+    "section": "2.4",
+    "section_title": "Implementing Both Cursors and Index Pagination",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "MUST"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      317,
+      320
+    ],
+    "paragraph_lines": [
+      315,
+      320
+    ],
+    "text": "Additionally, service providers supporting both pagination methods MUST choose a default pagination method to use when responding to requests that have not specified a pagination query parameter.",
+    "paragraph": "When a service provider supports both index-based and cursor-based pagination, clients can use the 'startIndex' or 'cursor' query parameters to request a specific method. Additionally, service providers supporting both pagination methods MUST choose a default pagination method to use when responding to requests that have not specified a pagination query parameter.",
+    "previous_paragraph": "",
+    "next_paragraph": "Implementers of SCIM service providers that previously supported only index-based pagination and are adding support for cursor-based pagination should use index as the default pagination method to avoid incompatibility with clients that expect index-based pagination behaviors when no pagination query parameters are specified.",
+    "n": 18,
+    "original_lines": [
+      317,
+      320
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "SHOULD"
+    ],
+    "level": "SHOULD",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      374,
+      377
+    ],
+    "paragraph_lines": [
+      373,
+      377
+    ],
+    "text": "A SCIM service provider implementing cursor-based pagination SHOULD include the following additional attribute in a JSON document returned by the /ServiceProviderConfig endpoint:",
+    "paragraph": "The /ServiceProviderConfig resource defined in Section 4 of [RFC7644] facilitates discovery of SCIM service provider features. A SCIM service provider implementing cursor-based pagination SHOULD include the following additional attribute in a JSON document returned by the /ServiceProviderConfig endpoint:",
+    "previous_paragraph": "",
+    "next_paragraph": "pagination  A complex type that indicates pagination configuration options.  OPTIONAL.",
+    "n": 19,
+    "original_lines": [
+      374,
+      377
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "pagination",
+    "kind": "keyword",
+    "keywords": [
+      "OPTIONAL"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      380,
+      380
+    ],
+    "paragraph_lines": [
+      379,
+      380
+    ],
+    "text": "OPTIONAL.",
+    "paragraph": "pagination A complex type that indicates pagination configuration options. OPTIONAL.",
+    "previous_paragraph": "The /ServiceProviderConfig resource defined in Section 4 of [RFC7644] facilitates discovery of SCIM service provider features.  A SCIM service provider implementing cursor-based pagination SHOULD include the following additional attribute in a JSON document returned by the /ServiceProviderConfig endpoint:",
+    "next_paragraph": "The following sub-attributes are defined:",
+    "n": 20,
+    "original_lines": [
+      380,
+      380
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "cursor",
+    "kind": "keyword",
+    "keywords": [
+      "REQUIRED"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      385,
+      385
+    ],
+    "paragraph_lines": [
+      384,
+      385
+    ],
+    "text": "REQUIRED.",
+    "paragraph": "cursor A Boolean value specifying support of cursor-based pagination. REQUIRED.",
+    "previous_paragraph": "The following sub-attributes are defined:",
+    "next_paragraph": "index  A Boolean value specifying support of index-based pagination. REQUIRED.",
+    "n": 21,
+    "original_lines": [
+      385,
+      385
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "index",
+    "kind": "keyword",
+    "keywords": [
+      "REQUIRED"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      388,
+      388
+    ],
+    "paragraph_lines": [
+      387,
+      388
+    ],
+    "text": "REQUIRED.",
+    "paragraph": "index A Boolean value specifying support of index-based pagination. REQUIRED.",
+    "previous_paragraph": "cursor  A Boolean value specifying support of cursor-based pagination.  REQUIRED.",
+    "next_paragraph": "defaultPaginationMethod  A string value specifying the type of pagination that the service provider defaults to when the client has not specified which method it wishes to use.  Possible values are \"cursor\" and \"index\".  OPTIONAL.",
+    "n": 22,
+    "original_lines": [
+      388,
+      388
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "defaultPaginationMethod",
+    "kind": "keyword",
+    "keywords": [
+      "OPTIONAL"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      393,
+      393
+    ],
+    "paragraph_lines": [
+      390,
+      393
+    ],
+    "text": "OPTIONAL.",
+    "paragraph": "defaultPaginationMethod A string value specifying the type of pagination that the service provider defaults to when the client has not specified which method it wishes to use. Possible values are \"cursor\" and \"index\". OPTIONAL.",
+    "previous_paragraph": "index  A Boolean value specifying support of index-based pagination. REQUIRED.",
+    "next_paragraph": "defaultPageSize  Positive integer value specifying the default number of results returned in a page when a count is not specified in the query.  OPTIONAL.",
+    "n": 23,
+    "original_lines": [
+      393,
+      393
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "defaultPageSize",
+    "kind": "keyword",
+    "keywords": [
+      "OPTIONAL"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      397,
+      397
+    ],
+    "paragraph_lines": [
+      395,
+      397
+    ],
+    "text": "OPTIONAL.",
+    "paragraph": "defaultPageSize Positive integer value specifying the default number of results returned in a page when a count is not specified in the query. OPTIONAL.",
+    "previous_paragraph": "defaultPaginationMethod  A string value specifying the type of pagination that the service provider defaults to when the client has not specified which method it wishes to use.  Possible values are \"cursor\" and \"index\".  OPTIONAL.",
+    "next_paragraph": "maxPageSize  Positive integer specifying the maximum number of results returned in a page regardless of what is specified for the count in a query.  The maximum number of results returned may be further restricted by other criteria.  OPTIONAL.",
+    "n": 24,
+    "original_lines": [
+      397,
+      397
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "maxPageSize",
+    "kind": "keyword",
+    "keywords": [
+      "OPTIONAL"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      402,
+      402
+    ],
+    "paragraph_lines": [
+      399,
+      402
+    ],
+    "text": "OPTIONAL.",
+    "paragraph": "maxPageSize Positive integer specifying the maximum number of results returned in a page regardless of what is specified for the count in a query. The maximum number of results returned may be further restricted by other criteria. OPTIONAL.",
+    "previous_paragraph": "defaultPageSize  Positive integer value specifying the default number of results returned in a page when a count is not specified in the query.  OPTIONAL.",
+    "next_paragraph": "cursorTimeout  Positive integer specifying the minimum number of seconds that a cursor is valid between page requests.  Clients waiting too long between cursor pagination requests may receive an invalid cursor error response.  No value being specified may mean that there is no cursor timeout or that the cursor timeout is not a static duration.  OPTIONAL.",
+    "n": 25,
+    "original_lines": [
+      402,
+      402
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "cursorTimeout",
+    "kind": "keyword",
+    "keywords": [
+      "OPTIONAL"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      409,
+      409
+    ],
+    "paragraph_lines": [
+      404,
+      409
+    ],
+    "text": "OPTIONAL.",
+    "paragraph": "cursorTimeout Positive integer specifying the minimum number of seconds that a cursor is valid between page requests. Clients waiting too long between cursor pagination requests may receive an invalid cursor error response. No value being specified may mean that there is no cursor timeout or that the cursor timeout is not a static duration. OPTIONAL.",
+    "previous_paragraph": "maxPageSize  Positive integer specifying the maximum number of results returned in a page regardless of what is specified for the count in a query.  The maximum number of results returned may be further restricted by other criteria.  OPTIONAL.",
+    "next_paragraph": "Service providers may choose not to advertise Service Provider Configuration information regarding default pagination method, page size, or cursor validity.  Clients MUST NOT interpret the lack of published Service Provider Configuration values to mean that no defaults or limits on page sizes or cursor lifetimes exist, or that there is no default pagination method.  Service providers may choose not to publish values for the pagination sub-attributes for many reasons.  Examples include:",
+    "n": 26,
+    "original_lines": [
+      409,
+      409
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "MUST NOT"
+    ],
+    "level": "MUST",
+    "polarity": "negative",
+    "mixed": false,
+    "lines": [
+      413,
+      416
+    ],
+    "paragraph_lines": [
+      411,
+      418
+    ],
+    "text": "Clients MUST NOT interpret the lack of published Service Provider Configuration values to mean that no defaults or limits on page sizes or cursor lifetimes exist, or that there is no default pagination method.",
+    "paragraph": "Service providers may choose not to advertise Service Provider Configuration information regarding default pagination method, page size, or cursor validity. Clients MUST NOT interpret the lack of published Service Provider Configuration values to mean that no defaults or limits on page sizes or cursor lifetimes exist, or that there is no default pagination method. Service providers may choose not to publish values for the pagination sub-attributes for many reasons. Examples include:",
+    "previous_paragraph": "cursorTimeout  Positive integer specifying the minimum number of seconds that a cursor is valid between page requests.  Clients waiting too long between cursor pagination requests may receive an invalid cursor error response.  No value being specified may mean that there is no cursor timeout or that the cursor timeout is not a static duration.  OPTIONAL.",
+    "next_paragraph": "*  Service providers containing multiple resource types may have different values set for each resource type.",
+    "n": 27,
+    "original_lines": [
+      413,
+      416
+    ]
+  },
+  {
+    "section": "4",
+    "section_title": "Service Provider Configuration",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "MAY"
+    ],
+    "level": "MAY",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      427,
+      429
+    ],
+    "paragraph_lines": [
+      427,
+      429
+    ],
+    "text": "Before using cursor-based pagination, a SCIM client MAY fetch the Service Provider Configuration document from the SCIM service provider and verify that cursor-based pagination is supported.",
+    "paragraph": "Before using cursor-based pagination, a SCIM client MAY fetch the Service Provider Configuration document from the SCIM service provider and verify that cursor-based pagination is supported.",
+    "previous_paragraph": "*  Default and maximum page size may be determined by factors besides or in addition to the number of resources returned, such as the size of each resource on the page.",
+    "next_paragraph": "For example:",
+    "n": 28,
+    "original_lines": [
+      427,
+      429
+    ]
+  },
+  {
+    "section": "5.2",
+    "section_title": "Confidentiality",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "MUST"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      494,
+      496
+    ],
+    "paragraph_lines": [
+      494,
+      498
+    ],
+    "text": "Implementers MUST ensure that pagination through results sets is strictly confined to the data that the actor's current identity has been authorized to access.",
+    "paragraph": "* Implementers MUST ensure that pagination through results sets is strictly confined to the data that the actor's current identity has been authorized to access. This holds true even in cases where the actor has obtained a cursor pertaining to a result set that was generated by a different actor.",
+    "previous_paragraph": "To ensure that confidential data remains appropriately secured:",
+    "next_paragraph": "*  Authorization checks MUST be continuously applied as an actor navigates through the result set associated with a cursor.  Under no circumstances should possession of a cursor be interpreted as granting any supplementary access privileges to the actor.",
+    "n": 29,
+    "original_lines": [
+      494,
+      496
+    ]
+  },
+  {
+    "section": "5.2",
+    "section_title": "Confidentiality",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "MUST"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      500,
+      501
+    ],
+    "paragraph_lines": [
+      500,
+      503
+    ],
+    "text": "Authorization checks MUST be continuously applied as an actor navigates through the result set associated with a cursor.",
+    "paragraph": "* Authorization checks MUST be continuously applied as an actor navigates through the result set associated with a cursor. Under no circumstances should possession of a cursor be interpreted as granting any supplementary access privileges to the actor.",
+    "previous_paragraph": "*  Implementers MUST ensure that pagination through results sets is strictly confined to the data that the actor's current identity has been authorized to access.  This holds true even in cases where the actor has obtained a cursor pertaining to a result set that was generated by a different actor.",
+    "next_paragraph": "*  When possible, service providers SHOULD invalidate all cursors corresponding to an actor immediately following a change in permissions.  This ensures that any queries executed post-permission change, utilizing old cursors, will be denied.  As an alternative approach, service providers may opt to retain the existing cursors but must ensure that any metadata tied to the result set, such as record counts, is updated to reflect the new permissions accurately.",
+    "n": 30,
+    "original_lines": [
+      500,
+      501
+    ]
+  },
+  {
+    "section": "5.2",
+    "section_title": "Confidentiality",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "SHOULD"
+    ],
+    "level": "SHOULD",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      505,
+      507
+    ],
+    "paragraph_lines": [
+      505,
+      512
+    ],
+    "text": "When possible, service providers SHOULD invalidate all cursors corresponding to an actor immediately following a change in permissions.",
+    "paragraph": "* When possible, service providers SHOULD invalidate all cursors corresponding to an actor immediately following a change in permissions. This ensures that any queries executed post-permission change, utilizing old cursors, will be denied. As an alternative approach, service providers may opt to retain the existing cursors but must ensure that any metadata tied to the result set, such as record counts, is updated to reflect the new permissions accurately.",
+    "previous_paragraph": "*  Authorization checks MUST be continuously applied as an actor navigates through the result set associated with a cursor.  Under no circumstances should possession of a cursor be interpreted as granting any supplementary access privileges to the actor.",
+    "next_paragraph": "*  In alignment with Section 2, cursor values are URL-safe strings that are opaque to clients.  Service providers should obfuscate cursors values to prevent clients from interpreting cursors or forging new cursors.  Service providers should be able to easily detect forged cursor values and immediately return an invalidCursor as described in Section 2.1.",
+    "n": 31,
+    "original_lines": [
+      505,
+      507
+    ]
+  },
+  {
+    "section": "5.2",
+    "section_title": "Confidentiality",
+    "label_path": "",
+    "kind": "keyword",
+    "keywords": [
+      "MUST"
+    ],
+    "level": "MUST",
+    "polarity": "positive",
+    "mixed": false,
+    "lines": [
+      521,
+      522
+    ],
+    "paragraph_lines": [
+      521,
+      529
+    ],
+    "text": "The service provider MUST handle error scenarios without exposing sensitive data.",
+    "paragraph": "* The service provider MUST handle error scenarios without exposing sensitive data. For instance, if an actor attempts to access a page of results outside their authorized scope, or if a request is made for a non-existent page, the service provider should respond with identical error messages, so as not to disclose any details of the underlying data or the nature of the authorization failure. It is acceptable, however, for the service provider to log different messages to a log accessible by administrators or other authorized personnel.",
+    "previous_paragraph": "*  In alignment with Section 2, cursor values are URL-safe strings that are opaque to clients.  Service providers should obfuscate cursors values to prevent clients from interpreting cursors or forging new cursors.  Service providers should be able to easily detect forged cursor values and immediately return an invalidCursor as described in Section 2.1.",
+    "next_paragraph": "",
+    "n": 32,
+    "original_lines": [
+      521,
+      522
+    ]
+  }
+]

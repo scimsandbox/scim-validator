@@ -26,8 +26,8 @@ workflow changes, or documentation that matches the live repository structure.
 
 ## Working Conventions
 
-- Add validator coverage to the existing A1-A9 layout under `src/main/groovy/de/palsoftware/scim/validator/specs`.
-- Reuse `ScimBaseSpec` and `A5_BaseSpec` for request setup, cleanup, and shared assertions.
+- Add validator coverage by implementing the generated `Rfc<NNNN><Area>Spec` skeletons under `src/main/groovy/de/palsoftware/scim/validator/specs` (one feature per requirement; keep the feature name and `@SpecRef`).
+- Reuse `ScimBaseSpec` for request setup, cleanup, and shared assertions.
 - Keep auth, capture, and console-output behavior in the base helpers instead of individual specs.
 - Add or update focused unit specs under `src/test/groovy/de/palsoftware/scim/validator/base` when you change configuration, bootstrap, or capture logic.
 

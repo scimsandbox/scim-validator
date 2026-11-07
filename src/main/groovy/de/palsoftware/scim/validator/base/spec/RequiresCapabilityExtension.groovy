@@ -14,6 +14,9 @@ import org.spockframework.runtime.model.SpecInfo
  * Spock extension that intercepts features or specs annotated with @RequiresCapability.
  * If the target SCIM server explicitly reports the capability as UNSUPPORTED,
  * the test iteration is dynamically aborted (skipped) via TestAbortedException.
+ * The capability "core" means no gating. Other names are resolved by
+ * {@link ScimBaseSpec#getCapabilityState(String)} (e.g. "async" maps to the
+ * asynchronous-request state derived from /ServiceProviderConfig).
  */
 class RequiresCapabilityExtension extends AbstractAnnotationDrivenExtension<RequiresCapability> {
 
@@ -30,6 +33,10 @@ class RequiresCapabilityExtension extends AbstractAnnotationDrivenExtension<Requ
     }
 
     private void addCapabilityInterceptor(String capability, FeatureInfo feature) {
+        // "core" is the catalog's name for "no capability needed": never gate.
+        if (capability == null || capability.trim().equalsIgnoreCase("core")) {
+            return
+        }
         feature.addIterationInterceptor(new IMethodInterceptor() {
             @Override
             void intercept(IMethodInvocation invocation) throws Throwable {

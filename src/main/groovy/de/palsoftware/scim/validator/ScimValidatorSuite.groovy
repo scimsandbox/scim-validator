@@ -1,36 +1,15 @@
 package de.palsoftware.scim.validator
 
-import de.palsoftware.scim.validator.specs.A1_ServiceDiscoverySpec
-import de.palsoftware.scim.validator.specs.A2_SchemaValidationSpec
-import de.palsoftware.scim.validator.specs.A3_UserCrudSpec
-import de.palsoftware.scim.validator.specs.A4_PatchOperationsSpec
-import de.palsoftware.scim.validator.specs.A5_FilteringSpec
-import de.palsoftware.scim.validator.specs.A5_PaginationSpec
-import de.palsoftware.scim.validator.specs.A5_SortingSpec
-import de.palsoftware.scim.validator.specs.A6_GroupLifecycleSpec
-import de.palsoftware.scim.validator.specs.A7_BulkOperationsSpec
-import de.palsoftware.scim.validator.specs.A8_SecurityAndRobustnessSpec
-import de.palsoftware.scim.validator.specs.A9_NegativeAndEdgeCasesSpec
-import de.palsoftware.scim.validator.specs.A10_CursorPaginationSpec
-import de.palsoftware.scim.validator.specs.A11_AsyncOperationsSpec
-import org.junit.platform.suite.api.SelectClasses
+import org.junit.platform.suite.api.IncludeClassNamePatterns
+import org.junit.platform.suite.api.SelectPackages
 import org.junit.platform.suite.api.Suite
 
+/**
+ * Selects the generated requirement specs (one class per RFC and area,
+ * {@code Rfc<NNNN><Area>Spec}) in the specs package.
+ */
 @Suite
-@SelectClasses([
-    A1_ServiceDiscoverySpec.class,
-    A2_SchemaValidationSpec.class,
-    A3_UserCrudSpec.class,
-    A4_PatchOperationsSpec.class,
-    A5_FilteringSpec.class,
-    A5_PaginationSpec.class,
-    A5_SortingSpec.class,
-    A6_GroupLifecycleSpec.class,
-    A7_BulkOperationsSpec.class,
-    A8_SecurityAndRobustnessSpec.class,
-    A9_NegativeAndEdgeCasesSpec.class,
-    A10_CursorPaginationSpec.class,
-    A11_AsyncOperationsSpec.class
-])
+@SelectPackages("de.palsoftware.scim.validator.specs")
+@IncludeClassNamePatterns(".*Rfc\\d+\\w*Spec")
 class ScimValidatorSuite {
 }

@@ -1,0 +1,482 @@
+{
+ "amendments": [
+  {
+   "id": "A001",
+   "candidates": [
+    "C9865-001"
+   ],
+   "newer": {
+    "rfc": "9865",
+    "lines": [
+     176,
+     176
+    ],
+    "quote": "Cursor values are URL-safe strings that are opaque to the client."
+   },
+   "target": {
+    "rfc": "7644",
+    "section": "3.4.2.4",
+    "lines": [
+     1351,
+     1351
+    ],
+    "quote": "Table 6 describes the URL pagination parameters.",
+    "subject": "cursor query parameter",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "Servers and clients may use a new \"cursor\" query parameter for cursor-based pagination alongside startIndex and count.",
+   "confidence": "high",
+   "status": "confirmed"
+  },
+  {
+   "id": "A002",
+   "candidates": [
+    "C9865-003"
+   ],
+   "newer": {
+    "rfc": "9865",
+    "lines": [
+     233,
+     235
+    ],
+    "quote": "the response includes the optional previousCursor indicating that the service provider supports forward and reverse traversal of result pages."
+   },
+   "target": {
+    "rfc": "7644",
+    "section": "3.4.2",
+    "lines": [
+     818,
+     819
+    ],
+    "quote": "The following attributes are defined for responses:",
+    "subject": "nextCursor, previousCursor ListResponse attributes",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "ListResponse gains the nextCursor and previousCursor attributes; nextCursor MUST be present on every page except the last when cursor pagination is supported.",
+   "confidence": "high",
+   "status": "confirmed"
+  },
+  {
+   "id": "A003",
+   "candidates": [
+    "C9865-005"
+   ],
+   "newer": {
+    "rfc": "9865",
+    "lines": [
+     239,
+     241
+    ],
+    "quote": "Service providers implementing cursor pagination that are unable to estimate totalResults MAY choose to omit the totalResults attribute."
+   },
+   "target": {
+    "rfc": "7644",
+    "section": "3.4.2",
+    "lines": [
+     821,
+     822
+    ],
+    "quote": "totalResults  The total number of results returned by the list or query operation.",
+    "subject": "totalResults",
+    "records": [
+     46
+    ]
+   },
+   "relation": "modifies",
+   "condition": "when cursor-based pagination is used and the service provider cannot estimate the total",
+   "effect": "totalResults, REQUIRED in a ListResponse, may be omitted in cursor-paginated responses when the provider cannot estimate it.",
+   "confidence": "high",
+   "status": "confirmed"
+  },
+  {
+   "id": "A004",
+   "candidates": [
+    "C9865-007",
+    "C9865-008"
+   ],
+   "newer": {
+    "rfc": "9865",
+    "lines": [
+     252,
+     254
+    ],
+    "quote": "These error types extend the list defined in Table 9 (\"SCIM Detail Error Keyword Values\") of Section 3.12 of [RFC7644]"
+   },
+   "target": {
+    "rfc": "7644",
+    "section": "3.12",
+    "lines": [
+     3908,
+     3908
+    ],
+    "quote": "Table 9: SCIM Detail Error Keyword Values",
+    "subject": "scimType detail error keywords",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "Three new scimType values (invalidCursor, expiredCursor, invalidCount) are added for 400 responses to GET queries.",
+   "confidence": "high",
+   "status": "confirmed"
+  },
+  {
+   "id": "A005",
+   "candidates": [
+    "C9865-010"
+   ],
+   "newer": {
+    "rfc": "9865",
+    "lines": [
+     336,
+     338
+    ],
+    "quote": "When posting to /.search, the client would pass the parameters defined in Section 2 in the body of the POST request."
+   },
+   "target": {
+    "rfc": "7644",
+    "section": "3.4.3",
+    "lines": [
+     1465,
+     1466
+    ],
+    "quote": "Clients MAY execute queries without passing parameters on the URL by using the HTTP POST verb combined with the \"/.search\" path extension.",
+    "subject": "POST /.search search request parameters",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "The \"cursor\" parameter (and count) may also be sent in the JSON body of a POST /.search request.",
+   "confidence": "medium",
+   "status": "confirmed"
+  },
+  {
+   "id": "A006",
+   "candidates": [
+    "C9865-011",
+    "C9865-012"
+   ],
+   "newer": {
+    "rfc": "9865",
+    "lines": [
+     374,
+     377
+    ],
+    "quote": "A SCIM service provider implementing cursor-based pagination SHOULD include the following additional attribute in a JSON document returned by the /ServiceProviderConfig endpoint:"
+   },
+   "target": {
+    "rfc": "7643",
+    "section": "5",
+    "lines": [
+     1490,
+     1491
+    ],
+    "quote": "The following singular attributes are defined in addition to the common attributes defined in the core schema:",
+    "subject": "ServiceProviderConfig pagination attribute",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "ServiceProviderConfig gains an OPTIONAL complex \"pagination\" attribute (cursor, index, defaultPaginationMethod, defaultPageSize, maxPageSize, cursorTimeout) that providers SHOULD publish when supporting cursors.",
+   "confidence": "high",
+   "status": "confirmed"
+  },
+  {
+   "id": "A007",
+   "candidates": [
+    "C9865-014"
+   ],
+   "newer": {
+    "rfc": "9865",
+    "lines": [
+     581,
+     582
+    ],
+    "quote": "Section 2 of this document has been added to the References column."
+   },
+   "target": {
+    "rfc": "7644",
+    "section": "8.2",
+    "lines": [
+     4654,
+     4655
+    ],
+    "quote": "As per the \"SCIM Schema URIs for Data Resources\" registry established by [RFC7643]",
+    "subject": "IANA schema URI registry references",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "IANA registry entries for ListResponse, SearchRequest and ServiceProviderConfig now also reference RFC 9865.",
+   "confidence": "medium",
+   "status": "confirmed"
+  },
+  {
+   "id": "A008",
+   "candidates": [
+    "C9967-001",
+    "C9967-016"
+   ],
+   "newer": {
+    "rfc": "9967",
+    "lines": [
+     1008,
+     1010
+    ],
+    "quote": "This section defines additional attributes that enable a SCIM client to discover the additional capabilities defined by this specification."
+   },
+   "target": {
+    "rfc": "7643",
+    "section": "5",
+    "lines": [
+     1490,
+     1491
+    ],
+    "quote": "The following singular attributes are defined in addition to the common attributes defined in the core schema:",
+    "subject": "ServiceProviderConfig securityEvents attribute",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "ServiceProviderConfig gains an OPTIONAL \"securityEvents\" complex attribute (asyncRequest, eventUris) advertising async and Security Event support.",
+   "confidence": "high",
+   "status": "confirmed"
+  },
+  {
+   "id": "A009",
+   "candidates": [
+    "C9967-010"
+   ],
+   "newer": {
+    "rfc": "9967",
+    "lines": [
+     719,
+     721
+    ],
+    "quote": "A SCIM client making SCIM HTTP requests defined in Section 3 of [RFC7644] MAY request asynchronous processing using the \"Prefer\" HTTP header"
+   },
+   "target": {
+    "rfc": "7644",
+    "section": "3",
+    "lines": [
+     403,
+     403
+    ],
+    "quote": "SCIM is a protocol that is based on HTTP [RFC7230].",
+    "subject": "asynchronous SCIM requests (Prefer: respond-async)",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "Clients may send POST/PUT/PATCH/DELETE with \"Prefer: respond-async\"; providers may answer 202 with Set-Txn and later deliver a completion event.",
+   "confidence": "high",
+   "status": "confirmed"
+  },
+  {
+   "id": "A010",
+   "candidates": [
+    "C9967-011",
+    "C9967-012"
+   ],
+   "newer": {
+    "rfc": "9967",
+    "lines": [
+     787,
+     789
+    ],
+    "quote": "When an asynchronous response is requested, a single Asynchronous Request Completion Event MUST be generated for each requested operation."
+   },
+   "target": {
+    "rfc": "7644",
+    "section": "3.7",
+    "lines": [
+     2698,
+     2700
+    ],
+    "quote": "The SCIM bulk operation is an optional server feature that enables clients to send a potentially large collection of resource operations in a single request.",
+    "subject": "asynchronous bulk requests",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "When a bulk request is processed asynchronously, one completion event per bulk operation is generated, possibly out of order but with txn numbers matching request order.",
+   "confidence": "medium",
+   "status": "confirmed"
+  },
+  {
+   "id": "A011",
+   "candidates": [
+    "C9967-019"
+   ],
+   "newer": {
+    "rfc": "9967",
+    "lines": [
+     1169,
+     1170
+    ],
+    "quote": "A reference to Section 4 of this document has been added to the \"urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig\" entry"
+   },
+   "target": {
+    "rfc": "7643",
+    "section": "10.4",
+    "lines": [
+     5476,
+     5477
+    ],
+    "quote": "The IANA has populated the \"System for Cross-domain Identity Management (SCIM) Schema URIs\" registry",
+    "subject": "IANA SCIM Server-Related Schema URIs registry",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "The ServiceProviderConfig registry entry now also references RFC 9967 Section 4.",
+   "confidence": "medium",
+   "status": "confirmed"
+  },
+  {
+   "id": "A012",
+   "candidates": [
+    "C9967-020"
+   ],
+   "newer": {
+    "rfc": "9967",
+    "lines": [
+     1177,
+     1179
+    ],
+    "quote": "IANA has created a new registry called \"SCIM Event URIs\" under the \"System for Cross-domain Identity Management (SCIM) Schema URIs\" registry group"
+   },
+   "target": {
+    "rfc": "7643",
+    "section": "10.1",
+    "lines": [
+     5203,
+     5204
+    ],
+    "quote": "To manage this sub-namespace, IANA has created the \"System for Cross-domain Identity Management (SCIM) Schema URIs\" registry",
+    "subject": "IANA SCIM registry group",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": null,
+   "effect": "A new \"SCIM Event URIs\" registry (Expert Review) exists under the SCIM registry group.",
+   "confidence": "medium",
+   "status": "confirmed"
+  },
+  {
+   "id": "A013",
+   "candidates": [
+    "C9865-009"
+   ],
+   "newer": {
+    "rfc": "9865",
+    "lines": [
+     281,
+     282
+    ],
+    "quote": "If sorting is implemented as described Section 3.4.2.3 of [RFC7644], then cursor-paged results should be sorted."
+   },
+   "target": {
+    "rfc": "7644",
+    "section": "3.4.2.3",
+    "lines": [
+     1299,
+     1301
+    ],
+    "quote": "Sorting allows clients to specify the order in which resources are returned by specifying a combination of \"sortBy\" and \"sortOrder\" URL parameters.",
+    "subject": "sorting cursor-paged results",
+    "records": []
+   },
+   "relation": "extends",
+   "condition": "when both cursor-based pagination and sorting are supported",
+   "effect": "When sorting is implemented per Section 3.4.2.3, cursor-paged queries deliver results in the requested sort order across cursor pages.",
+   "confidence": "high",
+   "status": "confirmed"
+  }
+ ],
+ "not_amendments": [
+  {
+   "candidate": "C9865-002",
+   "reason": "background motivation text mentioning index-based pagination; defines nothing"
+  },
+  {
+   "candidate": "C9865-004",
+   "reason": "plain reference to RFC 7643 definitions"
+  },
+  {
+   "candidate": "C9865-006",
+   "reason": "reuse of the Section 3.12 error response format; the new error types are covered in A004"
+  },
+  {
+   "candidate": "C9865-013",
+   "reason": "plain reference to the existing tooMany error"
+  },
+  {
+   "candidate": "C9865-015",
+   "reason": "count text for cursor mode restates the RFC 7644 count definition verbatim in substance; no change (only invalidCount adds a rule, covered in A004)"
+  },
+  {
+   "candidate": "C9967-002",
+   "reason": "plain reference to SCIM operations in Section 3"
+  },
+  {
+   "candidate": "C9967-003",
+   "reason": "new sub_id attribute definition citing 7644 for terms only; no change to 7644"
+  },
+  {
+   "candidate": "C9967-004",
+   "reason": "plain reference to the RFC 7643 externalId definition"
+  },
+  {
+   "candidate": "C9967-005",
+   "reason": "plain reference to the RFC 7643 id definition"
+  },
+  {
+   "candidate": "C9967-006",
+   "reason": "plain reference to uniqueness definitions in RFC 7643"
+  },
+  {
+   "candidate": "C9967-007",
+   "reason": "plain reference to the ETag header of Section 3.14"
+  },
+  {
+   "candidate": "C9967-008",
+   "reason": "plain reference to the Bulk \"data\" attribute definition"
+  },
+  {
+   "candidate": "C9967-009",
+   "reason": "plain reference to the PATCH path ABNF"
+  },
+  {
+   "candidate": "C9967-013",
+   "reason": "event payload reuses the Bulk response operation definition; reference only"
+  },
+  {
+   "candidate": "C9967-014",
+   "reason": "reuses status and error attributes from Sections 3.7 and 3.12; reference only"
+  },
+  {
+   "candidate": "C9967-015",
+   "reason": "example refers to RFC 7644 Section 3.7.3 example"
+  },
+  {
+   "candidate": "C9967-017",
+   "reason": "security advice recommending existing PUT/PATCH; no change"
+  },
+  {
+   "candidate": "C9967-018",
+   "reason": "advice referring to existing GET behaviour; no change"
+  },
+  {
+   "candidate": "C9967-021",
+   "reason": "name collision with the externalId definition; reference only"
+  },
+  {
+   "candidate": "C9967-022",
+   "reason": "name collision with the id definition; reference only"
+  }
+ ]
+}

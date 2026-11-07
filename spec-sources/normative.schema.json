@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "normative.schema.json",
+  "title": "Normative statements extracted from an RFC",
+  "description": "Array of records produced by extract_normative.py from rfcNNNN-fixed.txt (the RFC text with Verified errata applied by apply_errata.py; see errata-report-rfcNNNN.md for every change and for errata that could not be applied). One schema describes the output for every RFC (normative-rfc7643.json, normative-rfc7644.json, normative-rfc9865.json, normative-rfc9967.json). Each record is one sentence (or one clause of a sentence) of the RFC that contains an upper-case RFC 2119 / RFC 8174 keyword (MUST, MUST NOT, SHALL, SHALL NOT, SHOULD, SHOULD NOT, REQUIRED, RECOMMENDED, NOT RECOMMENDED, MAY, OPTIONAL). Records are sorted by position in the RFC and numbered by 'n'. Everything here is produced deterministically by regex rules; nothing is written by a model. Statements that are normative in effect but contain no upper-case keyword (for example 'has a mutability of readOnly', lower-case 'must') are NOT in this file. Use 'kind' == 'keyword' to select real requirements. Requirements stated inside ASCII tables are extracted cell by cell (see 'in_table'). For RFC 7643 only, the keyword sentences inside the JSON schema examples of section 8.7.x are not separate records: each is attached to the prose record it illustrates as 'schema_examples' (context only); two without a prose counterpart are in unattached-json-examples-rfc7643.json. All line numbers are 1-based and refer to rfcNNNN-fixed.txt in the same directory; 'original_lines' gives the matching lines in the unmodified rfcNNNN.txt.",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/record"
+  },
+  "$defs": {
+    "lineRange": {
+      "type": "array",
+      "description": "[first, last] 1-based line numbers in rfc7643.txt, inclusive.",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "keyword": {
+      "type": "string",
+      "enum": [
+        "MUST",
+        "MUST NOT",
+        "SHALL",
+        "SHALL NOT",
+        "REQUIRED",
+        "SHOULD",
+        "SHOULD NOT",
+        "RECOMMENDED",
+        "NOT RECOMMENDED",
+        "MAY",
+        "OPTIONAL"
+      ]
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n",
+        "section",
+        "section_title",
+        "label_path",
+        "kind",
+        "keywords",
+        "level",
+        "polarity",
+        "mixed",
+        "lines",
+        "original_lines",
+        "paragraph_lines",
+        "text",
+        "paragraph",
+        "previous_paragraph",
+        "next_paragraph"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Sequential record number (unique, 1..N, in document order). The id to cite when referring to a record. It is NOT stable across re-extraction if the script changes."
+        },
+        "section": {
+          "type": "string",
+          "description": "RFC section number the statement is in, for example '4.1.2' or '8.7.1'. 'front' means before the first numbered section."
+        },
+        "section_title": {
+          "type": "string",
+          "description": "Title of that section, for example 'Multi-Valued Attributes'."
+        },
+        "label_path": {
+          "type": "string",
+          "description": "Subject the statement applies to. For RFC 7643 it is the dotted path of the attribute or characteristic, for example 'bulk.maxOperations', 'addresses.country' or 'attributes.mutability', derived from the RFC's indentation of attribute label lines (sections 2.4, 3.1, 4.x, 5, 6, 7). For a statement in a table cell (in_table) it is the text of the row's first-column cell, for example 'count' or 'nextCursor' or 'eq', and empty when the keyword is in the first column itself. Empty string for plain prose with no identifiable subject (all prose in RFCs other than 7643); an empty path does NOT mean the statement applies to everything. Use 'section_title' for the topic of such statements."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "keyword",
+            "notation",
+            "convention",
+            "default",
+            "informative"
+          ],
+          "description": "'keyword': a genuine requirement or option on a service provider, client, schema or value; use these. 'notation': RFC 2119 boilerplate in section 1.1 about how the key words are used; not a requirement. 'convention': a document-wide convention (the section 1.1 rule that quotes are not part of values). 'default': a bullet in the section 2.2 list of default characteristic values that merely mentions a keyword (\"required\" is \"false\"). 'informative': a keyword used in descriptive text in section 8 outside the JSON schema examples (for example 'individual values and schema MAY change')."
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/keyword"
+          },
+          "minItems": 1,
+          "description": "Every keyword occurrence in this record's clause (for split records) or sentence, in textual order, including repeats."
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "MUST",
+            "SHOULD",
+            "MAY"
+          ],
+          "description": "Strength class of the FIRST keyword in 'keywords': MUST for MUST, MUST NOT, SHALL, SHALL NOT, REQUIRED; SHOULD for SHOULD, SHOULD NOT, RECOMMENDED, NOT RECOMMENDED; MAY for MAY, OPTIONAL. If 'mixed' is true the later keywords may have a different strength, so check 'keywords'."
+        },
+        "polarity": {
+          "type": "string",
+          "enum": [
+            "positive",
+            "negative"
+          ],
+          "description": "'negative' when the first keyword is MUST NOT, SHALL NOT, SHOULD NOT or NOT RECOMMENDED. 'MUST NOT' therefore has level MUST and polarity negative. A negative statement is a prohibition: a test for it looks for absence, not presence."
+        },
+        "mixed": {
+          "type": "boolean",
+          "description": "True when 'keywords' contains keywords of different level or polarity and the sentence could not be split into clauses. Currently only the RFC 2119 boilerplate in section 1.1 (kind 'notation'). Needs a human decision before use."
+        },
+        "lines": {
+          "$ref": "#/$defs/lineRange",
+          "description": "Line range of the whole sentence in rfcNNNN-fixed.txt. For a table cell it is the range of the lines the cell text occupies, which also contain the other columns of the same row. For split records it is the range of the whole original sentence, not just the clause; see 'clause_lines'."
+        },
+        "paragraph_lines": {
+          "$ref": "#/$defs/lineRange",
+          "description": "Line range of the paragraph (text block between blank lines, with page breaks removed) that contains the sentence; for a table cell, the whole table."
+        },
+        "text": {
+          "type": "string",
+          "description": "The complete sentence from the RFC with whitespace collapsed and any leading attribute-label word removed. Always the whole sentence, even for split records. Some sentences are fragments the RFC itself writes as separate sentences, such as 'REQUIRED.', 'OPTIONAL.' or 'This attribute is OPTIONAL.'; use 'label_path' and 'paragraph' to know what they refer to. A few end without a period because they are list items or bullets. Where an erratum is listed in 'errata', this is the corrected wording (an erratum's own typos are kept verbatim, for example 8475 leaves out a full stop after REQUIRED)."
+        },
+        "paragraph": {
+          "type": "string",
+          "description": "The paragraph containing the sentence, whitespace-collapsed. Use it to understand what 'this attribute' or 'the value' refers to. For a table cell it is the whole table row rendered as 'Column header: cell | Column header: cell'."
+        },
+        "previous_paragraph": {
+          "type": "string",
+          "description": "The preceding paragraph in the same section, or an empty string if there is none (and always for table cells). Gives lead-in context such as 'The following attributes are defined'."
+        },
+        "next_paragraph": {
+          "type": "string",
+          "description": "The following paragraph in the same section, or an empty string if there is none (and always for table cells). Useful when the sentence introduces a list that follows."
+        },
+        "split": {
+          "type": "boolean",
+          "const": true,
+          "description": "Present and true when this record is one clause of a sentence that contained keywords of different strength or polarity (for example 'MAY ... but SHOULD NOT ...'). Such a sentence produces one record per clause. All of them share the same 'text' and 'lines'; they differ in 'clause', 'clause_lines', 'keywords', 'level' and 'polarity'."
+        },
+        "clause": {
+          "type": "string",
+          "description": "Only on split records: the part of 'text' this record's keywords, level and polarity apply to. It may start with a conjunction such as 'but' or 'and' and have no subject of its own; read it together with 'text'."
+        },
+        "clause_lines": {
+          "$ref": "#/$defs/lineRange",
+          "description": "Only on split records: line range of 'clause'."
+        },
+        "schema_examples": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Context only. Keyword sentences from the RFC's JSON schema examples (section 8.7.1 for User, EnterpriseUser and Group; section 8.7.2 for ResourceType, Schema and ServiceProviderConfig) that illustrate this requirement. Attached by matching the attribute name, its parent attributes and the section; they are not requirements of their own and must not be counted. Present only on records that have at least one.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "section",
+              "path",
+              "lines",
+              "keywords",
+              "text",
+              "keyword_differs"
+            ],
+            "properties": {
+              "section": {
+                "type": "string",
+                "description": "RFC section holding the JSON example, '8.7.1' or '8.7.2'."
+              },
+              "path": {
+                "type": "string",
+                "description": "Path of the schema attribute the description belongs to, starting with the schema or resource name, for example 'User.emails.primary' or 'Schema.attributes.canonicalValues'."
+              },
+              "lines": {
+                "$ref": "#/$defs/lineRange",
+                "description": "Line range of the whole description string in rfc7643.txt."
+              },
+              "keywords": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/keyword"
+                },
+                "description": "Keywords in this sentence."
+              },
+              "text": {
+                "type": "string",
+                "description": "The sentence from the description string. May be a bare fragment such as 'REQUIRED.' or 'OPTIONAL and READ-ONLY.'."
+              },
+              "keyword_differs": {
+                "type": "boolean",
+                "description": "True when the example's keywords share none with the requirement it is attached to, i.e. the RFC's example and prose disagree (for example the example says REQUIRED where the prose says RECOMMENDED, or MUST where the prose says MAY). Treat these as RFC inconsistencies and prefer the prose."
+              },
+              "errata": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/erratumRef"
+                },
+                "description": "Present only when a Verified erratum changed lines of this example."
+              }
+            }
+          }
+        },
+        "original_lines": {
+          "$ref": "#/$defs/lineRange",
+          "description": "The same range in the unmodified rfcNNNN.txt. Where errata replaced the lines, the range of the original lines that were replaced."
+        },
+        "errata": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/erratumRef"
+          },
+          "description": "Present only when a Verified erratum changed lines of this record's sentence. The text already contains the corrected wording."
+        },
+        "in_table": {
+          "type": "boolean",
+          "const": true,
+          "description": "Present and true when the sentence comes from a cell of an ASCII table in the RFC (for example the filter operator table or the cursor pagination parameter table). 'label_path' is the row key, 'paragraph' the whole row. Rows are separated by table borders or by empty '|' lines; text wrapped across lines of a cell is joined."
+        }
+      },
+      "dependentRequired": {
+        "split": [
+          "clause",
+          "clause_lines"
+        ],
+        "clause": [
+          "split"
+        ],
+        "clause_lines": [
+          "split"
+        ]
+      }
+    },
+    "erratumRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "type"
+      ],
+      "description": "A Verified erratum whose edit changed lines of this record or example. The corrected wording is already in the text; the erratum id lets you see the original in rfc7643-errata.json and the diff in errata-report.md.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "RFC Editor erratum id, for example '8450'."
+        },
+        "status": {
+          "type": "string",
+          "description": "Erratum status; only 'Verified' errata are applied."
+        },
+        "type": {
+          "type": "string",
+          "description": "'Technical' or 'Editorial'."
+        }
+      }
+    }
+  }
+}
