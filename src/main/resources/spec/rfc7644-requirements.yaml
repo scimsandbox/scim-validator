@@ -10,6 +10,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Implementers MUST percent-encode URLs as described in Section 2.1 of [RFC3986]."
+  summary: "Implementers MUST percent-encode URLs as described in Section 2.1 of [RFC3986]."
   lines: [186, 187]
   original_lines: [186, 187]
   record: 2
@@ -24,6 +25,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The Base URI MUST NOT contain a query string,"
+  summary: "The SCIM Base URI MUST NOT contain a query string."
   lines: [201, 203]
   original_lines: [201, 203]
   record: 3
@@ -39,6 +41,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "as clients MAY append additional path information and query parameters as part of forming the request."
+  summary: "SCIM clients MAY append additional path information and query parameters to the Base URI as part of forming a request."
   lines: [201, 203]
   original_lines: [201, 203]
   record: 4
@@ -53,6 +56,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Additionally, a client MAY apply a version number to the server root prefix (see Section 3.13)."
+  summary: "A SCIM client MAY apply a version number to the server root URI prefix (see Section 3.13)."
   lines: [214, 215]
   original_lines: [214, 215]
   record: 5
@@ -67,6 +71,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "TLS Client Authentication The SCIM service provider MAY request TLS client authentication (also known as mutual authentication)."
+  summary: "The SCIM service provider MAY request TLS client authentication (also known as mutual authentication)."
   lines: [239, 241]
   original_lines: [239, 241]
   record: 6
@@ -82,6 +87,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Bearer Tokens Bearer tokens [RFC6750] MAY be used when combined with TLS and a token framework such as OAuth 2.0 [RFC6749]."
+  summary: "Bearer tokens [RFC6750] MAY be used for SCIM authentication and authorization when combined with TLS and a token framework such as OAuth 2.0 [RFC6749]."
   lines: [253, 255]
   original_lines: [253, 255]
   record: 7
@@ -96,6 +102,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "Tokens that are issued based on weak or no authentication of authorizing users and/or OAuth clients SHOULD NOT be used, unless, for example, they are being used as single-use tokens to permit one-time requests such as anonymous registration (see Section 3.3)."
+  summary: "Bearer tokens that are issued based on weak or no authentication of authorizing users and/or OAuth clients SHOULD NOT be used, unless, for example, they are being used as single-use tokens to permit one-time requests such as anonymous registration (see Section 3.3)."
   lines: [255, 259]
   original_lines: [255, 259]
   record: 8
@@ -110,6 +117,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Cookies JavaScript clients MAY assert HTTP cookies over TLS that contain an authentication state that is understood by the SCIM service provider (see [RFC6265])."
+  summary: "JavaScript clients MAY assert HTTP cookies over TLS that contain an authentication state that is understood by the SCIM service provider (see [RFC6265])."
   lines: [287, 290]
   original_lines: [287, 290]
   record: 9
@@ -125,6 +133,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Implementers SHOULD combine the use of basic authentication with other factors."
+  summary: "SCIM implementers SHOULD combine the use of HTTP basic authentication with other authentication factors."
   lines: [299, 300]
   original_lines: [299, 300]
   record: 10
@@ -140,6 +149,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "As per Section 4.1 of [RFC7235], a SCIM service provider SHALL indicate supported HTTP authentication schemes via the \"WWW-Authenticate\" header."
+  summary: "As per Section 4.1 of [RFC7235], a SCIM service provider SHALL indicate supported HTTP authentication schemes via the \"WWW-Authenticate\" header."
   lines: [307, 309]
   original_lines: [307, 309]
   record: 11
@@ -154,6 +164,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Regardless of methodology, the SCIM service provider MUST be able to map the authenticated client to an access control policy in order to determine the client's authorization to retrieve and update SCIM resources."
+  summary: "Regardless of authentication methodology, the SCIM service provider MUST be able to map the authenticated client to an access control policy in order to determine the client's authorization to retrieve and update SCIM resources."
   lines: [311, 314]
   original_lines: [311, 314]
   record: 12
@@ -168,6 +179,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "For example, while a browser session may have been established via HTTP cookie or TLS client authentication, the unique client MUST be mapped to a security subject (e.g., User)."
+  summary: "Even when a browser session has been established via HTTP cookie or TLS client authentication, the unique SCIM client MUST be mapped to a security subject (e.g., \"User\")."
   lines: [314, 316]
   original_lines: [314, 316]
   record: 13
@@ -183,6 +195,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "When processing requests, the service provider SHOULD consider the subject performing the request and whether or not the action is appropriate given the subject and the resource affected by the request."
+  summary: "When processing SCIM requests, the service provider SHOULD consider the subject performing the request and whether or not the action is appropriate given the subject and the resource affected by the request."
   lines: [320, 323]
   original_lines: [320, 323]
   record: 14
@@ -198,6 +211,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "For example, a subject MAY be permitted to retrieve and update their own \"User\" resource but will normally have restricted ability to access resources associated with other Users."
+  summary: "A security subject MAY be permitted by a SCIM service provider to retrieve and update their own \"User\" resource while having restricted ability to access resources associated with other Users."
   lines: [325, 327]
   original_lines: [325, 327]
   record: 15
@@ -213,6 +227,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "When using bearer tokens or PoP tokens that represent an authorization grant, such as a grant issued by OAuth (see [RFC6749]), implementers SHOULD consider the type of authorization granted, any authorized scopes (see Section 3.3 of [RFC6749]), and the security subject(s) that SHOULD be mapped from the authorization when considering local access control rules."
+  summary: "When using bearer tokens or PoP tokens that represent an authorization grant, such as a grant issued by OAuth (see [RFC6749]), implementers SHOULD consider the type of authorization granted, any authorized scopes (see Section 3.3 of [RFC6749]), and the security subject(s) that SHOULD be mapped from the authorization when considering local access control rules."
   lines: [357, 362]
   original_lines: [357, 362]
   record: 16
@@ -228,6 +243,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When using OAuth authorization tokens, implementers MUST take into account the threats and countermeasures related to the use of client authorizations, as documented in Section 8 of [RFC7521]."
+  summary: "When using OAuth authorization tokens, SCIM implementers MUST take into account the threats and countermeasures related to the use of client authorizations, as documented in Section 8 of [RFC7521]."
   lines: [373, 375]
   original_lines: [373, 375]
   record: 17
@@ -243,6 +259,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When using other token formats or frameworks, implementers MUST take into account similar threats and countermeasures, especially those documented by the relevant specifications."
+  summary: "When using token formats or frameworks other than OAuth authorization tokens, SCIM implementers MUST take into account similar threats and countermeasures related to client authorizations, especially those documented by the relevant specifications."
   lines: [375, 378]
   original_lines: [375, 378]
   record: 18
@@ -258,6 +275,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "In some SCIM deployments, it MAY be acceptable to permit unauthenticated (anonymous) requests -- for example, a user self-registration request where the service provider chooses to accept a SCIM Create request (see Section 3.3) from an anonymous client."
+  summary: "In some SCIM deployments, it MAY be acceptable to permit unauthenticated (anonymous) requests, such as a user self-registration request where the service provider chooses to accept a SCIM Create request (see Section 3.3) from an anonymous client."
   lines: [382, 386]
   original_lines: [382, 386]
   record: 19
@@ -272,6 +290,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Specific information about what attributes are defined within a schema MAY be obtained by querying a SCIM service provider's \"/Schemas\" endpoint for a schema definition (see Section 8.7 of [RFC7643])."
+  summary: "Specific information about what attributes are defined within a schema MAY be obtained by querying a SCIM service provider's \"/Schemas\" endpoint for a schema definition (see Section 8.7 of [RFC7643])."
   lines: [417, 420]
   original_lines: [417, 420]
   record: 20
@@ -286,6 +305,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "As with a SCIM resource, a SCIM message is a JSON object [RFC7159] that contains a \"schemas\" attribute with a URI whose namespace prefix MUST begin with \"urn:ietf:params:scim:api:\"."
+  summary: "As with a SCIM resource, a SCIM message is a JSON object [RFC7159] that contains a \"schemas\" attribute with a URI whose namespace prefix MUST begin with \"urn:ietf:params:scim:api:\"."
   lines: [434, 437]
   original_lines: [434, 437]
   record: 21
@@ -300,6 +320,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "As SCIM protocol messages are fixed and defined by SCIM specifications and registered extensions, SCIM message schemas using the above prefix URN SHALL NOT be discoverable using the \"/Schemas\" endpoint."
+  summary: "Because SCIM protocol messages are fixed and defined by SCIM specifications and registered extensions, SCIM message schemas using the \"urn:ietf:params:scim:api:\" prefix URN SHALL NOT be discoverable using the \"/Schemas\" endpoint."
   lines: [437, 440]
   original_lines: [437, 440]
   record: 22
@@ -314,6 +335,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "Similarly, a SCIM client SHOULD NOT expect a service provider to return SCIM resources with exactly the same schema and values as submitted."
+  summary: "A SCIM client SHOULD NOT expect a service provider to return SCIM resources with exactly the same schema and values as submitted."
   lines: [461, 463]
   original_lines: [461, 463]
   record: 23
@@ -329,6 +351,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "SCIM responses SHALL reflect resource state as interpreted by the SCIM service provider."
+  summary: "SCIM responses SHALL reflect resource state as interpreted by the SCIM service provider."
   lines: [463, 465]
   original_lines: [463, 465]
   record: 24
@@ -343,6 +366,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Service providers that support extended resources SHOULD define resource endpoints using the convention of pluralizing the resource name defined in the extended schema, by appending an 's'."
+  summary: "Service providers that support extended resources SHOULD define resource endpoints using the convention of pluralizing the resource name defined in the extended schema, by appending an \"s\"."
   lines: [472, 475]
   original_lines: [472, 475]
   record: 25
@@ -357,6 +381,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Given that there are cases where resource pluralization is ambiguous, e.g., a resource named \"Person\" is legitimately \"Persons\" and \"People\", clients SHOULD discover resource endpoints via the \"/ResourceTypes\" endpoint."
+  summary: "Given that there are cases where resource pluralization is ambiguous (e.g., a resource named \"Person\" is legitimately \"Persons\" and \"People\"), SCIM clients SHOULD discover resource endpoints via the \"/ResourceTypes\" endpoint."
   lines: [475, 478]
   original_lines: [475, 478]
   record: 26
@@ -372,6 +397,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Depending on the endpoint, creates new resources, creates a search request, or MAY be used to bulk-modify resources."
+  summary: "Depending on the SCIM endpoint, the HTTP POST method creates new resources, creates a search request, or MAY be used to bulk-modify resources."
   lines: [485, 486]
   original_lines: [485, 486]
   record: 27
@@ -386,6 +412,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "PUT MUST NOT be used to create new resources."
+  summary: "The HTTP PUT method modifies a SCIM resource by replacing existing attributes and MUST NOT be used to create new resources."
   lines: [489, 490]
   original_lines: [489, 490]
   record: 28
@@ -400,6 +427,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Error status codes SHOULD be transmitted via the HTTP status code of the response (if possible) and SHOULD also be specified in the body of the response (see Section 3.12)."
+  summary: "In SCIM responses, error status codes SHOULD be transmitted via the HTTP status code of the response (if possible) and SHOULD also be specified in the JSON body of the response (see Section 3.12)."
   lines: [570, 572]
   original_lines: [570, 572]
   record: 29
@@ -414,6 +442,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The server SHALL process attributes according to the following mutability rules:"
+  summary: "When creating SCIM resources via HTTP POST, the server SHALL process attributes in the request according to the defined attribute mutability rules."
   lines: [580, 581]
   original_lines: [580, 581]
   record: 30
@@ -428,6 +457,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "In the request body, attributes whose mutability is \"readOnly\" (see Sections 2.2 and 7 of [RFC7643]) SHALL be ignored."
+  summary: "When creating a SCIM resource, attributes in the request body whose mutability is \"readOnly\" (see Sections 2.2 and 7 of [RFC7643]) SHALL be ignored by the server."
   lines: [583, 584]
   original_lines: [583, 584]
   record: 31
@@ -442,6 +472,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Attributes whose mutability is \"readWrite\" (see Section 2.2 of [RFC7643]) and that are omitted from the request body MAY be assumed to be not asserted by the client."
+  summary: "When creating a SCIM resource, attributes whose mutability is \"readWrite\" (see Section 2.2 of [RFC7643]) and that are omitted from the request body MAY be assumed by the server to be not asserted by the client."
   lines: [586, 588]
   original_lines: [586, 588]
   record: 32
@@ -456,6 +487,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The service provider MAY assign a default value to non-asserted attributes in the final resource representation."
+  summary: "When creating a SCIM resource, the service provider MAY assign a default value to non-asserted \"readWrite\" attributes omitted from the request body in the final resource representation."
   lines: [588, 590]
   original_lines: [588, 590]
   record: 33
@@ -470,6 +502,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY take into account whether or not a client has access to all of the resource's attributes when deciding whether or not non-asserted attributes should be defaulted."
+  summary: "When creating a SCIM resource, service providers MAY take into account whether or not a client has access to all of the resource's attributes when deciding whether or not non-asserted attributes should be defaulted."
   lines: [592, 594]
   original_lines: [592, 594]
   record: 34
@@ -485,6 +518,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients that intend to override existing or server-defaulted values for attributes MAY specify \"null\" for a single-valued attribute or an empty array \"[]\" for a multi-valued attribute to clear all values."
+  summary: "When creating a SCIM resource, clients that intend to override existing or server-defaulted values for attributes MAY specify \"null\" for a single-valued attribute or an empty array \"[]\" for a multi-valued attribute to clear all values."
   lines: [596, 599]
   original_lines: [596, 599]
   record: 35
@@ -499,6 +533,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When the service provider successfully creates the new resource, an HTTP response SHALL be returned with HTTP status code 201 (Created)."
+  summary: "When the SCIM service provider successfully creates a new resource, an HTTP response SHALL be returned with HTTP status code 201 (Created)."
   lines: [601, 602]
   original_lines: [601, 602]
   record: 36
@@ -513,6 +548,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The response body SHOULD contain the service provider's representation of the newly created resource."
+  summary: "When a SCIM service provider successfully creates a new resource, the HTTP 201 (Created) response body SHOULD contain the service provider's representation of the newly created resource."
   lines: [603, 604]
   original_lines: [603, 604]
   record: 37
@@ -527,6 +563,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The URI of the created resource SHALL include, in the HTTP \"Location\" header and the HTTP body, a JSON representation [RFC7159] with the attribute \"meta.location\"."
+  summary: "When a SCIM resource is created, the URI of the created resource SHALL be included in the HTTP \"Location\" header and in the HTTP response body JSON representation [RFC7159] within the \"meta.location\" attribute."
   lines: [604, 607]
   original_lines: [604, 607]
   record: 38
@@ -541,6 +578,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the service provider determines that the creation of the requested resource conflicts with existing resources (e.g., a \"User\" resource with a duplicate \"userName\"), the service provider MUST return HTTP status code 409 (Conflict) with a \"scimType\" error code of \"uniqueness\", as per Section 3.12."
+  summary: "If the SCIM service provider determines that the creation of the requested resource conflicts with existing resources (e.g., a \"User\" resource with a duplicate \"userName\"), the service provider MUST return HTTP status code 409 (Conflict) with a \"scimType\" error code of \"uniqueness\", as per Section 3.12."
   lines: [623, 627]
   original_lines: [623, 627]
   record: 39
@@ -555,6 +593,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When adding a resource to a specific endpoint, the meta attribute \"resourceType\" SHALL be set by the HTTP service provider to the corresponding resource type for the endpoint."
+  summary: "When adding a SCIM resource to a specific endpoint, the \"meta.resourceType\" attribute SHALL be set by the HTTP service provider to the corresponding resource type for the endpoint."
   lines: [711, 713]
   original_lines: [711, 713]
   record: 40
@@ -569,6 +608,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Resources MAY be retrieved via opaque, unique URLs or via queries (see Section 3.4.2)."
+  summary: "SCIM resources MAY be retrieved via opaque, unique URLs or via queries (see Section 3.4.2)."
   lines: [719, 720]
   original_lines: [719, 720]
   record: 41
@@ -583,6 +623,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Queries MAY be made against a single resource or a resource type endpoint (e.g., \"/Users\"), or the service provider Base URI."
+  summary: "SCIM queries MAY be made against a single resource, a resource type endpoint (e.g., \"/Users\"), or the service provider Base URI."
   lines: [810, 812]
   original_lines: [810, 812]
   record: 42
@@ -597,6 +638,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "SCIM service providers MAY support additional query parameters not specified here"
+  summary: "SCIM service providers MAY support additional query parameters beyond the standard set specified in Section 3.4.2."
   lines: [812, 815]
   original_lines: [812, 815]
   record: 43
@@ -612,6 +654,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "SHOULD ignore any query parameters they do not recognize instead of rejecting the query for versioning compatibility reasons."
+  summary: "SCIM service providers SHOULD ignore any query parameters they do not recognize instead of rejecting the query for versioning compatibility reasons."
   lines: [812, 815]
   original_lines: [812, 815]
   record: 44
@@ -626,6 +669,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Responses MUST be identified using the following URI: \"urn:ietf:params:scim:api:messages:2.0:ListResponse\"."
+  summary: "SCIM query responses MUST be identified using the schema URI \"urn:ietf:params:scim:api:messages:2.0:ListResponse\"."
   lines: [817, 818]
   original_lines: [817, 818]
   record: 45
@@ -640,6 +684,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In a SCIM \"ListResponse\" message for a query or list operation, the \"totalResults\" attribute (the total number of results matched by the list or query operation) is REQUIRED."
   lines: [825, 825]
   original_lines: [825, 825]
   record: 46
@@ -655,6 +700,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "This MAY be a subset of the full set of resources if pagination (Section 3.4.2.4) is requested."
+  summary: "In a SCIM \"ListResponse\" message, the \"Resources\" attribute (a multi-valued list of complex objects containing the requested resources) MAY be a subset of the full set of resources if pagination (Section 3.4.2.4) is requested."
   lines: [828, 829]
   original_lines: [828, 829]
   record: 47
@@ -669,6 +715,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED if \"totalResults\" is non-zero."
+  summary: "In a SCIM \"ListResponse\" message, the \"Resources\" attribute (a multi-valued list of complex objects containing the requested resources) is REQUIRED if \"totalResults\" is non-zero."
   lines: [829, 830]
   original_lines: [829, 830]
   record: 48
@@ -683,6 +730,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED when partial results are returned due to pagination."
+  summary: "In a SCIM \"ListResponse\" message, the \"startIndex\" attribute (the 1-based index of the first result in the current set of list results) is REQUIRED when partial results are returned due to pagination."
   lines: [833, 834]
   original_lines: [833, 834]
   record: 49
@@ -697,6 +745,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED when partial results are returned due to pagination."
+  summary: "In a SCIM \"ListResponse\" message, the \"itemsPerPage\" attribute (the number of resources returned in a list response page) is REQUIRED when partial results are returned due to pagination."
   lines: [837, 838]
   original_lines: [837, 838]
   record: 50
@@ -711,6 +760,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A query that does not return any matches SHALL return success (HTTP status code 200) with \"totalResults\" set to a value of 0."
+  summary: "A SCIM query that does not return any matches SHALL return success (HTTP status code 200) with \"totalResults\" set to a value of 0."
   lines: [847, 848]
   original_lines: [847, 848]
   record: 51
@@ -725,6 +775,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Queries MAY be performed against a SCIM resource object, a resource type endpoint, or a SCIM server root."
+  summary: "Queries MAY be performed against a SCIM resource object, a resource type endpoint, or a SCIM server root."
   lines: [882, 883]
   original_lines: [882, 883]
   record: 52
@@ -739,6 +790,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A query against a server root indicates that all resources within the server SHALL be included, subject to filtering."
+  summary: "A SCIM query against a server root indicates that all resources within the server SHALL be included, subject to filtering."
   lines: [903, 904]
   original_lines: [903, 904]
   record: 53
@@ -753,6 +805,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A filter expression using \"meta.resourceType\" MAY be used to restrict results to one or more specific resource types (to exclude others)."
+  summary: "When querying a SCIM server root, a filter expression using \"meta.resourceType\" MAY be used to restrict results to one or more specific resource types (to exclude others)."
   lines: [904, 906]
   original_lines: [904, 906]
   record: 54
@@ -767,6 +820,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If a SCIM service provider determines that too many results would be returned (e.g., because a client queried a resource type endpoint or the server base URI), the server SHALL reject the request by returning an HTTP response with HTTP status code 400 (Bad Request) and JSON attribute \"scimType\" set to \"tooMany\" (see Table 9)."
+  summary: "If a SCIM service provider determines that too many results would be returned by a query (e.g., because a client queried a resource type endpoint or the server base URI), the server SHALL reject the request by returning an HTTP response with HTTP status code 400 (Bad Request) and JSON attribute \"scimType\" set to \"tooMany\" (see Table 9)."
   lines: [910, 914]
   original_lines: [910, 914]
   record: 55
@@ -782,6 +836,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When processing query operations using endpoints that include more than one SCIM resource type (e.g., a query from the server root endpoint), filters MUST be processed as outlined in Section 3.4.2.2."
+  summary: "When processing query operations using endpoints that include more than one SCIM resource type (e.g., a query from the server root endpoint), filters MUST be processed as outlined in Section 3.4.2.2."
   lines: [916, 918]
   original_lines: [916, 918]
   record: 56
@@ -796,6 +851,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "For filtered attributes that are not part of a particular resource type, the service provider SHALL treat the attribute as if there is no attribute value."
+  summary: "When processing queries across multiple SCIM resource types, for filtered attributes that are not part of a particular resource type, the service provider SHALL treat the attribute as if there is no attribute value."
   lines: [919, 921]
   original_lines: [919, 921]
   record: 57
@@ -810,6 +866,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Filtering is an OPTIONAL parameter for SCIM service providers."
+  summary: "Filtering via the \"filter\" query parameter is an OPTIONAL parameter for SCIM service providers."
   lines: [926, 926]
   original_lines: [926, 926]
   record: 58
@@ -824,6 +881,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients MAY discover service provider filter capabilities by looking at the \"filter\" attribute of the \"ServiceProviderConfig\" endpoint (see Section 4)."
+  summary: "SCIM clients MAY discover service provider filter capabilities by looking at the \"filter\" attribute of the \"ServiceProviderConfig\" endpoint (see Section 4)."
   lines: [927, 929]
   original_lines: [927, 929]
   record: 59
@@ -838,6 +896,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients MAY request a subset of resources by specifying the \"filter\" query parameter containing a filter expression."
+  summary: "SCIM clients MAY request a subset of resources by specifying the \"filter\" query parameter containing a filter expression."
   lines: [929, 931]
   original_lines: [929, 931]
   record: 60
@@ -852,6 +911,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When specified, only those resources matching the filter expression SHALL be returned."
+  summary: "When the \"filter\" query parameter is specified in a SCIM query, only those resources matching the filter expression SHALL be returned."
   lines: [931, 932]
   original_lines: [931, 932]
   record: 61
@@ -866,6 +926,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The filter parameter MUST contain at least one valid expression (see Table 3)."
+  summary: "The SCIM \"filter\" query parameter MUST contain at least one valid filter expression (see Table 3)."
   lines: [944, 945]
   original_lines: [944, 945]
   record: 62
@@ -880,6 +941,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Each expression MUST contain an attribute name followed by an attribute operator and optional value."
+  summary: "Each expression in a SCIM \"filter\" query parameter MUST contain an attribute name followed by an attribute operator and optional value."
   lines: [945, 946]
   original_lines: [945, 946]
   record: 63
@@ -894,6 +956,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Multiple expressions MAY be combined using logical operators (see Table 4)."
+  summary: "Multiple expressions in a SCIM \"filter\" query parameter MAY be combined using logical operators (see Table 4)."
   lines: [946, 947]
   original_lines: [946, 947]
   record: 64
@@ -908,6 +971,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Expressions MAY be grouped together using round brackets \"(\" and \")\" (see Table 5)."
+  summary: "Expressions in a SCIM \"filter\" query parameter MAY be grouped together using round brackets \"(\" and \")\" (see Table 5)."
   lines: [947, 948]
   original_lines: [947, 948]
   record: 65
@@ -922,6 +986,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Boolean and Binary attributes SHALL cause a failed response (HTTP status code 400) with \"scimType\" of \"invalidFilter\"."
+  summary: "When using the SCIM \"gt\" (greater than) filter operator, applying it to Boolean or Binary attributes SHALL cause a failed response (HTTP status code 400) with a \"scimType\" error code of \"invalidFilter\"."
   lines: [992, 1004]
   original_lines: [992, 1004]
   record: 66
@@ -937,6 +1002,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Boolean and Binary attributes SHALL cause a failed response (HTTP status code 400) with \"scimType\" of \"invalidFilter\"."
+  summary: "When using the SCIM \"ge\" (greater than or equal to) filter operator, applying it to Boolean or Binary attributes SHALL cause a failed response (HTTP status code 400) with a \"scimType\" error code of \"invalidFilter\"."
   lines: [1015, 1027]
   original_lines: [1015, 1027]
   record: 67
@@ -952,6 +1018,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Boolean and Binary attributes SHALL cause a failed response (HTTP status code 400) with \"scimType\" of \"invalidFilter\"."
+  summary: "When using the SCIM \"lt\" (less than) filter operator, applying it to Boolean or Binary attributes SHALL cause a failed response (HTTP status code 400) with a \"scimType\" error code of \"invalidFilter\"."
   lines: [1029, 1040]
   original_lines: [1029, 1040]
   record: 68
@@ -967,6 +1034,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Boolean and Binary attributes SHALL cause a failed response (HTTP status code 400) with \"scimType\" of \"invalidFilter\"."
+  summary: "When using the SCIM \"le\" (less than or equal to) filter operator, applying it to Boolean or Binary attributes SHALL cause a failed response (HTTP status code 400) with a \"scimType\" error code of \"invalidFilter\"."
   lines: [1042, 1054]
   original_lines: [1042, 1054]
   record: 69
@@ -982,6 +1050,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Boolean expressions MAY be grouped using parentheses to change the standard order of operations, i.e., to evaluate logical \"or\" operators before logical \"and\" operators."
+  summary: "In SCIM filtering, boolean expressions MAY be grouped using parentheses \"( )\" to change the standard order of operations, i.e., to evaluate logical \"or\" operators before logical \"and\" operators."
   lines: [1090, 1094]
   original_lines: [1090, 1094]
   record: 70
@@ -997,6 +1066,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY support complex filters"
+  summary: "SCIM service providers MAY support complex attribute filter grouping using square brackets \"[ ]\" where filter expressions are applied to sub-attributes of a parent attribute."
   lines: [1096, 1106]
   original_lines: [1096, 1106]
   record: 71
@@ -1012,6 +1082,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "where expressions MUST be applied to the same value of a parent attribute specified immediately before the left square bracket (\"[\")."
+  summary: "In SCIM complex attribute filter grouping (\"[ ]\"), filter expressions within square brackets MUST be applied to the same value of the parent attribute specified immediately before the left square bracket (\"[\")."
   lines: [1096, 1106]
   original_lines: [1096, 1106]
   record: 72
@@ -1027,6 +1098,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The expression within square brackets (\"[\" and \"]\") MUST be a valid filter expression based upon sub-attributes of the parent attribute."
+  summary: "In SCIM complex attribute filter grouping (\"[ ]\"), the expression within square brackets (\"[\" and \"]\") MUST be a valid filter expression based upon sub-attributes of the parent attribute."
   lines: [1096, 1106]
   original_lines: [1096, 1106]
   record: 73
@@ -1042,6 +1114,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Nested expressions MAY be used."
+  summary: "In SCIM complex attribute filter grouping (\"[ ]\"), nested filter expressions MAY be used within the square brackets."
   lines: [1096, 1106]
   original_lines: [1096, 1106]
   record: 74
@@ -1057,6 +1130,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "SCIM filters MUST conform to the following ABNF [RFC5234] rules as specified below:"
+  summary: "SCIM filter expressions MUST conform to the ABNF [RFC5234] grammar rules specified in Section 3.4.2.2."
   lines: [1127, 1128]
   original_lines: [1127, 1128]
   record: 75
@@ -1071,6 +1145,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Filters MUST be evaluated using the following order of operations, in order of precedence:"
+  summary: "SCIM filters MUST be evaluated using the defined order of operations, in order of precedence."
   lines: [1183, 1184]
   original_lines: [1183, 1184]
   record: 76
@@ -1085,6 +1160,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "For complex attributes, a fully qualified sub-attribute MUST be specified using standard attribute notation (Section 3.10)."
+  summary: "When filtering on complex attributes in SCIM, a fully qualified sub-attribute MUST be specified using standard attribute notation (Section 3.10)."
   lines: [1197, 1198]
   original_lines: [1197, 1198]
   record: 77
@@ -1099,6 +1175,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When applying a comparison (e.g., \"eq\") or presence filter (e.g., \"pr\") to a defaulted attribute, the service provider SHALL use the value that was returned to the client that last created or modified the attribute."
+  summary: "When applying a comparison (e.g., \"eq\") or presence filter (e.g., \"pr\") to a defaulted attribute, the SCIM service provider SHALL use the value that was returned to the client that last created or modified the attribute."
   lines: [1202, 1205]
   original_lines: [1202, 1205]
   record: 78
@@ -1113,6 +1190,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Providers MAY support additional filter operations if they choose."
+  summary: "SCIM service providers MAY support additional filter operations if they choose."
   lines: [1207, 1207]
   original_lines: [1207, 1207]
   record: 79
@@ -1127,6 +1205,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Providers MUST decline to filter results if the specified filter operation is not recognized and return an HTTP 400 error with a \"scimType\" error of \"invalidFilter\" and an appropriate human-readable response as per Section 3.12."
+  summary: "SCIM service providers MUST decline to filter results if the specified filter operation is not recognized and return an HTTP 400 error with a \"scimType\" error of \"invalidFilter\" and an appropriate human-readable response as per Section 3.12."
   lines: [1208, 1211]
   original_lines: [1208, 1211]
   record: 80
@@ -1141,6 +1220,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When comparing attributes of type String, the case sensitivity for String type attributes SHALL be determined by the attribute's \"caseExact\" characteristic (see Section 2.2 of [RFC7643])."
+  summary: "When comparing attributes of type String in SCIM filtering, the case sensitivity for String type attributes SHALL be determined by the attribute's \"caseExact\" characteristic (see Section 2.2 of [RFC7643])."
   lines: [1216, 1218]
   original_lines: [1216, 1218]
   record: 81
@@ -1155,6 +1235,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients MAY query by schema or schema extensions by using a filter expression including the \"schemas\" attribute (as shown in Figure 2)."
+  summary: "SCIM clients MAY query by schema or schema extensions by using a filter expression including the \"schemas\" attribute (as shown in Figure 2)."
   lines: [1220, 1221]
   original_lines: [1220, 1221]
   record: 82
@@ -1169,6 +1250,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Sort is OPTIONAL."
+  summary: "Sorting of query results using the \"sortBy\" and \"sortOrder\" URL parameters is OPTIONAL for SCIM service providers."
   lines: [1297, 1297]
   original_lines: [1297, 1297]
   record: 83
@@ -1183,6 +1265,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients MAY discover sort capability by looking at the \"sort\" attribute of the service provider configuration (see Section 4)."
+  summary: "SCIM clients MAY discover sort capability by looking at the \"sort\" attribute of the service provider configuration (see Section 4)."
   lines: [1297, 1299]
   original_lines: [1297, 1299]
   record: 84
@@ -1197,6 +1280,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The \"sortBy\" parameter specifies the attribute whose value SHALL be used to order the returned responses."
+  summary: "In SCIM sorting, the \"sortBy\" parameter specifies the attribute whose value SHALL be used to order the returned responses."
   lines: [1303, 1304]
   original_lines: [1303, 1304]
   record: 85
@@ -1211,6 +1295,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If a value for \"sortBy\" is provided and no \"sortOrder\" is specified, \"sortOrder\" SHALL default to ascending."
+  summary: "In SCIM sorting, if a value for \"sortBy\" is provided and no \"sortOrder\" parameter is specified, \"sortOrder\" SHALL default to \"ascending\"."
   lines: [1317, 1319]
   original_lines: [1317, 1319]
   record: 86
@@ -1225,6 +1310,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "\"sortOrder\" MUST sort according to the attribute type; i.e., for case-insensitive attributes, sort the result using case-insensitive Unicode alphabetic sort order with no specific locale implied, and for case-exact attribute types, sort the result using case-sensitive Unicode alphabetic sort order."
+  summary: "The SCIM \"sortOrder\" parameter MUST sort according to the attribute type, sorting case-insensitive attributes using case-insensitive Unicode alphabetic sort order with no specific locale implied and sorting case-exact attribute types using case-sensitive Unicode alphabetic sort order."
   lines: [1321, 1326]
   original_lines: [1321, 1326]
   record: 87
@@ -1239,6 +1325,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Because pagination is not stateful, clients MUST be prepared to handle inconsistent results."
+  summary: "Because SCIM pagination is not stateful, clients MUST be prepared to handle inconsistent results across paginated requests."
   lines: [1332, 1333]
   original_lines: [1332, 1333]
   record: 88
@@ -1254,6 +1341,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "For example, a request for a list of 10 resources beginning with a startIndex of 1 MAY return different results when repeated, since resources on the service provider may have changed between requests."
+  summary: "In SCIM pagination, a request for a list of resources (such as 10 resources beginning with a \"startIndex\" of 1) MAY return different results when repeated, since resources on the service provider may have changed between requests."
   lines: [1333, 1336]
   original_lines: [1333, 1336]
   record: 89
@@ -1269,6 +1357,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A value less than 1 SHALL be interpreted as 1."
+  summary: "For the SCIM pagination parameter \"startIndex\" (the 1-based index of the first query result), a value less than 1 SHALL be interpreted as 1."
   lines: [1356, 1359]
   original_lines: [1356, 1359]
   record: 90
@@ -1284,6 +1373,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A negative value SHALL be interpreted as \"0\"."
+  summary: "For the SCIM pagination parameter \"count\" (the desired maximum number of query results per page), a negative value SHALL be interpreted as \"0\"."
   lines: [1361, 1370]
   original_lines: [1361, 1370]
   record: 91
@@ -1299,6 +1389,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "When specified, the service provider MUST NOT return more results than specified"
+  summary: "When the SCIM pagination parameter \"count\" (the desired maximum number of query results per page) is specified, the service provider MUST NOT return more results than specified."
   lines: [1361, 1370]
   original_lines: [1361, 1370]
   record: 92
@@ -1314,6 +1405,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "although it MAY return fewer results."
+  summary: "When the SCIM pagination parameter \"count\" (the desired maximum number of query results per page) is specified, the service provider MAY return fewer results than specified."
   lines: [1361, 1370]
   original_lines: [1361, 1370]
   record: 93
@@ -1329,6 +1421,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The following attributes control which attributes SHALL be returned with a returned resource."
+  summary: "The \"attributes\" and \"excludedAttributes\" query parameters control which attributes SHALL be returned with a returned SCIM resource."
   lines: [1436, 1437]
   original_lines: [1436, 1437]
   record: 94
@@ -1343,6 +1436,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "SCIM clients MAY use one of these two OPTIONAL parameters"
+  summary: "SCIM clients MAY use one of the two OPTIONAL attribute retrieval query parameters (\"attributes\" or \"excludedAttributes\") to control which attributes are returned with a resource."
   lines: [1437, 1439]
   original_lines: [1437, 1439]
   record: 95
@@ -1358,6 +1452,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "which MUST be supported by SCIM service providers:"
+  summary: "The attribute retrieval query parameters (\"attributes\" and \"excludedAttributes\") MUST be supported by SCIM service providers."
   lines: [1437, 1439]
   original_lines: [1437, 1439]
   record: 96
@@ -1372,6 +1467,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Attribute names MUST be in standard attribute notation (Section 3.10) form."
+  summary: "In the SCIM \"attributes\" query parameter (a multi-valued list of strings indicating the names of resource attributes to return in the response), attribute names MUST be in standard attribute notation (Section 3.10) form."
   lines: [1443, 1444]
   original_lines: [1443, 1444]
   record: 97
@@ -1386,6 +1482,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This parameter SHALL have no effect on attributes whose schema \"returned\" setting is \"always\" (see Sections 2.2 and 7 of [RFC7643])."
+  summary: "The SCIM \"excludedAttributes\" query parameter (a multi-valued list of strings indicating the names of resource attributes to be removed from the default set of attributes to return) SHALL have no effect on attributes whose schema \"returned\" setting is \"always\" (see Sections 2.2 and 7 of [RFC7643])."
   lines: [1449, 1451]
   original_lines: [1449, 1451]
   record: 98
@@ -1400,6 +1497,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Attribute names MUST be in standard attribute notation (Section 3.10) form."
+  summary: "In the SCIM \"excludedAttributes\" query parameter (a multi-valued list of strings indicating the names of resource attributes to be removed from the default set of attributes to return), attribute names MUST be in standard attribute notation (Section 3.10) form."
   lines: [1451, 1452]
   original_lines: [1451, 1452]
   record: 99
@@ -1414,6 +1512,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients MAY execute queries without passing parameters on the URL by using the HTTP POST verb combined with the \"/.search\" path extension."
+  summary: "SCIM clients MAY execute queries without passing parameters on the URL by using the HTTP POST verb combined with the \"/.search\" path extension."
   lines: [1465, 1466]
   original_lines: [1465, 1466]
   record: 100
@@ -1428,6 +1527,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The inclusion of \"/.search\" on the end of a valid SCIM endpoint SHALL be used to indicate that the HTTP POST verb is intended to be a query operation."
+  summary: "The inclusion of \"/.search\" on the end of a valid SCIM endpoint SHALL be used to indicate that the HTTP POST verb is intended to be a query operation."
   lines: [1467, 1469]
   original_lines: [1467, 1469]
   record: 101
@@ -1442,6 +1542,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The body of the POST request MAY include any of the parameters defined in Section 3.4.2."
+  summary: "When querying SCIM resources using an HTTP POST request to an endpoint ending in \"/.search\", the body of the POST request MAY include any of the query parameters defined in Section 3.4.2."
   lines: [1473, 1474]
   original_lines: [1473, 1474]
   record: 102
@@ -1456,6 +1557,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Query requests MUST be identified using the following URI: \"urn:ietf:params:scim:api:messages:2.0:SearchRequest\"."
+  summary: "SCIM HTTP POST query requests MUST be identified using the schema URI \"urn:ietf:params:scim:api:messages:2.0:SearchRequest\"."
   lines: [1476, 1477]
   original_lines: [1476, 1477]
   record: 103
@@ -1471,6 +1573,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Attribute names MUST be in standard attribute notation (Section 3.10) form."
+  summary: "In a SCIM \"SearchRequest\" message, attribute names in the \"attributes\" attribute (a multi-valued list of strings indicating the names of resource attributes to return in the response) MUST be in standard attribute notation (Section 3.10) form."
   lines: [1482, 1483]
   original_lines: [1482, 1483]
   record: 104
@@ -1485,6 +1588,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a SCIM \"SearchRequest\" message for querying resources using HTTP POST, the \"attributes\" attribute (a multi-valued list of strings indicating the names of resource attributes to return in the response) is OPTIONAL."
   lines: [1484, 1484]
   original_lines: [1484, 1484]
   record: 105
@@ -1499,6 +1603,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This parameter SHALL have no effect on attributes whose schema \"returned\" setting is \"always\" (see Sections 2.2 and 7 of [RFC7643])."
+  summary: "In a SCIM \"SearchRequest\" message, the \"excludedAttributes\" attribute (a multi-valued list of strings indicating the names of resource attributes to be removed from the default set of attributes to return) SHALL have no effect on attributes whose schema \"returned\" setting is \"always\" (see Sections 2.2 and 7 of [RFC7643])."
   lines: [1488, 1490]
   original_lines: [1488, 1490]
   record: 106
@@ -1513,6 +1618,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Attribute names MUST be in standard attribute notation (Section 3.10) form."
+  summary: "In a SCIM \"SearchRequest\" message, attribute names in the \"excludedAttributes\" attribute (a multi-valued list of strings indicating the names of resource attributes to be removed from the default set of attributes to return) MUST be in standard attribute notation (Section 3.10) form."
   lines: [1490, 1491]
   original_lines: [1490, 1491]
   record: 107
@@ -1527,6 +1633,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a SCIM \"SearchRequest\" message for querying resources using HTTP POST, the \"excludedAttributes\" attribute (a multi-valued list of strings indicating the names of resource attributes to be removed from the default set of attributes to return) is OPTIONAL."
   lines: [1492, 1492]
   original_lines: [1492, 1492]
   record: 108
@@ -1541,6 +1648,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The filter string MUST be a valid filter (Section 3.4.2.2) expression."
+  summary: "In a SCIM \"SearchRequest\" message, the \"filter\" attribute (the filter string used to request a subset of resources) MUST be a valid filter (Section 3.4.2.2) expression."
   lines: [1494, 1495]
   original_lines: [1494, 1495]
   record: 109
@@ -1555,6 +1663,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a SCIM \"SearchRequest\" message for querying resources using HTTP POST, the \"filter\" attribute (the filter string used to request a subset of resources) is OPTIONAL."
   lines: [1496, 1496]
   original_lines: [1496, 1496]
   record: 110
@@ -1569,6 +1678,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A string indicating the attribute whose value SHALL be used to order the returned responses."
+  summary: "In a SCIM \"SearchRequest\" message, the \"sortBy\" attribute is a string indicating the attribute whose value SHALL be used to order the returned responses."
   lines: [1498, 1499]
   original_lines: [1498, 1499]
   record: 111
@@ -1583,6 +1693,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The \"sortBy\" attribute MUST be in standard attribute notation (Section 3.10) form."
+  summary: "In a SCIM \"SearchRequest\" message, the \"sortBy\" attribute (indicating the attribute whose value is used to order the returned responses) MUST be in standard attribute notation (Section 3.10) form."
   lines: [1499, 1500]
   original_lines: [1499, 1500]
   record: 112
@@ -1597,6 +1708,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a SCIM \"SearchRequest\" message for querying resources using HTTP POST, the \"sortBy\" attribute (a string indicating the attribute whose value is used to order the returned responses) is OPTIONAL."
   lines: [1501, 1501]
   original_lines: [1501, 1501]
   record: 113
@@ -1611,6 +1723,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a SCIM \"SearchRequest\" message for querying resources using HTTP POST, the \"sortOrder\" attribute (a string indicating the order in which the \"sortBy\" parameter is applied, with allowed values \"ascending\" and \"descending\") is OPTIONAL."
   lines: [1505, 1505]
   original_lines: [1505, 1505]
   record: 114
@@ -1625,6 +1738,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a SCIM \"SearchRequest\" message for querying resources using HTTP POST, the \"startIndex\" attribute (an integer indicating the 1-based index of the first query result) is OPTIONAL."
   lines: [1520, 1520]
   original_lines: [1520, 1520]
   record: 115
@@ -1639,6 +1753,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a SCIM \"SearchRequest\" message for querying resources using HTTP POST, the \"count\" attribute (an integer indicating the desired maximum number of query results per page) is OPTIONAL."
   lines: [1523, 1523]
   original_lines: [1523, 1523]
   record: 116
@@ -1653,6 +1768,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Implementers MUST support HTTP PUT as specified in Section 4.3 of [RFC7231]."
+  summary: "For modifying SCIM resources, implementers MUST support HTTP PUT as specified in Section 4.3 of [RFC7231]."
   lines: [1607, 1608]
   original_lines: [1607, 1608]
   record: 117
@@ -1667,6 +1783,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Resources such as Groups may be very large; hence, implementers SHOULD support HTTP PATCH [RFC5789] to enable partial resource modifications."
+  summary: "Because SCIM resources such as Groups may be very large, implementers SHOULD support HTTP PATCH [RFC5789] to enable partial resource modifications."
   lines: [1608, 1610]
   original_lines: [1608, 1610]
   record: 118
@@ -1681,6 +1798,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "For example, clients that have previously retrieved the entire resource in advance and revised it MAY replace the resource using an HTTP PUT."
+  summary: "SCIM clients that have previously retrieved an entire resource in advance and revised it MAY replace the resource's attributes using an HTTP PUT request."
   lines: [1633, 1635]
   original_lines: [1633, 1635]
   record: 119
@@ -1695,6 +1813,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Because SCIM resource identifiers are assigned by the service provider, HTTP PUT MUST NOT be used to create new resources."
+  summary: "Because SCIM resource identifiers are assigned by the service provider, HTTP PUT MUST NOT be used to create new resources."
   lines: [1635, 1637]
   original_lines: [1635, 1637]
   record: 120
@@ -1709,6 +1828,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "As the operation's intent is to replace all attributes, SCIM clients MAY send all attributes, regardless of each attribute's mutability."
+  summary: "When replacing a resource with HTTP PUT, as the operation's intent is to replace all attributes, SCIM clients MAY send all attributes regardless of each attribute's mutability."
   lines: [1639, 1640]
   original_lines: [1639, 1640]
   record: 121
@@ -1723,6 +1843,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "readWrite, writeOnly Any values provided SHALL replace the existing attribute values."
+  summary: "When replacing a SCIM resource with HTTP PUT, any values provided for attributes with mutability \"readWrite\" or \"writeOnly\" SHALL replace the existing attribute values."
   lines: [1644, 1645]
   original_lines: [1644, 1645]
   record: 122
@@ -1737,6 +1858,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Attributes whose mutability is \"readWrite\" that are omitted from the request body MAY be assumed to be not asserted by the client."
+  summary: "When replacing a SCIM resource with HTTP PUT, attributes whose mutability is \"readWrite\" that are omitted from the request body MAY be assumed by the server to be not asserted by the client."
   lines: [1647, 1648]
   original_lines: [1647, 1648]
   record: 123
@@ -1751,6 +1873,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The service provider MAY assume that any existing values are to be cleared, or the service provider MAY assign a default value to the final resource representation."
+  summary: "When replacing a SCIM resource with HTTP PUT, for omitted \"readWrite\" attributes not asserted by the client, the service provider MAY assume that any existing values are to be cleared, or the service provider MAY assign a default value to the final resource representation."
   lines: [1649, 1651]
   original_lines: [1649, 1651]
   record: 124
@@ -1765,6 +1888,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY take into account whether or not a client has access to, or understands, all of the resource's attributes when deciding whether non-asserted attributes SHALL be removed or defaulted."
+  summary: "When replacing a SCIM resource with HTTP PUT, service providers MAY take into account whether or not a client has access to, or understands, all of the resource's attributes when deciding whether non-asserted attributes are to be removed or defaulted."
   lines: [1651, 1654]
   original_lines: [1651, 1654]
   record: 125
@@ -1780,6 +1904,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients that want to override a server's defaults MAY specify \"null\" for a single-valued attribute, or an empty array \"[]\" for a multi-valued attribute, to clear all values."
+  summary: "When replacing a SCIM resource with HTTP PUT, clients that want to override a server's defaults MAY specify \"null\" for a single-valued attribute, or an empty array \"[]\" for a multi-valued attribute, to clear all values."
   lines: [1654, 1657]
   original_lines: [1654, 1657]
   record: 126
@@ -1794,6 +1919,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If one or more values are already set for the attribute, the input value(s) MUST match,"
+  summary: "When replacing a SCIM resource with HTTP PUT, if one or more values are already set for an \"immutable\" attribute, the input value(s) in the request MUST match the existing value(s)."
   lines: [1659, 1661]
   original_lines: [1659, 1661]
   record: 127
@@ -1809,6 +1935,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "or HTTP status code 400 SHOULD be returned with a \"scimType\" error code of \"mutability\"."
+  summary: "When replacing a SCIM resource with HTTP PUT, if the input value(s) for an \"immutable\" attribute do not match the existing value(s) already set for the attribute, HTTP status code 400 SHOULD be returned with a \"scimType\" error code of \"mutability\"."
   lines: [1659, 1661]
   original_lines: [1659, 1661]
   record: 128
@@ -1824,6 +1951,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the service provider has no existing values, the new value(s) SHALL be applied."
+  summary: "When replacing a SCIM resource with HTTP PUT, if the service provider has no existing values for an \"immutable\" attribute, the new value(s) provided in the request SHALL be applied."
   lines: [1661, 1663]
   original_lines: [1661, 1663]
   record: 129
@@ -1838,6 +1966,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Any values provided SHALL be ignored."
+  summary: "When replacing a SCIM resource with HTTP PUT, any values provided for \"readOnly\" attributes SHALL be ignored."
   lines: [1665, 1665]
   original_lines: [1665, 1665]
   record: 130
@@ -1852,6 +1981,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If an attribute is \"required\", clients MUST specify the attribute in the PUT request."
+  summary: "When replacing a SCIM resource with HTTP PUT, if an attribute is defined as \"required\", clients MUST specify the attribute in the PUT request."
   lines: [1667, 1668]
   original_lines: [1667, 1668]
   record: 131
@@ -1867,6 +1997,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "HTTP PATCH is an OPTIONAL server function that enables clients to update one or more attributes of a SCIM resource using a sequence of operations to \"add\", \"remove\", or \"replace\" values."
+  summary: "HTTP PATCH is an OPTIONAL SCIM server function that enables clients to update one or more attributes of a SCIM resource using a sequence of operations to \"add\", \"remove\", or \"replace\" values."
   lines: [1782, 1784]
   original_lines: [1782, 1784]
   record: 132
@@ -1881,6 +2012,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The body of each request MUST contain the \"schemas\" attribute with the URI value of \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"."
+  summary: "The body of each SCIM HTTP PATCH request MUST contain the \"schemas\" attribute with the URI value of \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"."
   lines: [1805, 1806]
   original_lines: [1805, 1806]
   record: 133
@@ -1895,6 +2027,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The body of an HTTP PATCH request MUST contain the attribute \"Operations\", whose value is an array of one or more PATCH operations."
+  summary: "The body of a SCIM HTTP PATCH request MUST contain the attribute \"Operations\", whose value is an array of one or more PATCH operations."
   lines: [1808, 1810]
   original_lines: [1808, 1810]
   record: 134
@@ -1909,6 +2042,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Each PATCH operation object MUST have exactly one \"op\" member, whose value indicates the operation to perform"
+  summary: "In a SCIM HTTP PATCH request, each PATCH operation object in the \"Operations\" array MUST have exactly one \"op\" member, whose value indicates the operation to perform."
   lines: [1810, 1812]
   original_lines: [1810, 1812]
   record: 135
@@ -1923,6 +2057,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "MAY be one of \"add\", \"remove\", or \"replace\"."
+  summary: "In a SCIM HTTP PATCH operation object, the value of the \"op\" member indicating the operation to perform MAY be one of \"add\", \"remove\", or \"replace\"."
   lines: [1810, 1812]
   original_lines: [1810, 1812]
   record: 136
@@ -1937,6 +2072,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The \"path\" attribute is OPTIONAL for \"add\" and \"replace\""
+  summary: "In a SCIM HTTP PATCH operation object, the \"path\" attribute (a String containing an attribute path describing the target of the operation) is OPTIONAL for \"add\" and \"replace\" operations."
   lines: [1856, 1858]
   original_lines: [1856, 1858]
   record: 137
@@ -1951,6 +2087,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "and is REQUIRED for \"remove\" operations."
+  summary: "In a SCIM HTTP PATCH operation object, the \"path\" attribute (a String containing an attribute path describing the target of the operation) is REQUIRED for \"remove\" operations."
   lines: [1856, 1858]
   original_lines: [1856, 1858]
   record: 138
@@ -1965,6 +2102,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Each operation against an attribute MUST be compatible with the attribute's mutability and schema as defined in Sections 2.2 and 2.3 of [RFC7643]."
+  summary: "In a SCIM HTTP PATCH request, each operation against an attribute MUST be compatible with the attribute's mutability and schema as defined in Sections 2.2 and 2.3 of [RFC7643]."
   lines: [1886, 1888]
   original_lines: [1886, 1888]
   record: 139
@@ -1979,6 +2117,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "For example, a client MUST NOT modify an attribute that has mutability \"readOnly\" or \"immutable\"."
+  summary: "In a PATCH request, a client MUST NOT modify an attribute that has mutability \"readOnly\" or \"immutable\"."
   lines: [1888, 1889]
   original_lines: [1888, 1889]
   record: 140
@@ -1993,6 +2132,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "However, a client MAY \"add\" a value to an \"immutable\" attribute if the attribute had no previous value."
+  summary: "In a PATCH request, a client MAY \"add\" a value to an \"immutable\" attribute if the attribute had no previous value."
   lines: [1889, 1891]
   original_lines: [1889, 1891]
   record: 141
@@ -2008,6 +2148,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "An operation that is not compatible with an attribute's mutability or schema SHALL return the appropriate HTTP response status code and a JSON detail error response as defined in Section 3.12."
+  summary: "A PATCH operation that is not compatible with an attribute's mutability or schema SHALL return the appropriate HTTP response status code and a JSON detail error response as defined in Section 3.12."
   lines: [1891, 1894]
   original_lines: [1891, 1894]
   record: 142
@@ -2022,6 +2163,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "For all operations, the value of the \"schemas\" attribute on the SCIM service provider's representation of the resource SHALL be assumed by default."
+  summary: "For all operations in a PATCH request, the value of the \"schemas\" attribute on the SCIM service provider's representation of the resource SHALL be assumed by default."
   lines: [1897, 1899]
   original_lines: [1897, 1899]
   record: 143
@@ -2036,6 +2178,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If one of the PATCH operations modifies the \"schemas\" attribute, subsequent operations SHALL assume the modified state of the \"schemas\" attribute."
+  summary: "If one of the PATCH operations modifies a resource's \"schemas\" attribute, subsequent operations in the PATCH request SHALL assume the modified state of the \"schemas\" attribute."
   lines: [1899, 1901]
   original_lines: [1899, 1901]
   record: 144
@@ -2050,6 +2193,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients MAY implicitly modify the \"schemas\" attribute by adding (or replacing) an attribute with its fully qualified name, including schema URN."
+  summary: "In a PATCH request, clients MAY implicitly modify a resource's \"schemas\" attribute by adding or replacing an attribute with its fully qualified name, including its schema URN."
   lines: [1901, 1912]
   original_lines: [1901, 1912]
   record: 145
@@ -2064,6 +2208,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "For multi-valued attributes, a PATCH operation that sets a value's \"primary\" sub-attribute to \"true\" SHALL cause the server to automatically set \"primary\" to \"false\" for any other values in the array."
+  summary: "For multi-valued attributes, a PATCH operation that sets a value's \"primary\" sub-attribute to \"true\" SHALL cause the server to automatically set \"primary\" to \"false\" for any other values in the array."
   lines: [1926, 1929]
   original_lines: [1926, 1929]
   record: 146
@@ -2078,6 +2223,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A PATCH request, regardless of the number of operations, SHALL be treated as atomic."
+  summary: "A PATCH request, regardless of the number of operations, SHALL be treated as atomic."
   lines: [1931, 1932]
   original_lines: [1931, 1932]
   record: 147
@@ -2092,6 +2238,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If a single operation encounters an error condition, the original SCIM resource MUST be restored, and a failure status SHALL be returned."
+  summary: "If a single operation in a PATCH request encounters an error condition, the original SCIM resource MUST be restored, and a failure status SHALL be returned."
   lines: [1932, 1934]
   original_lines: [1932, 1934]
   record: 148
@@ -2106,6 +2253,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If a request fails, the server SHALL return an HTTP response status code and a JSON detail error response as defined in Section 3.12."
+  summary: "If a PATCH request fails, the server SHALL return an HTTP response status code and a JSON detail error response as defined in Section 3.12."
   lines: [1936, 1937]
   original_lines: [1936, 1937]
   record: 149
@@ -2120,6 +2268,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "On successful completion, the server either MUST return a 200 OK response code and the entire resource within the response body, subject to the \"attributes\" query parameter (see Section 3.9),"
+  summary: "On successful completion of a PATCH request, when not returning 204 (No Content), the server MUST return a 200 OK response code and the entire resource within the response body, subject to the \"attributes\" query parameter."
   lines: [1939, 1943]
   original_lines: [1939, 1943]
   record: 150
@@ -2134,6 +2283,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "or MAY return HTTP status code 204 (No Content) and the appropriate response headers for a successful PATCH request."
+  summary: "On successful completion of a PATCH request without the \"attributes\" query parameter, the server MAY return HTTP status code 204 (No Content) and the appropriate response headers instead of a 200 OK response with the resource."
   lines: [1939, 1943]
   original_lines: [1939, 1943]
   record: 151
@@ -2148,6 +2298,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The server MUST return a 200 OK if the \"attributes\" parameter is specified in the request."
+  summary: "On successful completion of a PATCH request, the server MUST return a 200 OK response if the \"attributes\" query parameter is specified in the request."
   lines: [1943, 1944]
   original_lines: [1943, 1944]
   record: 152
@@ -2162,6 +2313,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The operation MUST contain a \"value\" member whose content specifies the value to be added."
+  summary: "A PATCH \"add\" operation MUST contain a \"value\" member whose content specifies the value to be added."
   lines: [1972, 1973]
   original_lines: [1972, 1973]
   record: 153
@@ -2176,6 +2328,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The value MAY be a quoted value, or it may be a JSON object containing the sub-attributes of the complex attribute specified in the operation's \"path\"."
+  summary: "In a PATCH \"add\" operation, the \"value\" member MAY be a quoted value or a JSON object containing the sub-attributes of the complex attribute specified in the operation's \"path\"."
   lines: [1973, 1975]
   original_lines: [1973, 1975]
   record: 154
@@ -2190,6 +2343,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the target location specifies a complex attribute, a set of sub-attributes SHALL be specified in the \"value\" parameter."
+  summary: "In a PATCH \"add\" operation, if the target location specifies a complex attribute, a set of sub-attributes SHALL be specified in the \"value\" parameter."
   lines: [1987, 1988]
   original_lines: [1987, 1988]
   record: 155
@@ -2204,6 +2358,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "If the target location already contains the value specified, no changes SHOULD be made to the resource, and a success response SHOULD be returned."
+  summary: "In a PATCH \"add\" operation, if the target location already contains the value specified, no changes SHOULD be made to the resource, and a success response SHOULD be returned."
   lines: [2001, 2003]
   original_lines: [2001, 2003]
   record: 156
@@ -2218,6 +2373,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Unless other operations change the resource, this operation SHALL NOT change the modify timestamp of the resource."
+  summary: "If a PATCH \"add\" operation specifies a value that the target location already contains, then unless other operations change the resource, this operation SHALL NOT change the modify timestamp of the resource."
   lines: [2003, 2005]
   original_lines: [2003, 2005]
   record: 157
@@ -2232,6 +2388,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the target location is a single-value attribute, the attribute and its associated value is removed, and the attribute SHALL be considered unassigned."
+  summary: "In a PATCH \"remove\" operation, if the target location is a single-value attribute, the attribute and its associated value are removed, and the attribute SHALL be considered unassigned."
   lines: [2146, 2148]
   original_lines: [2145, 2147]
   record: 158
@@ -2246,6 +2403,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the target location is a multi-valued attribute and no filter is specified, the attribute and all values are removed, and the attribute SHALL be considered unassigned."
+  summary: "In a PATCH \"remove\" operation, if the target location is a multi-valued attribute and no filter is specified, the attribute and all values are removed, and the attribute SHALL be considered unassigned."
   lines: [2150, 2152]
   original_lines: [2149, 2151]
   record: 159
@@ -2260,6 +2418,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If no other values remain after removal of the selected values, the multi-valued attribute SHALL be considered unassigned."
+  summary: "In a PATCH \"remove\" operation on a multi-valued attribute with a complex filter comparing a \"value\", if no other values remain after removal of the selected values, the multi-valued attribute SHALL be considered unassigned."
   lines: [2156, 2158]
   original_lines: [2155, 2157]
   record: 160
@@ -2274,6 +2433,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Sub-attributes whose values have been removed SHALL be considered unassigned."
+  summary: "In a PATCH \"remove\" operation on a complex multi-valued attribute with a filter based on sub-attributes, sub-attributes whose values have been removed SHALL be considered unassigned."
   lines: [2162, 2163]
   original_lines: [2161, 2162]
   record: 161
@@ -2288,6 +2448,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the complex multi-valued attribute has no remaining records, the attribute SHALL be considered unassigned."
+  summary: "In a PATCH \"remove\" operation on a complex multi-valued attribute with a filter based on sub-attributes, if the complex multi-valued attribute has no remaining records, the attribute SHALL be considered unassigned."
   lines: [2163, 2165]
   original_lines: [2162, 2164]
   record: 162
@@ -2302,6 +2463,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If an attribute is removed or becomes unassigned and is defined as a required attribute or a read-only attribute, the server SHALL return an HTTP response status code and a JSON detail error response as defined in Section 3.12, with a \"scimType\" error code of \"mutability\"."
+  summary: "In a PATCH \"remove\" operation, if an attribute is removed or becomes unassigned and is defined as a required attribute or a read-only attribute, the server SHALL return an HTTP response status code and a JSON detail error response as defined in Section 3.12, with a \"scimType\" error code of \"mutability\"."
   lines: [2167, 2171]
   original_lines: [2166, 2170]
   record: 163
@@ -2316,6 +2478,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "In this case, the \"value\" attribute SHALL contain a list of one or more attributes that are to be replaced."
+  summary: "In a PATCH \"replace\" operation where the \"path\" parameter is omitted and the target is assumed to be the resource itself, the \"value\" attribute SHALL contain a list of one or more attributes that are to be replaced."
   lines: [2367, 2368]
   original_lines: [2366, 2367]
   record: 164
@@ -2330,6 +2493,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the target location path specifies an attribute that does not exist, the service provider SHALL treat the operation as an \"add\"."
+  summary: "In a PATCH \"replace\" operation, if the target location path specifies an attribute that does not exist, the service provider SHALL treat the operation as an \"add\"."
   lines: [2376, 2377]
   original_lines: [2375, 2376]
   record: 165
@@ -2344,6 +2508,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the target location specifies a complex attribute, a set of sub-attributes SHALL be specified in the \"value\" parameter, which replaces any existing values or adds where an attribute did not previously exist."
+  summary: "In a PATCH \"replace\" operation, if the target location specifies a complex attribute, a set of sub-attributes SHALL be specified in the \"value\" parameter, which replaces any existing values or adds where an attribute did not previously exist."
   lines: [2379, 2382]
   original_lines: [2378, 2381]
   record: 166
@@ -2358,6 +2523,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the target location is a multi-valued attribute and a value selection (\"valuePath\") filter is specified that matches one or more values of the multi-valued attribute, then all matching record values SHALL be replaced."
+  summary: "In a PATCH \"replace\" operation, if the target location is a multi-valued attribute and a value selection (\"valuePath\") filter is specified that matches one or more values of the multi-valued attribute, then all matching record values SHALL be replaced."
   lines: [2385, 2388]
   original_lines: [2384, 2387]
   record: 167
@@ -2372,6 +2538,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the target location is a multi-valued attribute for which a value selection filter (\"valuePath\") has been supplied and no record match was made, the service provider SHALL indicate failure by returning HTTP status code 400 and a \"scimType\" error code of \"noTarget\"."
+  summary: "In a PATCH \"replace\" operation, if the target location is a multi-valued attribute for which a value selection filter (\"valuePath\") has been supplied and no record match was made, the service provider SHALL indicate failure by returning HTTP status code 400 and a \"scimType\" error code of \"noTarget\"."
   lines: [2395, 2399]
   original_lines: [2394, 2398]
   record: 168
@@ -2386,6 +2553,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY choose not to permanently delete the resource"
+  summary: "When a client requests resource removal via DELETE, service providers MAY choose not to permanently delete the resource."
   lines: [2642, 2645]
   original_lines: [2641, 2644]
   record: 169
@@ -2401,6 +2569,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "but MUST return a 404 (Not Found) error code for all operations associated with the previously deleted resource."
+  summary: "When a resource has been deleted via DELETE, service providers MUST return a 404 (Not Found) error code for all operations associated with the previously deleted resource."
   lines: [2642, 2645]
   original_lines: [2641, 2644]
   record: 170
@@ -2415,6 +2584,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Service providers MUST omit the resource from future query results."
+  summary: "When a resource has been deleted via DELETE, service providers MUST omit the deleted resource from future query results."
   lines: [2645, 2646]
   original_lines: [2644, 2645]
   record: 171
@@ -2429,6 +2599,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "In addition, the service provider SHOULD NOT consider the deleted resource in conflict calculation."
+  summary: "When a resource has been deleted via DELETE, the service provider SHOULD NOT consider the deleted resource in conflict calculation."
   lines: [2646, 2648]
   original_lines: [2645, 2647]
   record: 172
@@ -2443,6 +2614,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "For example, if a User resource is deleted, a CREATE request for a User resource with the same userName as the previously deleted resource SHOULD NOT fail with a 409 error due to userName conflict."
+  summary: "If a User resource is deleted via DELETE, a CREATE request for a User resource with the same \"userName\" as the previously deleted resource SHOULD NOT fail with a 409 error due to a \"userName\" conflict."
   lines: [2648, 2651]
   original_lines: [2647, 2650]
   record: 173
@@ -2457,6 +2629,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "In response to a successful DELETE, the server SHALL return a successful HTTP status code 204 (No Content)."
+  summary: "In response to a successful DELETE request, the server SHALL return a successful HTTP status code 204 (No Content)."
   lines: [2658, 2659]
   original_lines: [2657, 2658]
   record: 174
@@ -2471,6 +2644,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL in a request."
+  summary: "In a SCIM bulk operation, the \"failOnErrors\" attribute (an integer specifying the number of errors that the service provider will accept before terminating the operation and returning an error response) is OPTIONAL in a request and not valid in a response."
   lines: [2720, 2720]
   original_lines: [2719, 2719]
   record: 175
@@ -2485,6 +2659,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In a SCIM bulk operation, the \"Operations\" attribute, which defines operations within a bulk job where each operation corresponds to a single HTTP request against a resource endpoint, is REQUIRED."
   lines: [2728, 2728]
   original_lines: [2727, 2727]
   record: 176
@@ -2499,6 +2674,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In a SCIM bulk operation, the \"method\" sub-attribute of \"Operations\", specifying the HTTP method of the current operation (\"POST\", \"PUT\", \"PATCH\", or \"DELETE\"), is REQUIRED."
   lines: [2732, 2732]
   original_lines: [2731, 2731]
   record: 177
@@ -2513,6 +2689,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED when \"method\" is \"POST\"."
+  summary: "In a SCIM bulk operation, the \"bulkId\" sub-attribute of \"Operations\" (the client-created transient identifier of a newly created resource, unique within a bulk request) is REQUIRED when \"method\" is \"POST\"."
   lines: [2739, 2739]
   original_lines: [2738, 2738]
   record: 178
@@ -2527,6 +2704,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Version MAY be used if the service provider supports entity-tags (ETags) (Section 2.3 of [RFC7232]) and \"method\" is \"PUT\", \"PATCH\", or \"DELETE\"."
+  summary: "In a SCIM bulk operation, the \"version\" sub-attribute of \"Operations\" (specifying the current resource version) MAY be used if the service provider supports entity-tags (ETags) and \"method\" is \"PUT\", \"PATCH\", or \"DELETE\"."
   lines: [2741, 2743]
   original_lines: [2740, 2742]
   record: 179
@@ -2541,6 +2719,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED in a request."
+  summary: "In a SCIM bulk operation, the \"path\" sub-attribute of \"Operations\" (specifying the resource's relative path to the SCIM service provider's root) is REQUIRED in a request."
   lines: [2756, 2757]
   original_lines: [2755, 2756]
   record: 180
@@ -2555,6 +2734,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED in a request when \"method\" is \"POST\", \"PUT\", or \"PATCH\"."
+  summary: "In a SCIM bulk operation, the \"data\" sub-attribute of \"Operations\" (containing the resource data as it would appear for a single SCIM POST, PUT, or PATCH operation) is REQUIRED in a request when \"method\" is \"POST\", \"PUT\", or \"PATCH\"."
   lines: [2760, 2761]
   original_lines: [2759, 2760]
   record: 181
@@ -2569,6 +2749,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED in a response, except in the event of a POST failure."
+  summary: "In a SCIM bulk operation, the \"location\" sub-attribute of \"Operations\" (specifying the resource endpoint URL) is REQUIRED in a response, except in the event of a POST failure."
   lines: [2763, 2764]
   original_lines: [2762, 2763]
   record: 182
@@ -2583,6 +2764,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When indicating a response with an HTTP status other than a 200-series response, the response body MUST be included."
+  summary: "In a SCIM bulk operation, when indicating a response with an HTTP status other than a 200-series response, the HTTP response body for the specified request operation MUST be included in the \"response\" sub-attribute of \"Operations\"."
   lines: [2767, 2769]
   original_lines: [2766, 2768]
   record: 183
@@ -2597,6 +2779,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "For normal completion, the server MAY elect to omit the response body."
+  summary: "In a SCIM bulk operation, for normal completion of a request operation, the server MAY elect to omit the HTTP response body from the \"response\" sub-attribute of \"Operations\"."
   lines: [2769, 2770]
   original_lines: [2768, 2769]
   record: 184
@@ -2611,6 +2794,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When indicating an error, the \"response\" attribute MUST contain the detail error response as per Section 3.12."
+  summary: "In a SCIM bulk operation, when the \"status\" sub-attribute of \"Operations\" indicates an error, the \"response\" sub-attribute MUST contain the detail error response as per Section 3.12."
   lines: [2773, 2774]
   original_lines: [2772, 2773]
   record: 185
@@ -2625,6 +2809,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If a bulk job is processed successfully, HTTP response code 200 OK MUST be returned; otherwise, an appropriate HTTP error code MUST be returned."
+  summary: "If a SCIM bulk job is processed successfully, HTTP response code 200 OK MUST be returned; otherwise, an appropriate HTTP error code MUST be returned."
   lines: [2776, 2778]
   original_lines: [2775, 2777]
   record: 186
@@ -2639,6 +2824,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The service provider MUST continue performing as many changes as possible and disregard partial failures."
+  summary: "During a SCIM bulk operation, by default the service provider MUST continue performing as many changes as possible and disregard partial failures."
   lines: [2780, 2781]
   original_lines: [2779, 2780]
   record: 187
@@ -2653,6 +2839,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The client MAY override this behavior by specifying a value for the \"failOnErrors\" attribute."
+  summary: "In a SCIM bulk operation, the client MAY override the service provider's default behavior of continuing on partial failures by specifying a value for the \"failOnErrors\" attribute."
   lines: [2781, 2782]
   original_lines: [2780, 2781]
   record: 188
@@ -2667,6 +2854,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "To be able to reference a newly created resource, the bulkId attribute MAY be specified when creating new resources."
+  summary: "In a SCIM bulk operation, to be able to reference a newly created resource, the \"bulkId\" attribute MAY be specified when creating new resources."
   lines: [2787, 2788]
   original_lines: [2786, 2787]
   record: 189
@@ -2681,6 +2869,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The service provider MUST return the same \"bulkId\" together with the newly created resource."
+  summary: "In a SCIM bulk operation, when a \"bulkId\" surrogate identifier is specified in a POST operation, the service provider MUST return the same \"bulkId\" together with the newly created resource."
   lines: [2790, 2791]
   original_lines: [2789, 2790]
   record: 190
@@ -2695,6 +2884,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A SCIM service provider MAY elect to optimize the sequence of operations received (e.g., to improve processing performance)."
+  summary: "In a SCIM bulk operation, a SCIM service provider MAY elect to optimize the sequence of operations received (e.g., to improve processing performance)."
   lines: [2795, 2796]
   original_lines: [2794, 2795]
   record: 191
@@ -2710,6 +2900,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When doing so, the service provider MUST ensure that the client's intent is preserved and the same stateful result is achieved as for non-optimized processing."
+  summary: "When optimizing the sequence of operations received in a SCIM bulk operation, the service provider MUST ensure that the client's intent is preserved and the same stateful result is achieved as for non-optimized processing."
   lines: [2796, 2808]
   original_lines: [2795, 2807]
   record: 192
@@ -2724,6 +2915,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The service provider MUST try to resolve circular cross-references between resources in a single bulk job"
+  summary: "The service provider MUST try to resolve circular cross-references between resources in a single bulk job."
   lines: [2815, 2817]
   original_lines: [2814, 2816]
   record: 193
@@ -2738,6 +2930,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "but MAY stop after a failed attempt and instead return HTTP status code 409 (Conflict)."
+  summary: "When trying to resolve circular cross-references between resources in a single bulk job, the service provider MAY stop after a failed attempt and instead return HTTP status code 409 (Conflict)."
   lines: [2815, 2817]
   original_lines: [2814, 2816]
   record: 194
@@ -2752,6 +2945,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The service provider MUST replace the string \"bulkId:qwerty\" with the permanent resource id once created."
+  summary: "When a client references a newly created resource in a bulk operation using a \"bulkId:\"-prefixed temporary identifier (such as \"bulkId:qwerty\"), the service provider MUST replace that string with the permanent resource id once created."
   lines: [2961, 2962]
   original_lines: [2960, 2961]
   record: 195
@@ -2766,6 +2960,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Extensions that include references to other resources MUST be handled in the same way by the service provider."
+  summary: "In a bulk operation using \"bulkId\" temporary identifiers, extensions that include references to other resources MUST be handled in the same way by the service provider by replacing the \"bulkId:\" reference with the permanent resource id."
   lines: [3144, 3145]
   original_lines: [3143, 3144]
   record: 196
@@ -2780,6 +2975,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The service provider response MUST include the result of all processed operations."
+  summary: "In a SCIM bulk operation, the service provider response MUST include the result of all processed operations."
   lines: [3202, 3203]
   original_lines: [3201, 3202]
   record: 197
@@ -2794,6 +2990,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A \"location\" attribute that includes the resource's endpoint MUST be returned for all operations except for failed POST operations (which have no location)."
+  summary: "In a SCIM bulk operation response, a \"location\" attribute that includes the resource's endpoint MUST be returned for all processed operations except for failed POST operations (which have no location)."
   lines: [3203, 3205]
   original_lines: [3202, 3204]
   record: 198
@@ -2808,6 +3005,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The status attribute MUST include the code attribute that holds the HTTP response code that would have been returned if a single HTTP request would have been used."
+  summary: "In a SCIM bulk operation response, the \"status\" attribute for an operation MUST include the \"code\" attribute that holds the HTTP response code that would have been returned if a single HTTP request had been used."
   lines: [3207, 3209]
   original_lines: [3206, 3208]
   record: 199
@@ -2822,6 +3020,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If an error occurred, the status MUST also include the description attribute containing a human-readable explanation of the error."
+  summary: "In a SCIM bulk operation response, if an error occurred for an operation, the \"status\" attribute MUST also include the \"description\" attribute containing a human-readable explanation of the error."
   lines: [3209, 3211]
   original_lines: [3208, 3223]
   record: 200
@@ -2836,6 +3035,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The service provider MUST define the maximum number of operations and maximum payload size a client may send in a single request."
+  summary: "For SCIM bulk operations, the service provider MUST define the maximum number of operations and maximum payload size a client may send in a single request."
   lines: [3492, 3493]
   original_lines: [3495, 3496]
   record: 201
@@ -2850,6 +3050,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "These limits MAY be retrieved from the service provider configuration (see 'bulk' in Sections 5 and 8.5 of [RFC7643])."
+  summary: "The maximum number of operations and maximum payload size limits for SCIM bulk operations MAY be retrieved from the service provider configuration (see \"bulk\" in Sections 5 and 8.5 of RFC 7643)."
   lines: [3493, 3495]
   original_lines: [3496, 3498]
   record: 202
@@ -2864,6 +3065,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If either limit is exceeded, the service provider MUST return HTTP response code 413 (Payload Too Large)."
+  summary: "In a SCIM bulk operation, if either the maximum number of operations or the maximum payload size limit is exceeded, the service provider MUST return HTTP response code 413 (Payload Too Large)."
   lines: [3495, 3497]
   original_lines: [3498, 3500]
   record: 203
@@ -2878,6 +3080,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The returned response MUST specify the limit exceeded in the body of the error response."
+  summary: "When a SCIM bulk request exceeds the maximum number of operations or maximum payload size limit and fails with HTTP 413 (Payload Too Large), the returned response MUST specify the limit exceeded in the body of the error response."
   lines: [3497, 3498]
   original_lines: [3500, 3501]
   record: 204
@@ -2892,6 +3095,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Servers MUST accept requests and be able to return JSON-structured responses using UTF-8 encoding [RFC3629]."
+  summary: "SCIM servers MUST accept requests and be able to return JSON-structured responses using UTF-8 encoding [RFC3629]."
   lines: [3534, 3535]
   original_lines: [3537, 3538]
   record: 205
@@ -2906,6 +3110,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "UTF-8 SHALL be the default encoding format."
+  summary: "For SCIM data input and output formats, UTF-8 SHALL be the default encoding format."
   lines: [3535, 3536]
   original_lines: [3538, 3539]
   record: 206
@@ -2920,6 +3125,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Other media types MAY be supported by service providers but are beyond the scope of this specification."
+  summary: "Media types other than UTF-8 JSON MAY be supported by SCIM service providers, though they are beyond the scope of RFC 7644."
   lines: [3536, 3537]
   original_lines: [3539, 3540]
   record: 207
@@ -2934,6 +3140,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Clients using other encodings MUST specify the format in which the data is submitted via an HTTP \"Content-Type\" header as specified in Section 3.1.1.5 of [RFC7231]"
+  summary: "SCIM clients using encodings other than the default MUST specify the format in which the data is submitted via an HTTP \"Content-Type\" header as specified in Section 3.1.1.5 of [RFC7231]."
   lines: [3539, 3543]
   original_lines: [3542, 3546]
   record: 208
@@ -2949,6 +3156,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "MAY specify the desired response data format via an HTTP \"Accept\" header (Section 5.3.2 of [RFC7231]), e.g., \"Accept: application/scim+json\", or via URI suffix:"
+  summary: "SCIM clients MAY specify the desired response data format via an HTTP \"Accept\" header (Section 5.3.2 of [RFC7231]), such as \"Accept: application/scim+json\", or via a URI suffix."
   lines: [3539, 3543]
   original_lines: [3542, 3546]
   record: 209
@@ -2963,6 +3171,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Service providers MUST support the \"Accept\" header \"Accept: application/scim+json\""
+  summary: "SCIM service providers MUST support the HTTP \"Accept\" header \"Accept: application/scim+json\" specifying JSON documents conforming to [RFC7159]."
   lines: [3548, 3551]
   original_lines: [3551, 3554]
   record: 210
@@ -2977,6 +3186,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "SHOULD support the header \"Accept: application/json\", both of which specify JSON documents conforming to [RFC7159]."
+  summary: "SCIM service providers SHOULD support the HTTP \"Accept\" header \"Accept: application/json\" specifying JSON documents conforming to [RFC7159]."
   lines: [3548, 3551]
   original_lines: [3551, 3554]
   record: 211
@@ -2991,6 +3201,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients MAY request a partial resource representation on any operation that returns a resource within the response by specifying either of the mutually exclusive URL query parameters \"attributes\" or \"excludedAttributes\", as follows:"
+  summary: "Clients MAY request a partial resource representation on any operation that returns a resource within the response by specifying either of the mutually exclusive URL query parameters \"attributes\" or \"excludedAttributes\"."
   lines: [3588, 3591]
   original_lines: [3591, 3594]
   record: 212
@@ -3005,6 +3216,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When specified, the default list of attributes SHALL be overridden, and each resource returned MUST contain the minimum set of resource attributes and any attributes or sub-attributes explicitly requested by the \"attributes\" parameter."
+  summary: "When the \"attributes\" URL query parameter is specified on an operation returning a resource, the default list of attributes SHALL be overridden, and each resource returned MUST contain the minimum set of resource attributes and any attributes or sub-attributes explicitly requested by the \"attributes\" parameter."
   lines: [3593, 3597]
   original_lines: [3596, 3600]
   record: 213
@@ -3019,6 +3231,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When specified, each resource returned MUST contain the minimum set of resource attributes."
+  summary: "When the \"excludedAttributes\" URL query parameter is specified on an operation returning a resource, each resource returned MUST contain the minimum set of resource attributes along with the default set of attributes minus those listed in \"excludedAttributes\"."
   lines: [3602, 3603]
   original_lines: [3605, 3606]
   record: 214
@@ -3033,6 +3246,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Clients MAY omit core schema attribute URN prefixes"
+  summary: "When referencing attributes in SCIM operations, clients MAY omit core schema attribute URN prefixes."
   lines: [3651, 3654]
   original_lines: [3654, 3657]
   record: 215
@@ -3047,6 +3261,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "but SHOULD fully qualify extended attributes with the associated schema extension URN to avoid naming conflicts."
+  summary: "When referencing attributes in SCIM operations, clients SHOULD fully qualify extended attributes with the associated schema extension URN to avoid naming conflicts."
   lines: [3651, 3654]
   original_lines: [3654, 3657]
   record: 216
@@ -3062,6 +3277,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A client MAY use a URL of the form \"<base-URI>/Me\" as a URI alias for the User or other resource associated with the currently authenticated subject for any SCIM operation."
+  summary: "A client MAY use a URL of the form \"<base-URI>/Me\" as a URI alias for the User or other resource associated with the currently authenticated subject for any SCIM operation."
   lines: [3666, 3668]
   original_lines: [3669, 3671]
   record: 217
@@ -3076,6 +3292,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A service provider MAY respond in one of three ways:"
+  summary: "When a client uses the \"<base-URI>/Me\" authenticated subject alias for a SCIM operation, a service provider MAY respond in one of three ways: returning HTTP 501 (Not Implemented), redirecting with HTTP 308 (Permanent Redirect), or processing the request directly."
   lines: [3668, 3669]
   original_lines: [3671, 3672]
   record: 218
@@ -3090,6 +3307,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "A service provider that does NOT support this feature SHOULD respond with HTTP status code 501 (Not Implemented)."
+  summary: "A service provider that does not support the \"/Me\" authenticated subject alias feature SHOULD respond with HTTP status code 501 (Not Implemented)."
   lines: [3671, 3672]
   original_lines: [3674, 3675]
   record: 219
@@ -3104,6 +3322,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A service provider MAY choose to redirect the client using HTTP status code 308 (Permanent Redirect) to the resource associated with the authenticated subject."
+  summary: "In response to a request to the \"/Me\" authenticated subject alias, a service provider MAY choose to redirect the client using HTTP status code 308 (Permanent Redirect) to the resource associated with the authenticated subject."
   lines: [3674, 3676]
   original_lines: [3677, 3679]
   record: 220
@@ -3118,6 +3337,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The client MAY then repeat the request at the indicated location."
+  summary: "When a service provider redirects a \"/Me\" authenticated subject alias request using HTTP status code 308 (Permanent Redirect), the client MAY then repeat the request at the indicated location."
   lines: [3676, 3677]
   original_lines: [3679, 3680]
   record: 221
@@ -3132,6 +3352,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A service provider MAY process the SCIM request directly."
+  summary: "In response to a request to the \"/Me\" authenticated subject alias, a service provider MAY process the SCIM request directly."
   lines: [3679, 3679]
   original_lines: [3682, 3682]
   record: 222
@@ -3146,6 +3367,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "In any response, the HTTP \"Location\" header MUST be the permanent location of the aliased resource associated with the authenticated subject."
+  summary: "When a service provider processes a SCIM request to the \"/Me\" authenticated subject alias directly, in any response the HTTP \"Location\" header MUST be the permanent location of the aliased resource associated with the authenticated subject."
   lines: [3679, 3682]
   original_lines: [3682, 3685]
   record: 223
@@ -3161,6 +3383,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "In addition to returning an HTTP response code, implementers MUST return the errors in the body of the response in a JSON format, using the attributes described below."
+  summary: "In addition to returning an HTTP response status code on operation failure, SCIM implementers MUST return the errors in the body of the response in a JSON format identified by the schema URI \"urn:ietf:params:scim:api:messages:2.0:Error\"."
   lines: [3703, 3706]
   original_lines: [3706, 3709]
   record: 224
@@ -3175,6 +3398,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In a SCIM JSON error response (\"urn:ietf:params:scim:api:messages:2.0:Error\"), the \"status\" attribute (the HTTP status code expressed as a JSON string) is REQUIRED."
   lines: [3713, 3713]
   original_lines: [3716, 3716]
   record: 225
@@ -3189,6 +3413,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a SCIM JSON error response (\"urn:ietf:params:scim:api:messages:2.0:Error\"), the \"scimType\" attribute (a SCIM detail error keyword from Table 9) is OPTIONAL."
   lines: [3716, 3716]
   original_lines: [3719, 3719]
   record: 226
@@ -3203,6 +3428,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a SCIM JSON error response (\"urn:ietf:params:scim:api:messages:2.0:Error\"), the \"detail\" attribute (a detailed human-readable message) is OPTIONAL."
   lines: [3719, 3719]
   original_lines: [3722, 3722]
   record: 227
@@ -3217,6 +3443,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Implementers SHOULD handle the identified HTTP status codes as described below."
+  summary: "SCIM implementers SHOULD handle the HTTP status codes identified in Section 3.12 (Table 8) as described in that section."
   lines: [3721, 3722]
   original_lines: [3724, 3725]
   record: 228
@@ -3231,6 +3458,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "The client SHOULD NOT use the location provided in the response as a permanent reference to the resource"
+  summary: "Upon receiving an HTTP 307 (Temporary Redirect) status code, a SCIM client SHOULD NOT use the location provided in the response as a permanent reference to the resource."
   lines: [3727, 3735]
   original_lines: [3730, 3738]
   record: 229
@@ -3247,6 +3475,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "SHOULD continue to use the original request URI [RFC7231]."
+  summary: "Upon receiving an HTTP 307 (Temporary Redirect) status code, a SCIM client SHOULD continue to use the original request URI for future requests [RFC7231]."
   lines: [3727, 3735]
   original_lines: [3730, 3738]
   record: 230
@@ -3263,6 +3492,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The client SHOULD use the location provided in the response as the permanent reference to the resource [RFC7538]."
+  summary: "Upon receiving an HTTP 308 (Permanent Redirect) status code, a SCIM client SHOULD use the location provided in the response as the permanent reference to the resource [RFC7538]."
   lines: [3737, 3743]
   original_lines: [3740, 3746]
   record: 231
@@ -3279,6 +3509,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Implementers SHOULD provide descriptive debugging advice."
+  summary: "When returning an HTTP 500 (Internal Server Error) status code, SCIM implementers SHOULD provide descriptive debugging advice."
   lines: [3783, 3785]
   original_lines: [3786, 3788]
   record: 232
@@ -3295,6 +3526,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "For example, a filter such as \"(userName pr)\" by itself would return all entries with a \"userName\" and MAY not be acceptable to the service provider."
+  summary: "Under the \"tooMany\" SCIM error keyword (when a specified filter yields more results than the server is willing to calculate or process), a broad filter such as \"(userName pr)\" by itself would return all entries with a \"userName\" and MAY not be acceptable to the service provider."
   lines: [3826, 3834]
   original_lines: [3829, 3837]
   record: 233
@@ -3311,6 +3543,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "For example, personal information SHALL NOT be transmitted over request URIs."
+  summary: "As reflected by the \"sensitive\" SCIM error keyword for HTTP GET requests, sensitive personal information SHALL NOT be transmitted over request URIs."
   lines: [3898, 3905]
   original_lines: [3901, 3908]
   record: 234
@@ -3327,6 +3560,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Note that in Table 9 above, the information in the Applicability column applies to the normal HTTP method but MAY apply within a SCIM bulk operation (via HTTP POST)."
+  summary: "The HTTP method applicability defined for SCIM detail error keywords in Table 9 of Section 3.12 applies to normal HTTP methods and MAY also apply within a SCIM bulk operation (via HTTP POST)."
   lines: [3910, 3912]
   original_lines: [3913, 3915]
   record: 235
@@ -3341,6 +3575,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The Base URL MAY be appended with a version identifier as a separate segment in the URL path."
+  summary: "For SCIM protocol versioning, the Base URL MAY be appended with a version identifier (such as \"v2\") as a separate segment in the URL path."
   lines: [3947, 3948]
   original_lines: [3950, 3951]
   record: 236
@@ -3355,6 +3590,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If specified, the version identifier MUST appear in the URL path immediately preceding the resource endpoint and conform to the following scheme: the character 'v' followed by the desired SCIM version number, e.g., a version 'v2' User request is specified as /v2/Users."
+  summary: "If a SCIM protocol version identifier is specified in the Base URL, it MUST appear in the URL path immediately preceding the resource endpoint and conform to the scheme of the character \"v\" followed by the desired SCIM version number (e.g., \"/v2/Users\")."
   lines: [3949, 3953]
   original_lines: [3952, 3956]
   record: 237
@@ -3369,6 +3605,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When specified, service providers MUST perform the operation using the desired version or reject the request."
+  summary: "When a SCIM protocol version identifier is specified in the URL path, service providers MUST perform the operation using the desired version or reject the request."
   lines: [3953, 3954]
   original_lines: [3956, 3957]
   record: 238
@@ -3383,6 +3620,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "When omitted, service providers SHOULD perform the operation using the most recent SCIM protocol version supported by the service provider."
+  summary: "When a SCIM protocol version identifier is omitted from the URL path, service providers SHOULD perform the operation using the most recent SCIM protocol version supported by the service provider."
   lines: [3954, 3956]
   original_lines: [3957, 3959]
   record: 239
@@ -3397,6 +3635,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY support weak ETags as the preferred mechanism for performing conditional retrievals and ensuring that clients do not inadvertently overwrite each other's changes, respectively."
+  summary: "For resource versioning, SCIM service providers MAY support weak HTTP ETags as the preferred mechanism for performing conditional retrievals and ensuring that clients do not inadvertently overwrite each other's changes."
   lines: [3961, 3964]
   original_lines: [3964, 3967]
   record: 240
@@ -3411,6 +3650,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When supported, SCIM ETags MUST be specified as an HTTP header"
+  summary: "When HTTP ETag resource versioning is supported, SCIM ETags MUST be specified as an HTTP header."
   lines: [3964, 3966]
   original_lines: [3967, 3969]
   record: 241
@@ -3425,6 +3665,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "SHOULD be specified within the 'version' attribute contained in the resource's 'meta' attribute."
+  summary: "When HTTP ETag resource versioning is supported, SCIM ETags SHOULD be specified within the \"version\" sub-attribute contained in the resource's \"meta\" attribute."
   lines: [3964, 3966]
   original_lines: [3967, 3969]
   record: 242
@@ -3439,6 +3680,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "With the returned ETag, clients MAY choose to retrieve the resource only if the resource has been modified."
+  summary: "With the ETag returned for a versioned SCIM resource, clients MAY choose to conditionally retrieve the resource only if the resource has been modified."
   lines: [4036, 4037]
   original_lines: [4039, 4040]
   record: 243
@@ -3453,6 +3695,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "If the service provider supports versioning of resources, the client MAY supply an If-Match header (Section 3.1 of [RFC7232]) for PUT and PATCH operations to ensure that the requested operation succeeds only if the supplied ETag matches the latest service provider resource, e.g., If-Match: W/\"e180ee84f0671b1\"."
+  summary: "If the service provider supports versioning of resources, the client MAY supply an \"If-Match\" HTTP header (Section 3.1 of [RFC7232]) for PUT and PATCH operations to ensure that the requested operation succeeds only if the supplied ETag matches the latest service provider resource."
   lines: [4051, 4055]
   original_lines: [4054, 4058]
   record: 244
@@ -3467,6 +3710,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "SCIM defines three endpoints to facilitate discovery of SCIM service provider features and schema that MAY be retrieved using HTTP GET:"
+  summary: "SCIM defines three configuration endpoints (\"/ServiceProviderConfig\", \"/ResourceTypes\", and \"/Schemas\") to facilitate discovery of SCIM service provider features and schema that MAY be retrieved using HTTP GET."
   lines: [4059, 4060]
   original_lines: [4062, 4063]
   record: 245
@@ -3481,6 +3725,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This endpoint SHALL return responses with a JSON object using a \"schemas\" attribute of \"urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig\"."
+  summary: "An HTTP GET to the \"/ServiceProviderConfig\" endpoint SHALL return responses with a JSON object using a \"schemas\" attribute of \"urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig\"."
   lines: [4065, 4067]
   original_lines: [4068, 4070]
   record: 246
@@ -3495,6 +3740,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "An HTTP GET to the endpoint \"/Schemas\" SHALL return all supported schemas in ListResponse format (see Figure 3)."
+  summary: "An HTTP GET to the \"/Schemas\" endpoint SHALL return all supported schemas in \"ListResponse\" format."
   lines: [4094, 4096]
   original_lines: [4097, 4099]
   record: 247
@@ -3509,6 +3755,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When returning multiple ResourceTypes or Schemas, the message form described by the \"urn:ietf:params:scim:api:messages:2.0:ListResponse\" (ListResponse) form SHALL be used as shown in Figure 3 and in Figure 9 below."
+  summary: "When returning multiple ResourceTypes or Schemas from the service provider configuration endpoints, the message form described by \"urn:ietf:params:scim:api:messages:2.0:ListResponse\" (ListResponse) SHALL be used."
   lines: [4117, 4121]
   original_lines: [4120, 4124]
   record: 248
@@ -3523,6 +3770,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Query parameters described in Section 3.4.2, such as filtering, sorting, and pagination, SHALL be ignored."
+  summary: "On the service provider configuration endpoints (\"/ServiceProviderConfig\", \"/ResourceTypes\", and \"/Schemas\"), query parameters described in Section 3.4.2, such as filtering, sorting, and pagination, SHALL be ignored."
   lines: [4121, 4122]
   original_lines: [4124, 4125]
   record: 249
@@ -3537,6 +3785,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "If a \"filter\" is provided, the service provider SHOULD respond with HTTP status code 403 (Forbidden) to ensure that clients cannot incorrectly assume that any matching conditions specified in a filter are true."
+  summary: "If a \"filter\" query parameter is provided in a request to a service provider configuration endpoint, the service provider SHOULD respond with HTTP status code 403 (Forbidden) to ensure that clients cannot incorrectly assume that any matching conditions specified in a filter are true."
   lines: [4122, 4125]
   original_lines: [4125, 4128]
   record: 250
@@ -3551,6 +3800,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Before comparing or evaluating the uniqueness of a \"userName\" or \"password\" attribute, service providers MUST use the preparation, enforcement, and comparison of internationalized strings (PRECIS) preparation and comparison rules described in Sections 3 and 4, respectively, of [RFC7613], which is based on the PRECIS framework specification [RFC7564]."
+  summary: "Before comparing or evaluating the uniqueness of a \"userName\" or \"password\" attribute, service providers MUST use the preparation, enforcement, and comparison of internationalized strings (PRECIS) rules described in Sections 3 and 4, respectively, of [RFC7613], which is based on [RFC7564]."
   lines: [4210, 4215]
   original_lines: [4213, 4218]
   record: 251
@@ -3565,6 +3815,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Multi-tenancy is OPTIONAL."
+  summary: "Support for multi-tenancy in SCIM service providers is OPTIONAL."
   lines: [4245, 4245]
   original_lines: [4248, 4248]
   record: 252
@@ -3580,6 +3831,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The service provider MAY use one of the authentication mechanisms discussed in Section 2 to determine the identity of the client and thus infer the associated Tenant."
+  summary: "In a multi-tenant SCIM environment, the service provider MAY use one of the authentication mechanisms discussed in Section 2 to determine the identity of the client and thus infer the associated Tenant."
   lines: [4272, 4274]
   original_lines: [4275, 4277]
   record: 253
@@ -3595,6 +3847,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "For implementations where a client is associated with more than one Tenant, the service provider MAY use one of the three methods below for explicit specification of the Tenant."
+  summary: "For multi-tenant SCIM implementations where a client is associated with more than one Tenant, the service provider MAY use one of the methods in Section 6.1 (such as URL path, subdomain, or HTTP header) for explicit specification of the Tenant."
   lines: [4276, 4278]
   original_lines: [4279, 4281]
   record: 254
@@ -3610,6 +3863,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "As stated in Section 2.7.1 of [RFC7230], a SCIM client MUST NOT generate the \"userinfo\" (i.e., username and password) component (and its \"@\" delimiter) when an \"http\" URI reference is generated with a message, as userinfo and its \"@\" delimiter are now disallowed in HTTP."
+  summary: "As stated in Section 2.7.1 of [RFC7230], a SCIM client MUST NOT generate the \"userinfo\" (i.e., username and password) component (and its \"@\" delimiter) when an \"http\" URI reference is generated with a message."
   lines: [4335, 4339]
   original_lines: [4338, 4342]
   record: 255
@@ -3625,6 +3879,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Therefore, SCIM clients and service providers MUST require the use of a transport-layer security mechanism when communicating with SCIM service providers."
+  summary: "Because SCIM resources contain sensitive information, SCIM clients and service providers MUST require the use of a transport-layer security mechanism when communicating with SCIM service providers."
   lines: [4344, 4346]
   original_lines: [4347, 4349]
   record: 256
@@ -3640,6 +3895,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The SCIM service provider MUST support TLS 1.2 [RFC5246]"
+  summary: "The SCIM service provider MUST support TLS 1.2 [RFC5246]."
   lines: [4346, 4349]
   original_lines: [4349, 4352]
   record: 257
@@ -3655,6 +3911,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "MAY support additional transport-layer mechanisms meeting its security requirements."
+  summary: "In addition to TLS 1.2 [RFC5246], the SCIM service provider MAY support additional transport-layer security mechanisms meeting its security requirements."
   lines: [4346, 4349]
   original_lines: [4349, 4352]
   record: 258
@@ -3670,6 +3927,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When using TLS, the client MUST perform a TLS/SSL server identity check, per [RFC6125]."
+  summary: "When using TLS to communicate with a SCIM service provider, the client MUST perform a TLS/SSL server identity check per [RFC6125]."
   lines: [4349, 4350]
   original_lines: [4352, 4353]
   record: 259
@@ -3685,6 +3943,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When using authorization tokens such as those issued by OAuth 2.0 [RFC6749], implementers MUST take into account threats and countermeasures as documented in Section 8 of [RFC7521]."
+  summary: "When using authorization tokens such as those issued by OAuth 2.0 [RFC6749], SCIM implementers MUST take into account threats and countermeasures as documented in Section 8 of [RFC7521]."
   lines: [4355, 4357]
   original_lines: [4358, 4360]
   record: 260
@@ -3700,6 +3959,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Since the possession of a bearer token or cookie MAY authorize the holder to potentially read, modify, or delete resources, bearer tokens and cookies MUST contain sufficient entropy to prevent a random guessing attack; for example, see Section 5.2 of [RFC6750] and Section 5.1.4.2.2 of [RFC6819]."
+  summary: "Since the possession of a bearer token or cookie MAY authorize the holder to potentially read, modify, or delete SCIM resources, bearer tokens and cookies are required to contain sufficient entropy to prevent a random guessing attack (see Section 5.2 of [RFC6750] and Section 5.1.4.2.2 of [RFC6819])."
   lines: [4374, 4378]
   original_lines: [4377, 4381]
   record: 261
@@ -3715,6 +3975,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "As with all SCIM communications, bearer tokens and HTTP cookies MUST be exchanged using TLS."
+  summary: "As with all SCIM communications, bearer tokens and HTTP cookies MUST be exchanged using TLS."
   lines: [4380, 4381]
   original_lines: [4383, 4384]
   record: 262
@@ -3730,6 +3991,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Bearer tokens MUST have a limited lifetime that can be determined directly or indirectly (e.g., by checking with a validation service) by the service provider."
+  summary: "Bearer tokens used in SCIM communications MUST have a limited lifetime that can be determined directly or indirectly (e.g., by checking with a validation service) by the service provider."
   lines: [4383, 4385]
   original_lines: [4386, 4388]
   record: 263
@@ -3745,6 +4007,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "For example, in OAuth 2.0, a client MAY use OAuth token refresh to obtain a new bearer token after authenticating to an authorization server."
+  summary: "When bearer tokens expire in OAuth 2.0, a SCIM client MAY use OAuth token refresh to obtain a new bearer token after authenticating to an authorization server (see Section 6 of [RFC6749])."
   lines: [4387, 4389]
   original_lines: [4390, 4392]
   record: 264
@@ -3760,6 +4023,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "As with bearer tokens, an HTTP cookie SHOULD last no longer than the lifetime of a browser session."
+  summary: "As with bearer tokens, an HTTP cookie used in SCIM communications SHOULD last no longer than the lifetime of a browser session."
   lines: [4392, 4393]
   original_lines: [4395, 4396]
   record: 265
@@ -3775,6 +4039,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The privacy considerations in the Security Considerations section of [RFC7643] MUST be considered."
+  summary: "Because SCIM attributes may contain personally identifying information and other sensitive personal data, the privacy considerations in the Security Considerations section of [RFC7643] MUST be considered."
   lines: [4413, 4414]
   original_lines: [4416, 4417]
   record: 266
@@ -3790,6 +4055,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "As mentioned in Section 9.4 of [RFC7231], SCIM clients requesting information using query filters that use HTTP GET SHOULD give consideration to the information content of the filters and whether or not their exposure in a URI would represent a breach of security or confidentiality through leakage in web browsers or server logs."
+  summary: "As mentioned in Section 9.4 of [RFC7231], SCIM clients requesting information using query filters that use HTTP GET SHOULD give consideration to the information content of the filters and whether or not their exposure in a URI would represent a breach of security or confidentiality through leakage in web browsers or server logs."
   lines: [4430, 4434]
   original_lines: [4433, 4437]
   record: 267
@@ -3805,6 +4071,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "In these situations, to ensure maximum security and confidentiality, clients SHOULD query using HTTP POST (see Section 3.4.3)."
+  summary: "When query filters contain personally identifiable information or other sensitive information whose exposure in a URI would represent a breach of security or confidentiality, SCIM clients SHOULD query using HTTP POST (see Section 3.4.3)."
   lines: [4437, 4439]
   original_lines: [4440, 4442]
   record: 268
@@ -3820,6 +4087,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Servers that receive HTTP GET requests using filters that contain sensitive or confidential personal information SHOULD respond with HTTP status code 403 to indicate that the operation is forbidden."
+  summary: "SCIM servers that receive HTTP GET requests using filters that contain sensitive or confidential personal information SHOULD respond with HTTP status code 403 to indicate that the operation is forbidden."
   lines: [4441, 4443]
   original_lines: [4444, 4446]
   record: 269
@@ -3835,6 +4103,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The following countermeasures MAY be used:"
+  summary: "If a SCIM service provider accepts anonymous requests such as SCIM resource creation requests via HTTP POST, security countermeasures (such as rate limiting requests, requiring CAPTCHAs, or requiring out-of-band validation) MAY be used to prevent or limit exposure to attacks."
   lines: [4463, 4463]
   original_lines: [4466, 4466]
   record: 270
@@ -3850,6 +4119,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Limit the number of requests that any particular client MAY make in a period of time."
+  summary: "To protect against attacks when accepting anonymous requests, a SCIM service provider can limit the number of requests that any particular client MAY make in a period of time."
   lines: [4474, 4475]
   original_lines: [4477, 4478]
   record: 271
@@ -3865,6 +4135,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Administrators should undertake industry best practices to protect the storage of credentials and, in particular, SHOULD follow recommendations outlined in Section 5.1.4.1 of [RFC6819]."
+  summary: "To protect the storage of credentials in SCIM deployments, administrators SHOULD follow the credential storage recommendations outlined in Section 5.1.4.1 of [RFC6819]."
   lines: [4498, 4500]
   original_lines: [4501, 4503]
   record: 272
@@ -3880,6 +4151,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "As outlined in Section 5.1.4.2 of [RFC6819], administrators SHOULD take countermeasures such as the following, to prevent online attacks on secrets:"
+  summary: "As outlined in Section 5.1.4.2 of [RFC6819], administrators of SCIM deployments SHOULD take countermeasures (such as rate limiting, lockouts, and strong secret policies) to prevent online attacks on secrets."
   lines: [4515, 4517]
   original_lines: [4518, 4520]
   record: 273
@@ -3895,6 +4167,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Service providers SHOULD define an access control model that differentiates between individual client applications and their specific need to access information, and any User self-service rights to review and update personal profile information."
+  summary: "SCIM service providers SHOULD define an access control model that differentiates between individual client applications and their specific need to access information, and any User self-service rights to review and update personal profile information."
   lines: [4544, 4547]
   original_lines: [4547, 4550]
   record: 274
@@ -3910,6 +4183,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When comparing Unicode strings such as those in query filters or testing for uniqueness of usernames and passwords, strings MUST be appropriately prepared before comparison."
+  summary: "When comparing Unicode strings in SCIM, such as those in query filters or when testing for uniqueness of usernames and passwords, strings MUST be appropriately prepared before comparison as specified in Section 5."
   lines: [4553, 4555]
   original_lines: [4556, 4558]
   record: 275
@@ -3924,6 +4198,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Applications intending to use the SCIM protocol SHOULD use the \"application/scim+json\" media type."
+  summary: "Applications intending to use the SCIM protocol SHOULD use the \"application/scim+json\" media type."
   lines: [4622, 4623]
   original_lines: [4625, 4626]
   record: 276

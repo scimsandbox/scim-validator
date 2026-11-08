@@ -10,6 +10,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The cursor value MUST be empty or omitted for the first request of a cursor-paginated query."
+  summary: "The \"cursor\" query parameter value MUST be empty or omitted for the first request of a cursor-paginated query."
   lines: [133, 138]
   original_lines: [133, 138]
   record: 2
@@ -25,6 +26,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A negative value SHALL be interpreted as \"0\"."
+  summary: "A negative value for the \"count\" query parameter, which specifies the desired maximum number of query results per page, SHALL be interpreted as \"0\"."
   lines: [140, 147]
   original_lines: [140, 147]
   record: 3
@@ -40,6 +42,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "When specified, the service provider MUST NOT return more"
+  summary: "When the \"count\" query parameter is specified, the service provider MUST NOT return more query results per page than the specified maximum."
   lines: [140, 147]
   original_lines: [140, 147]
   record: 4
@@ -55,6 +58,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "although it MAY return fewer, results."
+  summary: "When the \"count\" query parameter is specified, the service provider MAY return fewer query results per page than the specified maximum."
   lines: [140, 147]
   original_lines: [140, 147]
   record: 5
@@ -70,6 +74,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A cursor value string that MAY be used in a subsequent request to obtain the next page of results."
+  summary: "The \"nextCursor\" response attribute is a cursor value string that MAY be used in a subsequent request to obtain the next page of results."
   lines: [158, 165]
   original_lines: [158, 165]
   record: 6
@@ -85,6 +90,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Service providers supporting cursor-based pagination MUST include nextCursor in all paged query responses except when returning the last page."
+  summary: "Service providers supporting cursor-based pagination MUST include \"nextCursor\" in all paged query responses except when returning the last page."
   lines: [158, 165]
   original_lines: [158, 165]
   record: 7
@@ -100,6 +106,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "nextCursor MUST be omitted from a response only to indicate that there are no more result pages."
+  summary: "The \"nextCursor\" response attribute MUST be omitted from a paged query response only to indicate that there are no more result pages."
   lines: [158, 165]
   original_lines: [158, 165]
   record: 8
@@ -115,6 +122,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A cursor value string that MAY be used in a subsequent request to obtain the previous page of results."
+  summary: "The \"previousCursor\" response attribute is a cursor value string that MAY be used in a subsequent request to obtain the previous page of results."
   lines: [167, 171]
   original_lines: [167, 171]
   record: 9
@@ -130,6 +138,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Returning previousCursor is OPTIONAL."
+  summary: "Returning the \"previousCursor\" attribute in a paged query response to obtain the previous page of results is OPTIONAL."
   lines: [167, 171]
   original_lines: [167, 171]
   record: 10
@@ -145,6 +154,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "previousCursor MUST NOT be returned with the first page."
+  summary: "The \"previousCursor\" response attribute MUST NOT be returned with the first page of query results."
   lines: [167, 171]
   original_lines: [167, 171]
   record: 11
@@ -160,6 +170,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "To retrieve another result page for a query, the client MUST query the same service provider endpoint with all query parameters and values being identical to the initial query with the exception of the cursor value"
+  summary: "To retrieve another result page for a cursor-paginated query, the client MUST query the same service provider endpoint with all query parameters and values being identical to the initial query with the exception of the \"cursor\" value."
   lines: [176, 181]
   original_lines: [176, 181]
   record: 12
@@ -175,6 +186,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "which SHOULD be set to a nextCursor (or previousCursor) value that was returned by the service provider in a previous response."
+  summary: "When retrieving another result page for a cursor-paginated query, the \"cursor\" query parameter SHOULD be set to a \"nextCursor\" (or \"previousCursor\") value that was returned by the service provider in a previous response."
   lines: [176, 181]
   original_lines: [176, 181]
   record: 13
@@ -190,6 +202,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers implementing cursor pagination that are unable to estimate totalResults MAY choose to omit the totalResults attribute."
+  summary: "Service providers implementing cursor pagination that are unable to estimate \"totalResults\" MAY choose to omit the \"totalResults\" attribute from paged query responses."
   lines: [239, 241]
   original_lines: [239, 241]
   record: 14
@@ -204,6 +217,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "If a service provider encounters invalid pagination query parameters (invalid cursor value, count value, etc) or other error conditions, the service provider SHOULD return the appropriate HTTP response status code and detailed JSON error response as defined in Section 3.12 of [RFC7644]."
+  summary: "If a service provider encounters invalid pagination query parameters (such as an invalid \"cursor\" value or \"count\" value) or other error conditions, the service provider SHOULD return the appropriate HTTP response status code and detailed JSON error response as defined in Section 3.12 of [RFC7644]."
   lines: [245, 249]
   original_lines: [245, 249]
   record: 15
@@ -218,6 +232,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Cursor value SHOULD be empty to request the first page and set to the nextCursor or previousCursor value for subsequent queries."
+  summary: "To avoid an \"invalidCursor\" pagination error on GET queries, the \"cursor\" parameter value SHOULD be empty to request the first page and set to the \"nextCursor\" or \"previousCursor\" value for subsequent queries."
   lines: [259, 263]
   original_lines: [259, 263]
   record: 16
@@ -233,6 +248,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A service provider MAY require cursor-based pagination to retrieve all results for a query by including a nextCursor value in the response, even when the query does not include the cursor parameter."
+  summary: "A service provider MAY require cursor-based pagination to retrieve all results for a query by including a \"nextCursor\" value in the response, even when the query does not include the \"cursor\" parameter."
   lines: [286, 288]
   original_lines: [286, 288]
   record: 17
@@ -247,6 +263,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Additionally, service providers supporting both pagination methods MUST choose a default pagination method to use when responding to requests that have not specified a pagination query parameter."
+  summary: "Service providers supporting both index-based and cursor-based pagination methods MUST choose a default pagination method to use when responding to requests that have not specified a pagination query parameter."
   lines: [317, 320]
   original_lines: [317, 320]
   record: 18
@@ -261,6 +278,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "A SCIM service provider implementing cursor-based pagination SHOULD include the following additional attribute in a JSON document returned by the /ServiceProviderConfig endpoint:"
+  summary: "A SCIM service provider implementing cursor-based pagination SHOULD include the \"pagination\" complex attribute in the JSON document returned by the \"/ServiceProviderConfig\" endpoint."
   lines: [374, 377]
   original_lines: [374, 377]
   record: 19
@@ -275,6 +293,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the Service Provider Configuration (\"/ServiceProviderConfig\") schema, the \"pagination\" attribute is an OPTIONAL complex type that indicates pagination configuration options."
   lines: [380, 380]
   original_lines: [380, 380]
   record: 20
@@ -289,6 +308,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the \"pagination\" complex attribute of the Service Provider Configuration (\"/ServiceProviderConfig\") schema, the \"cursor\" sub-attribute is a REQUIRED Boolean value specifying support of cursor-based pagination."
   lines: [385, 385]
   original_lines: [385, 385]
   record: 21
@@ -303,6 +323,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the \"pagination\" complex attribute of the Service Provider Configuration (\"/ServiceProviderConfig\") schema, the \"index\" sub-attribute is a REQUIRED Boolean value specifying support of index-based pagination."
   lines: [388, 388]
   original_lines: [388, 388]
   record: 22
@@ -317,6 +338,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the \"pagination\" complex attribute of the Service Provider Configuration (\"/ServiceProviderConfig\") schema, the \"defaultPaginationMethod\" sub-attribute is an OPTIONAL string value (\"cursor\" or \"index\") specifying the type of pagination that the service provider defaults to when the client has not specified which method it wishes to use."
   lines: [393, 393]
   original_lines: [393, 393]
   record: 23
@@ -331,6 +353,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the \"pagination\" complex attribute of the Service Provider Configuration (\"/ServiceProviderConfig\") schema, the \"defaultPageSize\" sub-attribute is an OPTIONAL positive integer value specifying the default number of results returned in a page when a \"count\" is not specified in the query."
   lines: [397, 397]
   original_lines: [397, 397]
   record: 24
@@ -345,6 +368,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the \"pagination\" complex attribute of the Service Provider Configuration (\"/ServiceProviderConfig\") schema, the \"maxPageSize\" sub-attribute is an OPTIONAL positive integer specifying the maximum number of results returned in a page regardless of what is specified for the \"count\" in a query."
   lines: [402, 402]
   original_lines: [402, 402]
   record: 25
@@ -359,6 +383,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the \"pagination\" complex attribute of the Service Provider Configuration (\"/ServiceProviderConfig\") schema, the \"cursorTimeout\" sub-attribute is an OPTIONAL positive integer specifying the minimum number of seconds that a cursor is valid between page requests."
   lines: [409, 409]
   original_lines: [409, 409]
   record: 26
@@ -373,6 +398,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Clients MUST NOT interpret the lack of published Service Provider Configuration values to mean that no defaults or limits on page sizes or cursor lifetimes exist, or that there is no default pagination method."
+  summary: "Clients MUST NOT interpret the lack of published Service Provider Configuration values to mean that no defaults or limits on page sizes or cursor lifetimes exist, or that there is no default pagination method."
   lines: [413, 416]
   original_lines: [413, 416]
   record: 27
@@ -388,6 +414,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Before using cursor-based pagination, a SCIM client MAY fetch the Service Provider Configuration document from the SCIM service provider and verify that cursor-based pagination is supported."
+  summary: "Before using cursor-based pagination, a SCIM client MAY fetch the Service Provider Configuration document from the SCIM service provider and verify that cursor-based pagination is supported."
   lines: [427, 429]
   original_lines: [427, 429]
   record: 28
@@ -403,6 +430,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Implementers MUST ensure that pagination through results sets is strictly confined to the data that the actor's current identity has been authorized to access."
+  summary: "Implementers MUST ensure that pagination through result sets is strictly confined to the data that the actor's current identity has been authorized to access."
   lines: [494, 496]
   original_lines: [494, 496]
   record: 29
@@ -418,6 +446,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Authorization checks MUST be continuously applied as an actor navigates through the result set associated with a cursor."
+  summary: "Authorization checks MUST be continuously applied as an actor navigates through the result set associated with a cursor."
   lines: [500, 501]
   original_lines: [500, 501]
   record: 30
@@ -432,6 +461,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "When possible, service providers SHOULD invalidate all cursors corresponding to an actor immediately following a change in permissions."
+  summary: "When possible, service providers SHOULD invalidate all cursors corresponding to an actor immediately following a change in permissions."
   lines: [505, 507]
   original_lines: [505, 507]
   record: 31
@@ -447,6 +477,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The service provider MUST handle error scenarios without exposing sensitive data."
+  summary: "During cursor-based pagination, the service provider MUST handle error scenarios without exposing sensitive data."
   lines: [521, 522]
   original_lines: [521, 522]
   record: 32

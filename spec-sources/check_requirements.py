@@ -107,9 +107,11 @@ def main():
             err(w, "reason is only allowed with disposition na")
         if e.get("disposition") not in cfg.DISPOSITIONS:
             err(w, f"disposition {e.get('disposition')!r} not in {cfg.DISPOSITIONS}")
-        for k in ("rfc", "section", "subject", "level", "polarity", "quote", "lines", "record", "area", "capability", "disposition"):
+        for k in ("rfc", "section", "subject", "level", "polarity", "quote", "summary", "lines", "record", "area", "capability", "disposition"):
             if k not in e:
                 err(w, f"missing field {k}")
+        if not (e.get("summary") or "").strip():
+            err(w, "empty summary")
         if e.get("rfc") != RFC:
             err(w, f"rfc {e.get('rfc')!r} != {RFC}")
         a, b = (e.get("lines") or [0, 0])[:2]

@@ -170,7 +170,7 @@ python3 -I generate_requirements.py 7643    # deterministic; never edit the outp
 python3 -I check_requirements.py 7643       # id form, verbatim quote at the cited lines, level/polarity, coverage
 ```
 
-Each entry carries the verbatim `quote`, `subject`, `level`, `polarity`, `lines`, `original_lines`,
+Each entry carries the verbatim `quote`, `summary`, `subject`, `level`, `polarity`, `lines`, `original_lines`,
 `record`, `area`, `capability`, `disposition`, and `errata`/`amended_by`/`in_table` where they apply.
 
 - **Ids** are `RFC<N>-<section>-<hash>`: the first 6 hex digits of a SHA-256 over rfc, section, subject

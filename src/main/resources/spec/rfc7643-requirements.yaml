@@ -10,6 +10,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service provider schemas MAY be returned from the \"/Schemas\" endpoint."
+  summary: "Service provider schemas MAY be returned from the \"/Schemas\" endpoint."
   lines: [276, 277]
   original_lines: [276, 277]
   record: 5
@@ -24,6 +25,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "A simple attribute MUST NOT contain sub-attributes."
+  summary: "A simple attribute (a singular or multi-valued attribute whose value is a primitive) MUST NOT contain sub-attributes."
   lines: [304, 305]
   original_lines: [304, 305]
   record: 6
@@ -38,6 +40,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "SCIM resources are represented in JSON [RFC7159] format and MUST specify schema via the \"schemas\" attribute per Section 3."
+  summary: "SCIM resources are represented in JSON [RFC7159] format and MUST specify schema via the \"schemas\" attribute per Section 3."
   lines: [365, 367]
   original_lines: [365, 367]
   record: 7
@@ -52,6 +55,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Attribute names MUST conform to the following ABNF rules:"
+  summary: "SCIM attribute names MUST conform to the defined ABNF rules for attribute naming."
   lines: [369, 369]
   original_lines: [369, 369]
   record: 8
@@ -66,6 +70,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "SCIM extensions SHOULD NOT introduce new data types."
+  summary: "SCIM extensions SHOULD NOT introduce new attribute data types."
   lines: [443, 444]
   original_lines: [443, 444]
   record: 10
@@ -80,6 +85,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "An attribute with SCIM schema type \"string\" MAY specify a required data format."
+  summary: "An attribute with SCIM schema type \"string\" MAY specify a required data format."
   lines: [489, 490]
   original_lines: [489, 490]
   record: 11
@@ -95,6 +101,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Additionally, when \"canonicalValues\" is specified, service providers MAY restrict accepted values to the specified values."
+  summary: "When \"canonicalValues\" is specified for an attribute with SCIM schema type \"string\", service providers MAY restrict accepted values to the specified values."
   lines: [490, 492]
   original_lines: [490, 492]
   record: 12
@@ -109,6 +116,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The JSON format is defined in Section 6 of [RFC7159], with the additional constraint that the value MUST NOT contain fractional or exponent parts."
+  summary: "The JSON format for an \"integer\" attribute (a whole number with no fractional digits or decimal) is defined in Section 6 of [RFC7159], with the additional constraint that the value MUST NOT contain fractional or exponent parts."
   lines: [519, 521]
   original_lines: [519, 521]
   record: 13
@@ -123,6 +131,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The attribute value MUST be encoded as a valid xsd:dateTime as specified in Section 3.3.7 of [XML-Schema] and MUST include both a date and a time."
+  summary: "A \"dateTime\" attribute value MUST be encoded as a valid xsd:dateTime as specified in Section 3.3.7 of [XML-Schema] and MUST include both a date and a time."
   lines: [526, 528]
   original_lines: [526, 528]
   record: 14
@@ -137,6 +146,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Values represented in JSON format MUST conform to the XML constraints above and are represented as a JSON string per Section 7 of [RFC7159]."
+  summary: "\"DateTime\" attribute values represented in JSON format MUST conform to the xsd:dateTime XML constraints (including both a date and a time) and are represented as a JSON string per Section 7 of [RFC7159]."
   lines: [531, 533]
   original_lines: [531, 533]
   record: 15
@@ -151,6 +161,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The attribute value MUST be base64 encoded as specified in Section 4 of [RFC4648]."
+  summary: "A \"binary\" attribute value (arbitrary binary data) MUST be base64 encoded as specified in Section 4 of [RFC4648]."
   lines: [537, 538]
   original_lines: [537, 538]
   record: 16
@@ -165,6 +176,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "In cases where a URL-safe encoding is required, the attribute definition MAY specify that base64 URL encoding be used as per Section 5 of [RFC4648]."
+  summary: "In cases where a URL-safe encoding is required for a \"binary\" attribute, the attribute definition MAY specify that base64 URL encoding be used as per Section 5 of [RFC4648]."
   lines: [538, 540]
   original_lines: [538, 540]
   record: 17
@@ -179,6 +191,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Unless otherwise specified in the attribute definition, trailing padding characters MAY be omitted (\"=\")."
+  summary: "Unless otherwise specified in a \"binary\" attribute definition, trailing base64 padding characters (\"=\") MAY be omitted."
   lines: [540, 542]
   original_lines: [540, 542]
   record: 18
@@ -193,6 +206,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A resource MAY be a SCIM resource, an external link to a resource (e.g., a photo), or an identifier such as a URN."
+  summary: "A target resource referenced by a \"reference\" attribute URI MAY be a SCIM resource, an external link to a resource (e.g., a photo), or an identifier such as a URN."
   lines: [550, 551]
   original_lines: [550, 551]
   record: 19
@@ -207,6 +221,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The value MUST be the absolute or relative URI of the target resource."
+  summary: "The value of a \"reference\" attribute (a URI for a resource) MUST be the absolute or relative URI of the target resource."
   lines: [552, 553]
   original_lines: [552, 553]
   record: 20
@@ -221,6 +236,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "However, the base URI for relative URI resolution MUST include all URI components and path segments up to, but not including, the Endpoint URI (the SCIM service provider root endpoint); e.g., the base URI for a request to \"https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646\" would be \"https://example.com/v2/\", and the relative URI for this resource would be \"Users/2819c223-7f76-453a-919d-413861904646\"."
+  summary: "For a \"reference\" attribute, the base URI for relative URI resolution MUST include all URI components and path segments up to, but not including, the Endpoint URI (the SCIM service provider root endpoint), such as \"https://example.com/v2/\" for a request to \"https://example.com/v2/Users/2819c223-7f76-453a-919d-413861904646\"."
   lines: [554, 570]
   original_lines: [554, 570]
   record: 21
@@ -235,6 +251,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A reference URI MUST be to an HTTP-addressable resource."
+  summary: "A reference URI MUST be to an HTTP-addressable resource."
   lines: [577, 577]
   original_lines: [577, 577]
   record: 22
@@ -249,6 +266,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "An HTTP client performing a GET operation on a reference URI MUST receive the target resource or an appropriate HTTP response code."
+  summary: "An HTTP client performing a GET operation on a reference URI MUST receive the target resource or an appropriate HTTP response code."
   lines: [577, 579]
   original_lines: [577, 579]
   record: 23
@@ -263,6 +281,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A SCIM service provider MAY choose to enforce referential integrity for reference types referring to SCIM resources."
+  summary: "A SCIM service provider MAY choose to enforce referential integrity for reference types referring to SCIM resources."
   lines: [579, 581]
   original_lines: [579, 581]
   record: 24
@@ -277,6 +296,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "By convention, a reference is commonly represented as a \"$ref\" sub-attribute in complex or multi-valued attributes; however, this is OPTIONAL."
+  summary: "By convention, a reference URI is commonly represented as a \"$ref\" sub-attribute in complex or multi-valued attributes; however, this is OPTIONAL."
   lines: [583, 585]
   original_lines: [583, 585]
   record: 25
@@ -291,6 +311,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Servers and clients MUST NOT require or expect attributes to be in any specific order when an object is either generated or analyzed."
+  summary: "For a complex attribute (a singular or multi-valued attribute whose value is a composition of one or more simple attributes), servers and clients MUST NOT require or expect attributes to be in any specific order when an object is either generated or analyzed."
   lines: [592, 594]
   original_lines: [592, 594]
   record: 26
@@ -305,6 +326,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "A complex attribute MUST NOT contain sub-attributes that have sub-attributes (i.e., that are complex)."
+  summary: "A complex attribute MUST NOT contain sub-attributes that have sub-attributes (i.e., that are complex)."
   lines: [595, 596]
   original_lines: [595, 596]
   record: 27
@@ -319,6 +341,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "objects with a set of sub-attributes and values, using the JSON object format defined in Section 4 of [RFC7159], in which case they SHALL be considered to be complex attributes."
+  summary: "Multi-valued attribute elements represented as objects with a set of sub-attributes and values using the JSON object format defined in Section 4 of [RFC7159] SHALL be considered to be complex attributes."
   lines: [606, 608]
   original_lines: [606, 608]
   record: 28
@@ -333,6 +356,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The predefined sub-attributes listed in this section can be used with multi-valued attribute objects, but these sub-attributes MUST be used with the meanings defined here."
+  summary: "The predefined sub-attributes for multi-valued attributes can be used with multi-valued attribute objects, but these sub-attributes MUST be used with the meanings defined in Section 2.4."
   lines: [610, 612]
   original_lines: [610, 612]
   record: 29
@@ -347,6 +371,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The primary attribute value \"true\" MUST appear no more than once."
+  summary: "For the \"primary\" sub-attribute of a multi-valued attribute (a Boolean value indicating the primary or preferred attribute value), the value \"true\" MUST appear no more than once."
   lines: [633, 634]
   original_lines: [633, 634]
   record: 30
@@ -361,6 +386,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If not specified, the value of \"primary\" SHALL be assumed to be \"false\"."
+  summary: "If the \"primary\" sub-attribute of a multi-valued attribute (a Boolean value indicating the primary or preferred attribute value) is not specified, the value of \"primary\" SHALL be assumed to be \"false\"."
   lines: [634, 635]
   original_lines: [634, 635]
   record: 31
@@ -375,6 +401,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "While the representation of a resource may vary in different SCIM protocol API versions (see Section 3.13 of [RFC7644]), URIs for SCIM resources with an API version SHALL be considered comparable to URIs without a version or with a different version."
+  summary: "For the \"$ref\" sub-attribute of a multi-valued attribute (the reference URI of a target resource), URIs for SCIM resources with an API version SHALL be considered comparable to URIs without a version or with a different version."
   lines: [648, 651]
   original_lines: [648, 651]
   record: 32
@@ -390,6 +417,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "When returning multi-valued attributes, service providers SHOULD canonicalize the value returned (e.g., by returning a value for the sub-attribute \"type\", such as \"home\" or \"work\") when appropriate (e.g., for email addresses and URLs)."
+  summary: "When returning multi-valued attributes, service providers SHOULD canonicalize the value returned (e.g., by returning a value for the sub-attribute \"type\", such as \"home\" or \"work\") when appropriate (e.g., for email addresses and URLs)."
   lines: [655, 658]
   original_lines: [655, 658]
   record: 33
@@ -404,6 +432,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY return element objects with the same \"value\" sub-attribute more than once with a different \"type\" sub-attribute (e.g., the same email address may be used for work and home)"
+  summary: "When returning multi-valued attributes, service providers MAY return element objects with the same \"value\" sub-attribute more than once with a different \"type\" sub-attribute (e.g., the same email address may be used for work and home)."
   lines: [660, 664]
   original_lines: [660, 664]
   record: 34
@@ -418,6 +447,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "but SHOULD NOT return the same (type, value) combination more than once per attribute, as this complicates processing by the client."
+  summary: "When returning multi-valued attributes, service providers SHOULD NOT return the same (\"type\", \"value\") combination more than once per attribute, as this complicates processing by the client."
   lines: [660, 664]
   original_lines: [660, 664]
   record: 35
@@ -432,6 +462,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "When defining schema for multi-valued attributes, it is considered a good practice to provide a type attribute that MAY be used for the purpose of canonicalization of values."
+  summary: "When defining schema for multi-valued attributes, it is considered a good practice to provide a \"type\" attribute that MAY be used for the purpose of canonicalization of values."
   lines: [666, 668]
   original_lines: [666, 668]
   record: 36
@@ -446,6 +477,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "In the schema definition for an attribute, the service provider MAY define the recommended canonical values (see Section 7)."
+  summary: "In the schema definition for a multi-valued attribute, the service provider MAY define the recommended canonical values (see Section 7)."
   lines: [668, 670]
   original_lines: [668, 670]
   record: 37
@@ -460,6 +492,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Unassigned attributes, the null value, or an empty array (in the case of a multi-valued attribute) SHALL be considered to be equivalent in \"state\"."
+  summary: "Unassigned attributes, the null value, or an empty array (in the case of a multi-valued attribute) SHALL be considered to be equivalent in \"state\"."
   lines: [681, 683]
   original_lines: [681, 683]
   record: 38
@@ -474,6 +507,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "When a resource is expressed in JSON format, unassigned attributes, although they are defined in schema, MAY be omitted for compactness."
+  summary: "When a resource is expressed in JSON format, unassigned attributes, although they are defined in schema, MAY be omitted for compactness."
   lines: [685, 687]
   original_lines: [685, 687]
   record: 39
@@ -488,6 +522,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "More information about a resource MAY be found in its resource type definition (see Section 6)."
+  summary: "More information about a SCIM resource MAY be found in its resource type definition (see Section 6)."
   lines: [698, 700]
   original_lines: [698, 700]
   record: 40
@@ -502,6 +537,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "\"Schemas\" Attribute The \"schemas\" attribute is a REQUIRED attribute and is an array of Strings containing URIs that are used to indicate the namespaces of the SCIM schemas that define the attributes present in the current JSON structure."
+  summary: "The \"schemas\" attribute of a SCIM resource is a REQUIRED attribute and is an array of Strings containing URIs that are used to indicate the namespaces of the SCIM schemas that define the attributes present in the current JSON structure."
   lines: [702, 706]
   original_lines: [702, 706]
   record: 41
@@ -516,6 +552,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "All representations of SCIM schemas MUST include a non-empty array with value(s) of the URIs supported by that representation."
+  summary: "In the \"schemas\" attribute, all representations of SCIM schemas MUST include a non-empty array with value(s) of the URIs supported by that representation."
   lines: [709, 711]
   original_lines: [709, 711]
   record: 42
@@ -530,6 +567,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The \"schemas\" attribute for a resource MUST only contain values defined as \"schema\" and \"schemaExtensions\" for the resource's defined \"resourceType\"."
+  summary: "The \"schemas\" attribute for a SCIM resource MUST only contain values defined as \"schema\" and \"schemaExtensions\" for the resource's defined \"resourceType\"."
   lines: [711, 713]
   original_lines: [711, 713]
   record: 43
@@ -544,6 +582,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Duplicate values MUST NOT be included."
+  summary: "Duplicate URI values MUST NOT be included in the \"schemas\" attribute of a SCIM resource."
   lines: [713, 714]
   original_lines: [713, 714]
   record: 44
@@ -558,6 +597,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Value order is not specified and MUST NOT impact behavior."
+  summary: "Value order in the \"schemas\" attribute of a SCIM resource is not specified and MUST NOT impact behavior."
   lines: [714, 715]
   original_lines: [714, 715]
   record: 45
@@ -572,6 +612,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "These attributes are not defined in any particular schema but SHALL be assumed to be present in every resource, regardless of the value of the \"schemas\" attribute."
+  summary: "Common attributes of a SCIM resource are not defined in any particular schema but SHALL be assumed to be present in every resource, regardless of the value of the \"schemas\" attribute."
   lines: [720, 723]
   original_lines: [720, 723]
   record: 46
@@ -586,6 +627,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "With the exception of the \"/ServiceProviderConfig\" and \"/ResourceTypes\" server discovery endpoints and their associated resources, these attributes MUST be defined for all resources, including any extended resource types."
+  summary: "With the exception of the \"/ServiceProviderConfig\" and \"/ResourceTypes\" server discovery endpoints and their associated resources, the common attributes (\"id\", \"externalId\", and \"meta\") MUST be defined for all SCIM resources, including any extended resource types."
   lines: [850, 853]
   original_lines: [850, 853]
   record: 47
@@ -601,6 +643,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When accepted by a service provider (e.g., after a SCIM create), the attributes \"id\" and \"meta\" (and its associated sub-attributes) MUST be assigned values by the service provider."
+  summary: "When a SCIM resource is accepted by a service provider (e.g., after a SCIM create), the common attributes \"id\" and \"meta\" (and its associated sub-attributes) MUST be assigned values by the service provider."
   lines: [853, 856]
   original_lines: [853, 856]
   record: 48
@@ -615,6 +658,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "For backward compatibility, some existing schema definitions MAY list common attributes as part of the schema."
+  summary: "For backward compatibility, some existing SCIM schema definitions MAY list common attributes as part of the schema."
   lines: [859, 860]
   original_lines: [859, 860]
   record: 49
@@ -629,6 +673,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The attribute characteristics (see Section 2.2) listed here SHALL take precedence over older definitions that may be included in existing schemas."
+  summary: "The attribute characteristics defined in Section 3.1 for SCIM common attributes SHALL take precedence over older definitions that may be included in existing schemas."
   lines: [860, 862]
   original_lines: [860, 862]
   record: 50
@@ -643,6 +688,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Each representation of the resource MUST include a non-empty \"id\" value."
+  summary: "Each representation of a SCIM resource MUST include a non-empty value for the common attribute \"id\" (a unique identifier for a SCIM resource as defined by the service provider)."
   lines: [866, 867]
   original_lines: [866, 867]
   record: 51
@@ -657,6 +703,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This identifier MUST be unique across the SCIM service provider's entire set of resources."
+  summary: "The common attribute \"id\" (a unique identifier for a SCIM resource as defined by the service provider) MUST be unique across the SCIM service provider's entire set of resources."
   lines: [867, 868]
   original_lines: [867, 868]
   record: 52
@@ -671,6 +718,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "It MUST be a stable, non-reassignable identifier that does not change when the same resource is returned in subsequent requests."
+  summary: "The common attribute \"id\" (a unique identifier for a SCIM resource as defined by the service provider) MUST be a stable, non-reassignable identifier that does not change when the same resource is returned in subsequent requests."
   lines: [868, 870]
   original_lines: [868, 870]
   record: 53
@@ -685,6 +733,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The value of the \"id\" attribute is always issued by the service provider and MUST NOT be specified by the client."
+  summary: "The value of the common attribute \"id\" (a unique identifier for a SCIM resource as defined by the service provider) is always issued by the service provider and MUST NOT be specified by the client."
   lines: [870, 872]
   original_lines: [870, 872]
   record: 54
@@ -699,6 +748,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The string \"bulkId\" is a reserved keyword and MUST NOT be used within any unique identifier value."
+  summary: "For the common attribute \"id\" (a unique identifier for a SCIM resource), the string \"bulkId\" is a reserved keyword and MUST NOT be used within any unique identifier value."
   lines: [872, 874]
   original_lines: [872, 874]
   record: 55
@@ -713,6 +763,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Each resource MAY include a non-empty \"externalId\" value."
+  summary: "Each SCIM resource MAY include a non-empty value for the common attribute \"externalId\" (a String that is an identifier for the resource as defined by the provisioning client)."
   lines: [887, 888]
   original_lines: [887, 888]
   record: 56
@@ -727,6 +778,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The value of the \"externalId\" attribute is always issued by the provisioning client and MUST NOT be specified by the service provider."
+  summary: "The value of the common attribute \"externalId\" (an identifier for the resource as defined by the provisioning client) is always issued by the provisioning client and MUST NOT be specified by the service provider."
   lines: [888, 890]
   original_lines: [888, 890]
   record: 57
@@ -741,6 +793,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The service provider MUST always interpret the externalId as scoped to the provisioning domain."
+  summary: "The service provider MUST always interpret the common attribute \"externalId\" (an identifier for the resource as defined by the provisioning client) as scoped to the provisioning domain."
   lines: [890, 892]
   original_lines: [890, 892]
   record: 58
@@ -755,6 +808,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "This attribute is OPTIONAL."
+  summary: "The common attribute \"externalId\" (a String that is an identifier for the resource as defined by the provisioning client) is OPTIONAL."
   lines: [904, 905]
   original_lines: [904, 905]
   record: 59
@@ -769,6 +823,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This attribute SHALL be ignored when provided by clients."
+  summary: "The common attribute \"meta\" (a complex attribute containing resource metadata) SHALL be ignored when provided by clients."
   lines: [911, 912]
   original_lines: [911, 912]
   record: 60
@@ -783,6 +838,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This attribute MUST be a DateTime."
+  summary: "The common sub-attribute \"meta.created\" (the DateTime that the resource was added to the service provider) MUST be a DateTime."
   lines: [920, 920]
   original_lines: [920, 920]
   record: 61
@@ -797,6 +853,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If this resource has never been modified since its initial creation, the value MUST be the same as the value of \"created\"."
+  summary: "For the common sub-attribute \"meta.lastModified\" (the most recent DateTime that the details of the resource were updated at the service provider), if the resource has never been modified since its initial creation, the value MUST be the same as the value of \"meta.created\"."
   lines: [923, 925]
   original_lines: [923, 925]
   record: 62
@@ -811,6 +868,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This value MUST be the same as the \"Content-Location\" HTTP response header (see Section 3.1.4.2 of [RFC7231])."
+  summary: "The value of the common sub-attribute \"meta.location\" (the URI of the resource being returned) MUST be the same as the \"Content-Location\" HTTP response header (see Section 3.1.4.2 of [RFC7231])."
   lines: [927, 929]
   original_lines: [927, 929]
   record: 63
@@ -825,6 +883,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If a service provider provides \"version\" (entity-tag) for a representation and the generation of that entity-tag does not satisfy all of the characteristics of a strong validator (see Section 2.1 of [RFC7232]), then the origin server MUST mark the \"version\" (entity-tag) as weak by prefixing its opaque value with \"W/\" (case sensitive)."
+  summary: "If a service provider provides the common sub-attribute \"meta.version\" (entity-tag) for a representation and the generation of that entity-tag does not satisfy all of the characteristics of a strong validator (see Section 2.1 of [RFC7232]), then the origin server MUST mark the \"version\" (entity-tag) as weak by prefixing its opaque value with \"W/\" (case sensitive)."
   lines: [936, 942]
   original_lines: [936, 942]
   record: 64
@@ -839,6 +898,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Each value in the \"schemas\" attribute indicates additive schema that MAY exist in a SCIM resource representation."
+  summary: "Each value in the \"schemas\" attribute indicates additive schema that MAY exist in a SCIM resource representation."
   lines: [974, 975]
   original_lines: [974, 975]
   record: 65
@@ -853,6 +913,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The \"schemas\" attribute MUST contain at least one value, which SHALL be the base schema for the resource."
+  summary: "The \"schemas\" attribute of a SCIM resource MUST contain at least one value, which SHALL be the base schema for the resource."
   lines: [975, 977]
   original_lines: [975, 977]
   record: 66
@@ -867,6 +928,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The \"schemas\" attribute MAY contain additional values indicating extended schemas that are in use."
+  summary: "The \"schemas\" attribute of a SCIM resource MAY contain additional values indicating extended schemas that are in use."
   lines: [977, 978]
   original_lines: [977, 978]
   record: 67
@@ -881,6 +943,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Schema extensions SHOULD avoid redefining any attributes defined in this specification and SHOULD follow conventions defined in this specification."
+  summary: "SCIM schema extensions SHOULD avoid redefining any attributes defined in RFC 7643 and SHOULD follow conventions defined in RFC 7643."
   lines: [978, 980]
   original_lines: [978, 980]
   record: 68
@@ -895,6 +958,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Except for the base object schema, the schema extension URI SHALL be used as a JSON container to distinguish attributes belonging to the extension namespace from base schema attributes."
+  summary: "Except for the base object schema of a SCIM resource, the schema extension URI SHALL be used as a JSON container to distinguish attributes belonging to the extension namespace from base schema attributes."
   lines: [980, 983]
   original_lines: [980, 983]
   record: 69
@@ -909,6 +973,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "In order to determine which URI value in the \"schemas\" attribute is the base schema and which is an extended schema for any given resource, the resource's \"resourceType\" attribute value MAY be used to retrieve the resource's \"ResourceType\" schema (see Section 6)."
+  summary: "In order to determine which URI value in the \"schemas\" attribute is the base schema and which is an extended schema for any given resource, the resource's \"resourceType\" attribute value MAY be used to retrieve the resource's \"ResourceType\" schema (see Section 6)."
   lines: [987, 990]
   original_lines: [987, 990]
   record: 70
@@ -923,6 +988,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Each User MUST include a non-empty userName value."
+  summary: "Each \"User\" resource MUST include a non-empty \"userName\" value (a service provider's unique identifier for the user, typically used by the user to directly authenticate to the service provider)."
   lines: [1035, 1036]
   original_lines: [1035, 1036]
   record: 71
@@ -937,6 +1003,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This identifier MUST be unique across the service provider's entire set of Users."
+  summary: "The \"userName\" attribute of a \"User\" resource (a service provider's unique identifier for the user) MUST be unique across the service provider's entire set of Users."
   lines: [1036, 1037]
   original_lines: [1036, 1037]
   record: 72
@@ -951,6 +1018,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This attribute is REQUIRED and is case insensitive."
+  summary: "The \"userName\" attribute of a \"User\" resource (a service provider's unique identifier for the user, typically used by the user to directly authenticate) is REQUIRED and is case insensitive."
   lines: [1037, 1038]
   original_lines: [1037, 1038]
   record: 73
@@ -965,6 +1033,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY return just the full name as a single string in the formatted sub-attribute, or they MAY return just the individual component attributes using the other sub-attributes, or they MAY return both."
+  summary: "For the \"name\" attribute of a \"User\" resource (the components of the user's name), service providers MAY return just the full name as a single string in the \"formatted\" sub-attribute, or they MAY return just the individual component attributes using the other sub-attributes, or they MAY return both."
   lines: [1041, 1045]
   original_lines: [1041, 1045]
   record: 74
@@ -979,6 +1048,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "If both variants are returned, they SHOULD be describing the same name, with the formatted name indicating how the component attributes should be combined."
+  summary: "If both the \"formatted\" sub-attribute and the individual component sub-attributes of a \"User\" resource's \"name\" attribute are returned, they SHOULD be describing the same name, with the formatted name indicating how the component attributes should be combined."
   lines: [1045, 1047]
   original_lines: [1045, 1047]
   record: 75
@@ -993,6 +1063,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Each user returned MAY include a non-empty displayName value."
+  summary: "Each \"User\" resource returned MAY include a non-empty \"displayName\" value (the name of the user, suitable for display to end-users)."
   lines: [1080, 1081]
   original_lines: [1080, 1081]
   record: 76
@@ -1007,6 +1078,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The name SHOULD be the full name of the User being described, if known (e.g., \"Babs Jensen\" or \"Ms. Barbara J Jensen, III\")"
+  summary: "The \"displayName\" attribute of a \"User\" resource (the name of the user, suitable for display to end-users) SHOULD be the full name of the User being described, if known (e.g., \"Babs Jensen\" or \"Ms. Barbara J Jensen, III\")."
   lines: [1081, 1085]
   original_lines: [1081, 1085]
   record: 77
@@ -1021,6 +1093,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "but MAY be a username or handle, if that is all that is available (e.g., \"bjensen\")."
+  summary: "The \"displayName\" attribute of a \"User\" resource (the name of the user, suitable for display to end-users) MAY be a username or handle, if that is all that is available (e.g., \"bjensen\")."
   lines: [1081, 1085]
   original_lines: [1081, 1085]
   record: 78
@@ -1035,6 +1108,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The value provided SHOULD be the primary textual label by which this User is normally displayed by the service provider when presenting it to end-users."
+  summary: "The value provided for the \"displayName\" attribute of a \"User\" resource (the name of the user, suitable for display to end-users) SHOULD be the primary textual label by which this User is normally displayed by the service provider when presenting it to end-users."
   lines: [1085, 1087]
   original_lines: [1085, 1087]
   record: 79
@@ -1049,6 +1123,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "This attribute SHOULD NOT be used to represent a User's username (e.g., bjensen or mpepperidge)."
+  summary: "The \"nickName\" attribute of a \"User\" resource (the casual way to address the user in real life, e.g., \"Bob\" or \"Bobby\" instead of \"Robert\") SHOULD NOT be used to represent a User's username (e.g., bjensen or mpepperidge)."
   lines: [1091, 1092]
   original_lines: [1091, 1092]
   record: 80
@@ -1063,6 +1138,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "For backward compatibility, servers MAY accept tags separated by an underscore character (\"_\", %x5F)."
+  summary: "For the \"locale\" attribute of a \"User\" resource, for backward compatibility, servers MAY accept language tags separated by an underscore character (\"_\", %x5F) instead of a hyphen character (\"-\", %x2D)."
   lines: [1138, 1140]
   original_lines: [1138, 1140]
   record: 81
@@ -1077,6 +1153,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The cleartext value or the hashed value of a password SHALL NOT be returnable by a service provider."
+  summary: "For the \"password\" attribute of a \"User\" resource, the cleartext value or the hashed value of a password SHALL NOT be returnable by a service provider."
   lines: [1185, 1187]
   original_lines: [1183, 1201]
   record: 82
@@ -1091,6 +1168,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "If a service provider holds the value locally, the value SHOULD be hashed."
+  summary: "If a service provider holds the value of a \"User\" resource's \"password\" attribute locally, the value SHOULD be hashed."
   lines: [1187, 1188]
   original_lines: [1183, 1201]
   record: 83
@@ -1106,6 +1184,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "When a password is set or changed by the client, the cleartext password SHOULD be processed by the service provider as follows:"
+  summary: "When a \"User\" resource's \"password\" attribute is set or changed by the client, the cleartext password SHOULD be processed by the service provider according to the password handling rules in Section 4.1.1."
   lines: [1188, 1190]
   original_lines: [1183, 1201]
   record: 84
@@ -1121,6 +1200,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "A service provider that immediately passes the cleartext value on to another system or programming interface MUST pass the value directly over a secured connection (e.g., Transport Layer Security (TLS))."
+  summary: "When processing a \"User\" resource's \"password\" attribute, a service provider that immediately passes the cleartext password value on to another system or programming interface MUST pass the value directly over a secured connection (e.g., Transport Layer Security (TLS))."
   lines: [1203, 1206]
   original_lines: [1203, 1206]
   record: 85
@@ -1136,6 +1216,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the value needs to be temporarily persisted for a period of time (e.g., because of a workflow) before provisioning, then the value MUST be protected by some method, such as encryption."
+  summary: "If a \"User\" resource's cleartext \"password\" attribute value needs to be temporarily persisted for a period of time (e.g., because of a workflow) before provisioning, then the value MUST be protected by some method, such as encryption."
   lines: [1206, 1209]
   original_lines: [1206, 1209]
   record: 86
@@ -1151,6 +1232,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Testing for an equality match MAY be supported if there is an existing stored hashed value."
+  summary: "For the \"password\" attribute of a \"User\" resource, testing for an equality match MAY be supported if there is an existing stored hashed value."
   lines: [1211, 1212]
   original_lines: [1211, 1212]
   record: 87
@@ -1165,6 +1247,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The mutability of the password attribute is \"writeOnly\", indicating that the value MUST NOT be returned by a service provider in any form (the attribute characteristic \"returned\" is \"never\")."
+  summary: "The mutability of the \"password\" attribute of a \"User\" resource is \"writeOnly\", indicating that the value MUST NOT be returned by a service provider in any form (the attribute characteristic \"returned\" is \"never\")."
   lines: [1221, 1224]
   original_lines: [1221, 1224]
   record: 88
@@ -1179,6 +1262,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The value SHOULD be specified according to [RFC5321]."
+  summary: "The value of the \"emails\" multi-valued attribute of a \"User\" resource (email addresses for the User) SHOULD be specified according to [RFC5321]."
   lines: [1244, 1245]
   original_lines: [1244, 1245]
   record: 89
@@ -1194,6 +1278,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Service providers SHOULD canonicalize the value according to [RFC5321], e.g., \"bjensen@example.com\" instead of \"bjensen@EXAMPLE.COM\"."
+  summary: "For the \"emails\" multi-valued attribute of a \"User\" resource (email addresses for the User), service providers SHOULD canonicalize the value according to [RFC5321], e.g., \"bjensen@example.com\" instead of \"bjensen@EXAMPLE.COM\"."
   lines: [1245, 1247]
   original_lines: [1245, 1247]
   record: 90
@@ -1208,6 +1293,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The \"display\" sub-attribute MAY be used to return the canonicalized representation of the email value."
+  summary: "In the \"emails\" multi-valued attribute of a \"User\" resource, the \"display\" sub-attribute MAY be used to return the canonicalized representation of the email value."
   lines: [1247, 1248]
   original_lines: [1247, 1248]
   record: 91
@@ -1222,6 +1308,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The user interface should encourage the use of basic values of \"work\", \"home\", and \"other\" and MAY allow additional type values to be used at the discretion of SCIM clients."
+  summary: "For the \"type\" sub-attribute of a \"User\" resource's \"emails\" attribute, the user interface should encourage the use of basic values of \"work\", \"home\", and \"other\" and MAY allow additional type values to be used at the discretion of SCIM clients."
   lines: [1250, 1253]
   original_lines: [1250, 1253]
   record: 92
@@ -1236,6 +1323,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The value SHOULD be specified according to the format defined in [RFC3966], e.g., 'tel:+1-201-555-0123'."
+  summary: "The value of the \"phoneNumbers\" multi-valued attribute of a \"User\" resource (phone numbers for the user) SHOULD be specified according to the format defined in [RFC3966], e.g., 'tel:+1-201-555-0123'."
   lines: [1256, 1258]
   original_lines: [1256, 1258]
   record: 93
@@ -1251,6 +1339,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Service providers SHOULD canonicalize the value according to [RFC3966] format, when appropriate."
+  summary: "For the \"phoneNumbers\" multi-valued attribute of a \"User\" resource (phone numbers for the user), service providers SHOULD canonicalize the value according to [RFC3966] format, when appropriate."
   lines: [1258, 1259]
   original_lines: [1258, 1259]
   record: 94
@@ -1265,6 +1354,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The \"display\" sub-attribute MAY be used to return the canonicalized representation of the phone number value."
+  summary: "In the \"phoneNumbers\" multi-valued attribute of a \"User\" resource, the \"display\" sub-attribute MAY be used to return the canonicalized representation of the phone number value."
   lines: [1259, 1261]
   original_lines: [1259, 1261]
   record: 95
@@ -1279,6 +1369,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The sub-attribute \"type\" often has typical values of \"work\", \"home\", \"mobile\", \"fax\", \"pager\", and \"other\" and MAY allow more types to be defined by the SCIM clients."
+  summary: "In the \"phoneNumbers\" multi-valued attribute of a \"User\" resource, the sub-attribute \"type\" often has typical values of \"work\", \"home\", \"mobile\", \"fax\", \"pager\", and \"other\" and MAY allow more types to be defined by the SCIM clients."
   lines: [1261, 1264]
   original_lines: [1261, 1264]
   record: 96
@@ -1293,6 +1384,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "No official canonicalization rules exist for all instant messaging addresses, but service providers SHOULD, when appropriate, remove all whitespace and convert the address to lowercase."
+  summary: "For the \"ims\" multi-valued attribute of a \"User\" resource (instant messaging address for the user), no official canonicalization rules exist for all instant messaging addresses, but service providers SHOULD, when appropriate, remove all whitespace and convert the address to lowercase."
   lines: [1267, 1270]
   original_lines: [1267, 1270]
   record: 97
@@ -1307,6 +1399,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The \"type\" sub-attribute SHOULD take one of the following values: \"aim\", \"gtalk\", \"icq\", \"xmpp\", \"msn\", \"skype\", \"qq\", \"yahoo\", or \"other\" (representing currently popular IM services at the time of this writing)."
+  summary: "In the \"ims\" multi-valued attribute of a \"User\" resource (instant messaging address for the user), the \"type\" sub-attribute SHOULD take one of the following values: \"aim\", \"gtalk\", \"icq\", \"xmpp\", \"msn\", \"skype\", \"qq\", \"yahoo\", or \"other\" (representing popular IM services)."
   lines: [1270, 1274]
   original_lines: [1270, 1274]
   record: 98
@@ -1321,6 +1414,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY add further values if new IM services are introduced and MAY specify more detailed canonicalization rules for each possible value."
+  summary: "For the \"ims\" multi-valued attribute of a \"User\" resource (instant messaging address for the user), service providers MAY add further \"type\" values if new IM services are introduced and MAY specify more detailed canonicalization rules for each possible value."
   lines: [1274, 1276]
   original_lines: [1274, 1276]
   record: 99
@@ -1335,6 +1429,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The resource MUST be a file (e.g., a GIF, JPEG, or PNG image file) rather than a web page containing an image."
+  summary: "For the \"photos\" multi-valued attribute of a \"User\" resource (a URI pointing to a resource location representing the user's image), the referenced resource MUST be a file (e.g., a GIF, JPEG, or PNG image file) rather than a web page containing an image."
   lines: [1281, 1283]
   original_lines: [1281, 1283]
   record: 100
@@ -1350,6 +1445,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY return the same image in different sizes, although it is recognized that no standard for describing images of various sizes currently exists."
+  summary: "For the \"photos\" multi-valued attribute of a \"User\" resource (a URI pointing to a resource location representing the user's image), service providers MAY return the same image in different sizes, although it is recognized that no standard for describing images of various sizes currently exists."
   lines: [1283, 1285]
   original_lines: [1283, 1285]
   record: 101
@@ -1364,6 +1460,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "Note that this attribute SHOULD NOT be used to send down arbitrary photos taken by this user; instead, profile photos of the user that are suitable for display when describing the user should be sent."
+  summary: "The \"photos\" multi-valued attribute of a \"User\" resource (a URI pointing to a resource location representing the user's image) SHOULD NOT be used to send down arbitrary photos taken by this user; instead, profile photos of the user that are suitable for display when describing the user should be sent."
   lines: [1285, 1296]
   original_lines: [1285, 1296]
   record: 102
@@ -1379,6 +1476,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "All sub-attributes are OPTIONAL."
+  summary: "For the \"addresses\" multi-valued complex attribute of a \"User\" resource (a physical mailing address for the user), all sub-attributes are OPTIONAL."
   lines: [1304, 1305]
   original_lines: [1304, 1305]
   record: 103
@@ -1393,6 +1491,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "This attribute MAY contain newlines."
+  summary: "The \"addresses.formatted\" sub-attribute of a \"User\" resource (the full mailing address, formatted for display or use with a mailing label) MAY contain newlines."
   lines: [1308, 1308]
   original_lines: [1308, 1308]
   record: 104
@@ -1407,6 +1506,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "This attribute MAY contain newlines."
+  summary: "The \"addresses.streetAddress\" sub-attribute of a \"User\" resource (the full street address component, which may include house number, street name, P.O. box, and multi-line extended street address information) MAY contain newlines."
   lines: [1312, 1313]
   original_lines: [1312, 1313]
   record: 105
@@ -1421,6 +1521,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When specified, the value MUST be in ISO 3166-1 \"alpha-2\" code format [ISO3166]; e.g., the United States and Sweden are \"US\" and \"SE\", respectively."
+  summary: "When the \"addresses.country\" sub-attribute (the country name component) is specified, its value MUST be in ISO 3166-1 \"alpha-2\" code format (e.g., \"US\" for the United States and \"SE\" for Sweden)."
   lines: [1321, 1323]
   original_lines: [1321, 1323]
   record: 106
@@ -1435,6 +1536,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Direct group membership indicates that the user is directly associated with the group and SHOULD indicate that clients may modify membership through the \"Group\" resource."
+  summary: "In the User \"groups\" multi-valued attribute, direct group membership indicates that the user is directly associated with the group and SHOULD indicate that clients may modify membership through the \"Group\" resource."
   lines: [1334, 1337]
   original_lines: [1334, 1337]
   record: 107
@@ -1449,6 +1551,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Indirect membership indicates that user membership is transitive or dynamic and implies that clients cannot modify indirect group membership through the \"Group\" resource but MAY modify direct group membership through the \"Group\" resource, which may influence indirect memberships."
+  summary: "In the User \"groups\" multi-valued attribute, indirect membership indicates that user membership is transitive or dynamic and implies that clients cannot modify indirect group membership through the \"Group\" resource, but clients MAY modify direct group membership through the \"Group\" resource, which may influence indirect memberships."
   lines: [1337, 1341]
   original_lines: [1337, 1341]
   record: 108
@@ -1463,6 +1566,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If the SCIM service provider exposes a \"Group\" resource, the \"value\" sub-attribute MUST be the \"id\", and the \"$ref\" sub-attribute must be the URI of the corresponding \"Group\" resources to which the user belongs."
+  summary: "If the SCIM service provider exposes a \"Group\" resource, the \"value\" sub-attribute of the User \"groups\" attribute MUST be the \"id\" and the \"$ref\" sub-attribute MUST be the URI of the corresponding \"Group\" resources to which the user belongs."
   lines: [1341, 1353]
   original_lines: [1341, 1353]
   record: 109
@@ -1477,6 +1581,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Since this attribute has a mutability of \"readOnly\", group membership changes MUST be applied via the \"Group\" Resource (Section 4.2)."
+  summary: "Because the User \"groups\" multi-valued attribute has a mutability of \"readOnly\", group membership changes MUST be applied via the \"Group\" resource."
   lines: [1353, 1355]
   original_lines: [1353, 1355]
   record: 110
@@ -1491,6 +1596,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Each value contains exactly one DER-encoded X.509 certificate (see Section 4 of [RFC5280]), which MUST be base64 encoded per Section 4 of [RFC4648]."
+  summary: "Each value of the \"x509Certificates\" multi-valued attribute contains a single DER-encoded X.509 certificate associated with the resource, which MUST be base64 encoded per Section 4 of RFC 4648."
   lines: [1377, 1379]
   original_lines: [1377, 1379]
   record: 111
@@ -1505,6 +1611,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "A single value MUST NOT contain multiple certificates and so does not contain the encoding \"SEQUENCE OF Certificate\" in any guise."
+  summary: "A single value of the \"x509Certificates\" multi-valued attribute MUST NOT contain multiple certificates and so does not contain the encoding \"SEQUENCE OF Certificate\" in any guise."
   lines: [1379, 1381]
   original_lines: [1379, 1381]
   record: 112
@@ -1519,6 +1626,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the \"Group\" resource schema, the \"displayName\" attribute (a human-readable name for the Group) is REQUIRED."
   lines: [1411, 1411]
   original_lines: [1411, 1411]
   record: 113
@@ -1533,6 +1641,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "While values MAY be added or removed, sub-attributes of members are \"immutable\"."
+  summary: "In the \"Group\" resource schema, while values of the \"members\" attribute (a list of members of the Group) MAY be added or removed, the sub-attributes of \"members\" are \"immutable\"."
   lines: [1417, 1418]
   original_lines: [1417, 1418]
   record: 114
@@ -1547,6 +1656,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Service providers MAY require clients to provide a non-empty value by setting the \"required\" attribute characteristic of a sub-attribute of the \"members\" attribute in the \"Group\" resource schema."
+  summary: "Service providers MAY require clients to provide a non-empty value for the Group \"members\" attribute by setting the \"required\" attribute characteristic of a sub-attribute of \"members\" in the \"Group\" resource schema."
   lines: [1423, 1426]
   original_lines: [1423, 1426]
   record: 115
@@ -1561,6 +1671,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "RECOMMENDED."
+  summary: "In the Enterprise User schema extension, the \"manager.value\" sub-attribute (the \"id\" of the SCIM resource representing the user's manager) is RECOMMENDED."
   lines: [1469, 1469]
   original_lines: [1469, 1469]
   record: 116
@@ -1575,6 +1686,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "RECOMMENDED."
+  summary: "In the Enterprise User schema extension, the \"manager.$ref\" sub-attribute (the URI of the SCIM resource representing the user's manager) is RECOMMENDED."
   lines: [1472, 1472]
   original_lines: [1472, 1472]
   record: 117
@@ -1589,6 +1701,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "This attribute is OPTIONAL, and mutability is \"readOnly\"."
+  summary: "In the Enterprise User schema extension, the \"manager.displayName\" sub-attribute (the displayName of the user's manager) is OPTIONAL and has a mutability of \"readOnly\"."
   lines: [1474, 1475]
   original_lines: [1474, 1475]
   record: 118
@@ -1603,6 +1716,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the Service Provider Configuration schema, the \"documentationUri\" attribute (an HTTP-addressable URL pointing to the service provider's human-consumable help documentation) is OPTIONAL."
   lines: [1495, 1495]
   original_lines: [1495, 1495]
   record: 119
@@ -1617,6 +1731,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"patch\" complex attribute (which specifies PATCH configuration options) is REQUIRED."
   lines: [1499, 1499]
   original_lines: [1499, 1499]
   record: 120
@@ -1631,6 +1746,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"patch.supported\" Boolean sub-attribute (specifying whether or not the PATCH operation is supported) is REQUIRED."
   lines: [1502, 1502]
   original_lines: [1502, 1502]
   record: 121
@@ -1645,6 +1761,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"bulk\" complex attribute (which specifies bulk configuration options) is REQUIRED."
   lines: [1506, 1506]
   original_lines: [1506, 1506]
   record: 122
@@ -1659,6 +1776,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"bulk.supported\" Boolean sub-attribute (specifying whether or not the bulk operation is supported) is REQUIRED."
   lines: [1509, 1509]
   original_lines: [1509, 1509]
   record: 123
@@ -1673,6 +1791,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"bulk.maxOperations\" integer sub-attribute (specifying the maximum number of bulk operations) is REQUIRED."
   lines: [1520, 1520]
   original_lines: [1520, 1520]
   record: 124
@@ -1687,6 +1806,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"bulk.maxPayloadSize\" integer sub-attribute (specifying the maximum bulk payload size in bytes) is REQUIRED."
   lines: [1523, 1523]
   original_lines: [1523, 1523]
   record: 125
@@ -1701,6 +1821,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"filter\" complex attribute (which specifies FILTER options) is REQUIRED."
   lines: [1526, 1526]
   original_lines: [1526, 1526]
   record: 126
@@ -1715,6 +1836,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"filter.supported\" Boolean sub-attribute (specifying whether or not the filter operation is supported) is REQUIRED."
   lines: [1530, 1530]
   original_lines: [1530, 1530]
   record: 127
@@ -1729,6 +1851,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"filter.maxResults\" integer sub-attribute (specifying the maximum number of resources returned in a filter response) is REQUIRED."
   lines: [1533, 1533]
   original_lines: [1533, 1533]
   record: 128
@@ -1743,6 +1866,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"changePassword\" complex attribute (which specifies configuration options related to changing a password) is REQUIRED."
   lines: [1537, 1537]
   original_lines: [1537, 1537]
   record: 129
@@ -1757,6 +1881,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"changePassword.supported\" Boolean sub-attribute (specifying whether or not the changePassword operation is supported) is REQUIRED."
   lines: [1540, 1540]
   original_lines: [1540, 1540]
   record: 130
@@ -1771,6 +1896,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"sort\" complex attribute (which specifies Sort configuration options) is REQUIRED."
   lines: [1544, 1544]
   original_lines: [1544, 1544]
   record: 131
@@ -1785,6 +1911,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"sort.supported\" Boolean sub-attribute (specifying whether or not sorting is supported) is REQUIRED."
   lines: [1547, 1547]
   original_lines: [1547, 1547]
   record: 132
@@ -1799,6 +1926,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"etag\" complex attribute (which specifies ETag configuration options) is REQUIRED."
   lines: [1551, 1551]
   original_lines: [1551, 1551]
   record: 133
@@ -1813,6 +1941,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"etag.supported\" Boolean sub-attribute (specifying whether or not the ETag operation is supported) is REQUIRED."
   lines: [1554, 1554]
   original_lines: [1554, 1554]
   record: 134
@@ -1827,6 +1956,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "To enable seamless discovery of configurations, the service provider SHOULD, with the appropriate security considerations, make the authenticationSchemes attribute publicly accessible without prior authentication."
+  summary: "To enable seamless discovery of configurations in the Service Provider Configuration schema, the service provider SHOULD, with the appropriate security considerations, make the \"authenticationSchemes\" attribute publicly accessible without prior authentication."
   lines: [1580, 1583]
   original_lines: [1580, 1583]
   record: 135
@@ -1841,6 +1971,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"authenticationSchemes\" multi-valued complex attribute (which specifies supported authentication scheme properties) is REQUIRED."
   lines: [1583, 1583]
   original_lines: [1583, 1583]
   record: 136
@@ -1855,6 +1986,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"authenticationSchemes.type\" sub-attribute (which specifies the authentication scheme, such as \"oauth\", \"oauth2\", \"oauthbearertoken\", \"httpbasic\", or \"httpdigest\") is REQUIRED."
   lines: [1588, 1588]
   original_lines: [1588, 1588]
   record: 137
@@ -1869,6 +2001,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"authenticationSchemes.name\" sub-attribute (the common authentication scheme name, e.g., HTTP Basic) is REQUIRED."
   lines: [1591, 1591]
   original_lines: [1591, 1591]
   record: 138
@@ -1883,6 +2016,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the Service Provider Configuration schema, the \"authenticationSchemes.description\" sub-attribute (a description of the authentication scheme) is REQUIRED."
   lines: [1594, 1594]
   original_lines: [1594, 1594]
   record: 139
@@ -1897,6 +2031,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the Service Provider Configuration schema, the \"authenticationSchemes.specUri\" sub-attribute (an HTTP-addressable URL pointing to the authentication scheme's specification) is OPTIONAL."
   lines: [1597, 1597]
   original_lines: [1597, 1597]
   record: 140
@@ -1911,6 +2046,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the Service Provider Configuration schema, the \"authenticationSchemes.documentationUri\" sub-attribute (an HTTP-addressable URL pointing to the authentication scheme's usage documentation) is OPTIONAL."
   lines: [1600, 1600]
   original_lines: [1600, 1600]
   record: 141
@@ -1925,6 +2061,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Unlike other core resources, all attributes are REQUIRED unless otherwise specified."
+  summary: "In the \"ResourceType\" schema (\"urn:ietf:params:scim:schemas:core:2.0:ResourceType\"), unlike other core resources, all attributes are REQUIRED unless otherwise specified."
   lines: [1607, 1609]
   original_lines: [1607, 1609]
   record: 142
@@ -1939,6 +2076,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the \"ResourceType\" schema, the \"id\" attribute (the resource type's server-unique identifier, often the same value as the \"name\" attribute) is OPTIONAL."
   lines: [1616, 1616]
   original_lines: [1616, 1616]
   record: 143
@@ -1953,6 +2091,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When applicable, service providers MUST specify the name, e.g., \"User\" or \"Group\"."
+  summary: "In the \"ResourceType\" schema, when applicable, service providers MUST specify the \"name\" attribute (the resource type name referenced by \"meta.resourceType\", e.g., \"User\" or \"Group\")."
   lines: [1619, 1620]
   original_lines: [1618, 1622]
   record: 144
@@ -1967,6 +2106,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED"
+  summary: "In the \"ResourceType\" schema, the \"name\" attribute (the case-exact, server-unique resource type name referenced by \"meta.resourceType\" in all resources) is REQUIRED."
   lines: [1623, 1623]
   original_lines: [1618, 1622]
   record: 145
@@ -1982,6 +2122,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When applicable, service providers MUST specify the description."
+  summary: "In the \"ResourceType\" schema, when applicable, service providers MUST specify the \"description\" attribute (the resource type's human-readable description)."
   lines: [1633, 1634]
   original_lines: [1632, 1633]
   record: 146
@@ -1996,6 +2137,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the \"ResourceType\" schema, the \"description\" attribute (the resource type's human-readable description) is OPTIONAL."
   lines: [1634, 1634]
   original_lines: [1633, 1633]
   record: 147
@@ -2010,6 +2152,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED"
+  summary: "In the \"ResourceType\" schema, the \"endpoint\" attribute (the resource type's case-exact, server-unique HTTP-addressable endpoint relative to the Base URL of the service provider, e.g., \"Users\") is REQUIRED."
   lines: [1639, 1639]
   original_lines: [1635, 1637]
   record: 148
@@ -2025,6 +2168,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This MUST be equal to the \"id\" attribute of the associated \"Schema\" resource."
+  summary: "In the \"ResourceType\" schema, the \"schema\" attribute (the resource type's primary/base schema URI) MUST be equal to the \"id\" attribute of the associated \"Schema\" resource."
   lines: [1643, 1644]
   original_lines: [1641, 1642]
   record: 149
@@ -2039,6 +2183,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the \"ResourceType\" schema, the \"schema\" attribute (the resource type's primary/base schema URI, e.g., \"urn:ietf:params:scim:schemas:core:2.0:User\") is REQUIRED."
   lines: [1645, 1645]
   original_lines: [1643, 1643]
   record: 150
@@ -2053,6 +2198,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the \"ResourceType\" schema, the \"schemaExtensions\" attribute (a list of URIs of the resource type's schema extensions) is OPTIONAL."
   lines: [1649, 1649]
   original_lines: [1647, 1647]
   record: 151
@@ -2067,6 +2213,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This MUST be equal to the \"id\" attribute of a \"Schema\" resource."
+  summary: "In the \"ResourceType\" schema, the \"schemaExtensions.schema\" sub-attribute (the URI of an extended schema) MUST be equal to the \"id\" attribute of a \"Schema\" resource."
   lines: [1652, 1653]
   original_lines: [1650, 1651]
   record: 152
@@ -2081,6 +2228,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the \"ResourceType\" schema, the \"schemaExtensions.schema\" sub-attribute (the URI of an extended schema, e.g., \"urn:edu:2.0:Staff\") is REQUIRED."
   lines: [1653, 1653]
   original_lines: [1651, 1651]
   record: 153
@@ -2095,6 +2243,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If true, a resource of this type MUST include this schema extension and also include any attributes declared as required in this schema extension."
+  summary: "In the \"ResourceType\" schema, if the \"schemaExtensions.required\" Boolean sub-attribute is true, a resource of that resource type MUST include the schema extension and also include any attributes declared as required in that schema extension."
   lines: [1656, 1659]
   original_lines: [1654, 1657]
   record: 154
@@ -2110,6 +2259,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "If false, a resource of this type MAY omit this schema extension."
+  summary: "In the \"ResourceType\" schema, if the \"schemaExtensions.required\" Boolean sub-attribute is false, a resource of that resource type MAY omit the schema extension."
   lines: [1659, 1660]
   original_lines: [1657, 1658]
   record: 155
@@ -2124,6 +2274,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the \"ResourceType\" schema, the \"schemaExtensions.required\" Boolean sub-attribute (which specifies whether or not the schema extension is required for the resource type) is REQUIRED."
   lines: [1660, 1660]
   original_lines: [1658, 1658]
   record: 156
@@ -2138,6 +2289,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Unlike other core resources, the \"Schema\" resource MAY contain a complex object within a sub-attribute"
+  summary: "Unlike other core resources, the \"Schema\" resource MAY contain a complex object within a sub-attribute."
   lines: [1678, 1680]
   original_lines: [1676, 1678]
   record: 157
@@ -2152,6 +2304,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "and all attributes are REQUIRED unless otherwise specified."
+  summary: "In the \"Schema\" resource definition, all attributes are REQUIRED unless otherwise specified."
   lines: [1678, 1680]
   original_lines: [1676, 1678]
   record: 158
@@ -2166,6 +2319,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When applicable, service providers MUST specify the URI, e.g., \"urn:ietf:params:scim:schemas:core:2.0:User\"."
+  summary: "In the \"Schema\" resource definition, when applicable, service providers MUST specify the unique URI of the schema in the \"id\" attribute (e.g., \"urn:ietf:params:scim:schemas:core:2.0:User\")."
   lines: [1692, 1694]
   original_lines: [1690, 1692]
   record: 159
@@ -2180,6 +2334,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "REQUIRED."
+  summary: "In the \"Schema\" resource definition, the \"id\" attribute (the unique URI of the schema) is REQUIRED."
   lines: [1698, 1698]
   original_lines: [1696, 1696]
   record: 160
@@ -2194,6 +2349,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When applicable, service providers MUST specify the name, e.g., \"User\" or \"Group\"."
+  summary: "In the \"Schema\" resource definition, when applicable, service providers MUST specify the \"name\" attribute (the schema's human-readable name, e.g., \"User\" or \"Group\")."
   lines: [1701, 1702]
   original_lines: [1699, 1700]
   record: 161
@@ -2208,6 +2364,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the \"Schema\" resource definition, the \"name\" attribute (the schema's human-readable name) is OPTIONAL."
   lines: [1703, 1703]
   original_lines: [1701, 1701]
   record: 162
@@ -2222,6 +2379,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When applicable, service providers MUST specify the description."
+  summary: "In the \"Schema\" resource definition, when applicable, service providers MUST specify the \"description\" attribute (the schema's human-readable description)."
   lines: [1706, 1707]
   original_lines: [1704, 1705]
   record: 163
@@ -2236,6 +2394,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In the \"Schema\" resource definition, the \"description\" attribute (the schema's human-readable description) is OPTIONAL."
   lines: [1707, 1707]
   original_lines: [1705, 1705]
   record: 164
@@ -2250,6 +2409,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "When an attribute is of type \"complex\", there SHOULD be a corresponding schema attribute \"subAttributes\" defined, listing the sub-attributes of the attribute."
+  summary: "In a \"Schema\" resource definition, when an attribute has an \"attributes.type\" value of \"complex\", there SHOULD be a corresponding schema attribute \"subAttributes\" defined that lists the sub-attributes of the attribute."
   lines: [1719, 1722]
   original_lines: [1715, 1719]
   record: 165
@@ -2265,6 +2425,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When applicable, service providers MUST specify the description."
+  summary: "In a \"Schema\" resource definition, when applicable, service providers MUST specify the \"attributes.description\" sub-attribute (the attribute's human-readable description)."
   lines: [1731, 1732]
   original_lines: [1728, 1729]
   record: 166
@@ -2279,6 +2440,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A collection of suggested canonical values that MAY be used (e.g., \"work\" and \"home\")."
+  summary: "In a \"Schema\" resource definition, the \"attributes.canonicalValues\" sub-attribute specifies a collection of suggested canonical values that MAY be used (e.g., \"work\" and \"home\")."
   lines: [1746, 1747]
   original_lines: [1743, 1744]
   record: 167
@@ -2293,6 +2455,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "In some cases, service providers MAY choose to ignore unsupported values."
+  summary: "With respect to \"attributes.canonicalValues\" in a \"Schema\" resource definition, service providers MAY in some cases choose to ignore unsupported values."
   lines: [1747, 1748]
   original_lines: [1744, 1745]
   record: 168
@@ -2307,6 +2470,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "OPTIONAL."
+  summary: "In a \"Schema\" resource definition, the \"attributes.canonicalValues\" sub-attribute (a collection of suggested canonical values) is OPTIONAL."
   lines: [1748, 1748]
   original_lines: [1745, 1745]
   record: 169
@@ -2321,6 +2485,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The server SHALL use case sensitivity when evaluating filters."
+  summary: "As specified by the \"attributes.caseExact\" sub-attribute in a \"Schema\" resource definition, the server SHALL use case sensitivity when evaluating filters."
   lines: [1751, 1752]
   original_lines: [1748, 1749]
   record: 170
@@ -2335,6 +2500,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "For attributes that are case exact, the server SHALL preserve case for any value submitted."
+  summary: "For string attributes where the \"attributes.caseExact\" schema sub-attribute is true (case exact), the server SHALL preserve case for any value submitted."
   lines: [1752, 1754]
   original_lines: [1749, 1751]
   record: 171
@@ -2349,6 +2515,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "If the attribute is case insensitive, the server MAY alter case for a submitted value."
+  summary: "For string attributes where the \"attributes.caseExact\" schema sub-attribute is false (case insensitive), the server MAY alter case for a submitted value."
   lines: [1754, 1755]
   original_lines: [1751, 1752]
   record: 172
@@ -2363,6 +2530,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Case sensitivity also impacts how attribute values MAY be compared against filter values (see Section 3.4.2.2 of [RFC7644])."
+  summary: "Case sensitivity specified by the \"attributes.caseExact\" schema sub-attribute also impacts how attribute values MAY be compared against filter values (see Section 3.4.2.2 of RFC 7644)."
   lines: [1755, 1757]
   original_lines: [1752, 1754]
   record: 173
@@ -2377,6 +2545,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The attribute SHALL NOT be modified."
+  summary: "When an attribute's \"attributes.mutability\" schema sub-attribute is set to \"readOnly\", the attribute SHALL NOT be modified."
   lines: [1762, 1762]
   original_lines: [1759, 1759]
   record: 174
@@ -2391,6 +2560,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The attribute MAY be updated and read at any time."
+  summary: "When an attribute's \"attributes.mutability\" schema sub-attribute is set to \"readWrite\" (the default value), the attribute MAY be updated and read at any time."
   lines: [1764, 1764]
   original_lines: [1761, 1761]
   record: 175
@@ -2405,6 +2575,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The attribute MAY be defined at resource creation (e.g., POST) or at record replacement via a request (e.g., a PUT)."
+  summary: "When an attribute's \"attributes.mutability\" schema sub-attribute is set to \"immutable\", the attribute MAY be defined at resource creation (e.g., POST) or at record replacement via a request (e.g., PUT)."
   lines: [1767, 1769]
   original_lines: [1764, 1766]
   record: 176
@@ -2419,6 +2590,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The attribute SHALL NOT be updated."
+  summary: "When an attribute's \"attributes.mutability\" schema sub-attribute is set to \"immutable\", the attribute SHALL NOT be updated after creation."
   lines: [1769, 1769]
   original_lines: [1766, 1766]
   record: 177
@@ -2434,6 +2606,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The attribute MAY be updated at any time."
+  summary: "When an attribute's \"attributes.mutability\" schema sub-attribute is set to \"writeOnly\", the attribute MAY be updated at any time."
   lines: [1771, 1771]
   original_lines: [1768, 1768]
   record: 178
@@ -2448,6 +2621,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Attribute values SHALL NOT be returned (e.g., because the value is a stored hash)."
+  summary: "When an attribute's \"attributes.mutability\" schema sub-attribute is set to \"writeOnly\", attribute values SHALL NOT be returned (e.g., because the value is a stored hash)."
   lines: [1771, 1773]
   original_lines: [1768, 1770]
   record: 179
@@ -2462,6 +2636,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A service provider MAY allow attributes to be used in a search filter."
+  summary: "When an attribute's \"attributes.returned\" schema sub-attribute is set to \"never\" (meaning the attribute is never returned), a service provider MAY still allow the attribute to be used in a search filter."
   lines: [1787, 1788]
   original_lines: [1784, 1785]
   record: 180
@@ -2476,6 +2651,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A server MAY reject an invalid value based on uniqueness by returning HTTP response code 400 (Bad Request)."
+  summary: "With respect to the \"attributes.uniqueness\" schema sub-attribute, a server MAY reject an invalid attribute value based on uniqueness by returning HTTP response code 400 (Bad Request)."
   lines: [1815, 1817]
   original_lines: [1812, 1814]
   record: 181
@@ -2490,6 +2666,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A client MAY enforce uniqueness on the client side to a greater degree than the service provider enforces."
+  summary: "With respect to the \"attributes.uniqueness\" schema sub-attribute, a client MAY enforce uniqueness on the client side to a greater degree than the service provider enforces."
   lines: [1817, 1819]
   original_lines: [1814, 1816]
   record: 182
@@ -2505,6 +2682,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The value SHOULD be unique within the context of the current SCIM endpoint (or tenancy)"
+  summary: "When an attribute's \"attributes.uniqueness\" schema sub-attribute is set to \"server\", the attribute value SHOULD be unique within the context of the current SCIM endpoint (or tenancy)."
   lines: [1826, 1829]
   original_lines: [1823, 1826]
   record: 183
@@ -2519,6 +2697,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "MAY be globally unique (e.g., a \"username\", email address, or other server-generated key or counter)."
+  summary: "When an attribute's \"attributes.uniqueness\" schema sub-attribute is set to \"server\", the attribute value MAY also be globally unique (e.g., a \"username\", email address, or other server-generated key or counter)."
   lines: [1826, 1829]
   original_lines: [1823, 1826]
   record: 184
@@ -2534,6 +2713,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "No two resources on the same server SHOULD possess the same value."
+  summary: "When an attribute's \"attributes.uniqueness\" schema sub-attribute is set to \"server\", no two resources on the same server SHOULD possess the same value for that attribute."
   lines: [1829, 1830]
   original_lines: [1826, 1827]
   record: 185
@@ -2548,6 +2728,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The value SHOULD be globally unique (e.g., an email address, a GUID, or other value)."
+  summary: "When an attribute's \"attributes.uniqueness\" schema sub-attribute is set to \"global\", the attribute value SHOULD be globally unique (e.g., an email address, a GUID, or other value)."
   lines: [1832, 1833]
   original_lines: [1829, 1830]
   record: 186
@@ -2563,6 +2744,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "No two resources on any server SHOULD possess the same value."
+  summary: "When an attribute's \"attributes.uniqueness\" schema sub-attribute is set to \"global\", no two resources on any server SHOULD possess the same value for that attribute."
   lines: [1833, 1834]
   original_lines: [1830, 1831]
   record: 187
@@ -2578,6 +2760,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "While the SCIM protocol uses cleartext passwords for value assignment and equality-testing purposes, password values MUST NOT be stored in cleartext form."
+  summary: "While the SCIM protocol uses cleartext passwords for value assignment and equality-testing purposes, password values MUST NOT be stored in cleartext form."
   lines: [5094, 5096]
   original_lines: [5115, 5117]
   record: 189
@@ -2593,6 +2776,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Administrators should undertake industry best practices to protect the storage of credentials and in particular SHOULD follow recommendations outlined in Section 5.1.4.1 of [RFC6819]."
+  summary: "Administrators should undertake industry best practices to protect the storage of credentials and in particular SHOULD follow the recommendations outlined in Section 5.1.4.1 of RFC 6819."
   lines: [5098, 5100]
   original_lines: [5119, 5121]
   record: 190
@@ -2608,6 +2792,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The value MAY also be an industry name or organization name."
+  summary: "In the SCIM IANA URN sub-namespace specification template, the \"name\" element (a required US-ASCII string defining a major namespace of a SCIM schema) MAY also be an industry name or organization name."
   lines: [5287, 5288]
   original_lines: [5308, 5309]
   record: 191
@@ -2623,6 +2808,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "other Any US-ASCII string that conforms to the URN syntax requirements (see [RFC2141]) and defines the sub-namespace (which MAY be further broken down in namespaces delimited by colons) as needed to uniquely identify a schema."
+  summary: "In the SCIM IANA URN sub-namespace specification template, the \"other\" element is any US-ASCII string conforming to RFC 2141 URN syntax requirements that defines the sub-namespace (which MAY be further broken down into namespaces delimited by colons) as needed to uniquely identify a schema."
   lines: [5290, 5294]
   original_lines: [5311, 5315]
   record: 192
@@ -2638,6 +2824,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Once a name has been allocated, it MUST NOT be reallocated for a different purpose."
+  summary: "In the SCIM IANA URN sub-namespace registration template, once a namespace name has been allocated, it MUST NOT be reallocated for a different purpose."
   lines: [5317, 5318]
   original_lines: [5338, 5339]
   record: 193
@@ -2653,6 +2840,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The rules provided for assignments of values within a sub-namespace MUST be constructed so that the meanings of values cannot change."
+  summary: "In the SCIM IANA URN sub-namespace registration template, the rules provided for assignments of values within a sub-namespace MUST be constructed so that the meanings of values cannot change."
   lines: [5318, 5320]
   original_lines: [5339, 5341]
   record: 194
@@ -2668,6 +2856,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Registration of new \"core\" schemas (e.g., in the namespace \"urn:ietf:params:scim:schemas:core\") and \"API\" schemas (e.g., in the namespace \"urn:ietf:params:scim:api\") MUST be reviewed by the designated expert and published in an RFC."
+  summary: "Registration of new SCIM \"core\" schemas (e.g., in the namespace \"urn:ietf:params:scim:schemas:core\") and \"API\" schemas (e.g., in the namespace \"urn:ietf:params:scim:api\") MUST be reviewed by the designated expert and published in an RFC."
   lines: [5390, 5393]
   original_lines: [5411, 5414]
   record: 195
@@ -2683,6 +2872,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "An RFC is REQUIRED for the registration of new value data types that modify existing properties."
+  summary: "In the SCIM IANA registration procedure, an RFC is REQUIRED for the registration of new value data types that modify existing properties."
   lines: [5393, 5395]
   original_lines: [5414, 5416]
   record: 196
@@ -2698,6 +2888,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "An RFC is also REQUIRED for registration of SCIM schema URIs that modify SCIM schema previously documented in an existing RFC."
+  summary: "In the SCIM IANA registration procedure, an RFC is REQUIRED for the registration of SCIM schema URIs that modify a SCIM schema previously documented in an existing RFC."
   lines: [5395, 5397]
   original_lines: [5416, 5418]
   record: 197
@@ -2713,6 +2904,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "URNs within \"urn:ietf:params:scim\" but outside the above namespaces MAY be registered with a simple review (e.g., check for spam) by the designated expert on a first-come-first-served basis."
+  summary: "URNs within \"urn:ietf:params:scim\" that are outside the \"core\" and \"API\" schema namespaces MAY be registered with a simple review (e.g., a check for spam) by the designated expert on a first-come-first-served basis."
   lines: [5397, 5399]
   original_lines: [5418, 5420]
   record: 198
@@ -2728,6 +2920,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "An RFC specifying one or more new schema URIs MUST include the completed registration templates"
+  summary: "An RFC specifying one or more new SCIM schema URIs MUST include the completed IANA registration templates in the body of the document."
   lines: [5426, 5428]
   original_lines: [5447, 5449]
   record: 199
@@ -2743,6 +2936,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "which MAY be expanded with additional information."
+  summary: "The completed registration templates included in an RFC specifying one or more new SCIM schema URIs MAY be expanded with additional information."
   lines: [5426, 5428]
   original_lines: [5447, 5449]
   record: 200
@@ -2758,6 +2952,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The RFC SHOULD include any attributes defined."
+  summary: "An RFC specifying one or more new SCIM schema URIs SHOULD include any attributes defined for those schemas."
   lines: [5430, 5430]
   original_lines: [5451, 5451]
   record: 201

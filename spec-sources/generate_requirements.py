@@ -15,6 +15,7 @@ Entry fields
   subject      label_path (attribute, parameter, ...), empty if the RFC text names none
   level        MUST | SHOULD | MAY      polarity  positive | negative
   quote        the sentence (or, for a mixed sentence, the clause) verbatim from rfcNNNN-fixed.txt
+  summary      self-contained 1-sentence normative summary (preserved across regenerations by id)
   lines        [first, last] in rfcNNNN-fixed.txt; original_lines: the same in the untouched rfcNNNN.txt
   record       n of the record in normative-rfcNNNN.json
   in_table     (only if true) the quote is a cell of an ASCII table; `lines` span the table row
@@ -70,7 +71,7 @@ def amended_by(rfc):
 
 
 def prior_judgments(path):
-    """{id: (disposition, reason)} from an existing catalog, so regenerating keeps hand-set values."""
+    """{id: [disposition, reason, summary]} from an existing catalog, so regenerating keeps hand-set values."""
     out, cur = {}, None
     if not os.path.exists(path):
         return out
@@ -80,11 +81,12 @@ def prior_judgments(path):
     for line in open(path, encoding="utf-8"):
         m = re.match(r"^- id:\s*(\S+)", line)
         if m:
-            cur = out.setdefault(m.group(1), ["unassigned", None])
+            cur = out.setdefault(m.group(1), ["unassigned", None, None])
             continue
-        m = re.match(r"^  (disposition|reason):\s*(.*?)\s*$", line)
+        m = re.match(r"^  (disposition|reason|summary):\s*(.*?)\s*$", line)
         if m and cur is not None:
-            cur[0 if m.group(1) == "disposition" else 1] = json.loads(m.group(2))
+            idx = {"disposition": 0, "reason": 1, "summary": 2}[m.group(1)]
+            cur[idx] = json.loads(m.group(2))
     return out
 
 
@@ -102,20 +104,24 @@ def entries(rfc, prior=None):
     while len({(r["section"], d[:size]) for r, d in zip(recs, digests)}) < len(recs):
         size += 1  # extend the prefix on the (very unlikely) chance that two 6-digit prefixes collide
     for r, d in zip(recs, digests):
+        disposition, reason, summary = (prior or {}).get(f"RFC{rfc}-{r['section']}-{d[:size]}", ("unassigned", None, None))
         e = {
             "id": f"RFC{rfc}-{r['section']}-{d[:size]}",
             "rfc": rfc, "section": r["section"],
             "subject": r["label_path"], "level": r["level"], "polarity": r["polarity"],
             "quote": r.get("clause") or r["text"],
-            "lines": r["lines"], "original_lines": r["original_lines"], "record": r["n"],
         }
+        if summary:
+            e["summary"] = summary
+        e.update({
+            "lines": r["lines"], "original_lines": r["original_lines"], "record": r["n"],
+        })
         if r.get("in_table"):
             e["in_table"] = True
         if r.get("errata"):
             e["errata"] = r["errata"]
         if r["n"] in amended:
             e["amended_by"] = amended[r["n"]]
-        disposition, reason = (prior or {}).get(e["id"], ("unassigned", None))
         e.update(area=cfg.area_of(rfc, r["section"]), capability=cfg.capability_of(rfc, r["section"], r["label_path"]),
                  disposition=disposition)
         if reason:
@@ -140,7 +146,7 @@ def emit(e):
 def main():
     prior = prior_judgments(OUT)
     es = entries(RFC, prior)
-    vanished = [i for i, (d, _) in prior.items() if d != "unassigned" and i not in {e["id"] for e in es}]
+    vanished = [i for i, (d, _, _) in prior.items() if d != "unassigned" and i not in {e["id"] for e in es}]
     if vanished:
         print(f"WARNING: {len(vanished)} hand-set disposition(s) belong to ids that no longer exist "
               f"(the sentence changed): {', '.join(vanished)}")

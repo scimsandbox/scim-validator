@@ -44,6 +44,7 @@ class SpecMatrixGenerator {
         String level
         String polarity
         String quote
+        String summary
         String area
         String capability
         String disposition
