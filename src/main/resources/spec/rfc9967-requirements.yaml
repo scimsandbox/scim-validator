@@ -1,7 +1,7 @@
 # RFC 9967: requirements generated from normative-rfc9967.json (generate_requirements.py)
 # One entry per upper-case-keyword sentence of rfc9967-fixed.txt (RFC text + Verified errata).
-# Do not edit by hand: regenerate. capability/disposition/legacy_ids are filled
-# through the overlay described in README.md.
+# Structural fields are regenerated deterministically; curated fields (summary, disposition, reason)
+# are preserved by id across regenerations (see spec-sources/README.md).
 
 - id: RFC9967-2.1-6289f0
   rfc: "9967"
@@ -10,6 +10,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "SCIM Events MUST use the \"sub_id\" claim, defined by [RFC9493], to identify the subject of events."
+  summary: "SCIM Events MUST use the \"sub_id\" claim, defined by [RFC9493], to identify the subject of events."
   lines: [255, 256]
   original_lines: [255, 256]
   record: 2
@@ -24,6 +25,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The \"sub_id\" claim MUST be contained within the main JWT claims body"
+  summary: "In a SCIM Event, the \"sub_id\" claim identifying the subject MUST be contained within the main JWT claims body."
   lines: [256, 258]
   original_lines: [256, 258]
   record: 3
@@ -38,6 +40,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "MUST NOT be located within an event payload within the \"events\" claim."
+  summary: "In a SCIM Event, the \"sub_id\" claim identifying the subject MUST NOT be located within an event payload within the \"events\" claim."
   lines: [256, 258]
   original_lines: [256, 258]
   record: 4
@@ -52,6 +55,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The JWT \"sub\" claim MUST NOT be used to identify subjects to prevent confusion with JWT authorization tokens (originally recommended in Section 3 of [RFC8417])."
+  summary: "In SCIM Events, the JWT \"sub\" claim MUST NOT be used to identify subjects to prevent confusion with JWT authorization tokens (originally recommended in Section 3 of [RFC8417])."
   lines: [262, 264]
   original_lines: [262, 264]
   record: 5
@@ -66,6 +70,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Instead of \"sub\", the top-level claim \"sub_id\" SHALL be used."
+  summary: "Instead of the JWT \"sub\" claim, the top-level claim \"sub_id\" SHALL be used to identify the subject of a SCIM Event."
   lines: [282, 282]
   original_lines: [282, 282]
   record: 6
@@ -80,6 +85,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "This attribute MUST be provided in a SCIM Event \"sub_id\" claim."
+  summary: "The \"uri\" attribute, which specifies the SCIM relative path for the resource (consisting of the resource type endpoint plus the resource \"id\"), MUST be provided in a SCIM Event \"sub_id\" claim."
   lines: [291, 292]
   original_lines: [291, 292]
   record: 7
@@ -94,6 +100,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "In cases where the Event Receiver is unable to match a URI, the Event Receiver MAY issue a callback to a previously agreed SCIM service provider Base URI plus the relative \"uri\" value and perform a SCIM GET request per Section 3.4.1 of [RFC7644]."
+  summary: "In cases where the Event Receiver is unable to match a resource URI in a SCIM Event \"sub_id\" claim, the Event Receiver MAY issue a callback to a previously agreed SCIM service provider Base URI plus the relative \"uri\" value and perform a SCIM GET request per Section 3.4.1 of [RFC7644]."
   lines: [294, 298]
   original_lines: [294, 298]
   record: 8
@@ -109,6 +116,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "If known, the \"externalId\" value (defined in Section 3.1 of [RFC7643]) of the SCIM resource that MAY be used by a receiver to identify the corresponding resource in the Event Receiver's domain."
+  summary: "In a SCIM Event \"sub_id\" claim, the \"externalId\" attribute provides, if known, the \"externalId\" value (defined in Section 3.1 of [RFC7643]) of the SCIM resource that MAY be used by a receiver to identify the corresponding resource in the Event Receiver's domain."
   lines: [301, 304]
   original_lines: [301, 304]
   record: 9
@@ -123,6 +131,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The SCIM \"id\" attribute (defined in Section 3.1 of [RFC7643]) MAY be used for backwards compatibility reasons in addition to the \"uri\" claim."
+  summary: "In a SCIM Event \"sub_id\" claim, the SCIM \"id\" attribute (defined in Section 3.1 of [RFC7643]) MAY be used for backwards compatibility reasons in addition to the \"uri\" claim."
   lines: [307, 309]
   original_lines: [307, 309]
   record: 10
@@ -137,6 +146,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "In cases where SCIM identifiers (\"id\" and \"externalId\") are not enough to identify a common resource between an Event Publisher and Event Receiver, the \"sub_id\" object MAY contain attributes whose SCIM attribute types have \"uniqueness\" set to \"server\" or \"global\" as per Section 7 of [RFC7643]."
+  summary: "In cases where SCIM identifiers (\"id\" and \"externalId\") are not enough to identify a common resource between an Event Publisher and Event Receiver, the \"sub_id\" object MAY contain attributes whose SCIM attribute types have \"uniqueness\" set to \"server\" or \"global\" as per Section 7 of [RFC7643]."
   lines: [311, 315]
   original_lines: [311, 315]
   record: 11
@@ -151,6 +161,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Only one of the claims, \"data\" or \"attributes\", MUST be provided depending on the event definition."
+  summary: "Among the common SCIM Event payload attributes, only one of the claims, \"data\" or \"attributes\", MUST be provided depending on the event definition."
   lines: [325, 327]
   original_lines: [325, 327]
   record: 12
@@ -165,6 +176,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A distinct state change or transaction within a SCIM service provider MAY result in multiple SETs issued each with distinct \"jit\" values and a common \"txn\" value."
+  summary: "A distinct state change or transaction within a SCIM service provider MAY result in multiple Security Event Tokens (SETs) issued each with distinct \"jit\" values and a common \"txn\" value."
   lines: [337, 340]
   original_lines: [337, 340]
   record: 13
@@ -180,6 +192,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "\"txn\" is REQUIRED to support asynchronous SCIM requests, CP, and replication to disambiguate or detect duplicate SETs regarding the same underlying transaction."
+  summary: "The \"txn\" claim, which uniquely identifies a transaction originating at a SCIM service provider, is REQUIRED to support asynchronous SCIM requests, Continuous Provisioning (CP), and replication to disambiguate or detect duplicate SETs regarding the same underlying transaction."
   lines: [340, 343]
   original_lines: [340, 343]
   record: 14
@@ -194,6 +207,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Names of modified attributes SHOULD conform to the ABNF syntax rule for \"path\" (Section 3.5.2 of [RFC7644])."
+  summary: "In the \"attributes\" event payload claim, which contains an array of attributes that were added, revised, or removed, the names of modified attributes SHOULD conform to the ABNF syntax rule for \"path\" (Section 3.5.2 of [RFC7644])."
   lines: [361, 362]
   original_lines: [361, 362]
   record: 15
@@ -208,6 +222,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When the \"data\" payload attribute is included for each of the following events, the event URI MUST end with \"full\"; otherwise, the event URI ends with \"notice\"."
+  summary: "When the \"data\" payload attribute is included for a SCIM Provisioning Event, the event URI MUST end with \"full\"; otherwise, the event URI ends with \"notice\"."
   lines: [434, 436]
   original_lines: [434, 436]
   record: 16
@@ -222,6 +237,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Exactly one of the payload attributes, \"data\" or \"attributes\", MUST be present."
+  summary: "In a SCIM Provisioning Event that uses \"full\" or \"notice\" mode, exactly one of the payload attributes, \"data\" or \"attributes\", MUST be present."
   lines: [442, 443]
   original_lines: [442, 443]
   record: 17
@@ -236,6 +252,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Both MUST NOT be present simultaneously."
+  summary: "In a SCIM Provisioning Event, the \"data\" and \"attributes\" payload attributes MUST NOT both be present simultaneously."
   lines: [443, 443]
   original_lines: [443, 443]
   record: 18
@@ -250,6 +267,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "Note that because the event may be used for replication, the \"id\" attribute that was assigned by the SCIM service provider is shared so that all replicas in the domain MAY use the same resource identifier."
+  summary: "Because the \"urn:ietf:params:scim:event:prov:create:{notice|full}\" provisioning create event may be used for replication, the \"id\" attribute assigned by the SCIM service provider is shared so that all replicas in the domain MAY use the same resource identifier."
   lines: [449, 452]
   original_lines: [449, 452]
   record: 19
@@ -264,6 +282,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "The Event Receiver MAY retrieve that information by performing a SCIM GET based on the \"sub_id\" value provided."
+  summary: "When a \"urn:ietf:params:scim:event:prov:create:notice\" event notifies the Event Receiver of which attributes have changed without conveying the actual values, the Event Receiver MAY retrieve that information by performing a SCIM GET request based on the \"sub_id\" value provided."
   lines: [516, 517]
   original_lines: [516, 517]
   record: 20
@@ -278,6 +297,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "When a DELETE is sent, a corresponding \"feedRemove\" SHALL NOT be issued."
+  summary: "When a \"urn:ietf:params:scim:event:prov:delete\" event is sent for a resource deleted from the SCIM service provider, a corresponding \"feedRemove\" event SHALL NOT be issued."
   lines: [649, 650]
   original_lines: [649, 650]
   record: 21
@@ -292,6 +312,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Note that because the delete event has no attributes, the qualifiers \"full\" and \"notice\" SHALL NOT be used."
+  summary: "Because the \"urn:ietf:params:scim:event:prov:delete\" delete event has no payload attributes, the URI qualifiers \"full\" and \"notice\" SHALL NOT be used."
   lines: [651, 653]
   original_lines: [651, 653]
   record: 22
@@ -306,6 +327,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "The exact meaning SHOULD be agreed to by the Event Publisher and its corresponding Event Receiver."
+  summary: "For the \"urn:ietf:params:scim:event:prov:deactivate\" event indicating that a specified resource has been deactivated and disabled, the exact meaning SHOULD be agreed to by the Event Publisher and its corresponding Event Receiver."
   lines: [704, 705]
   original_lines: [704, 705]
   record: 23
@@ -321,6 +343,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "A SCIM client making SCIM HTTP requests defined in Section 3 of [RFC7644] MAY request asynchronous processing using the \"Prefer\" HTTP header as defined in Section 4.1 of [RFC7240]."
+  summary: "A SCIM client making SCIM HTTP requests defined in Section 3 of [RFC7644] MAY request asynchronous processing using the \"Prefer\" HTTP header as defined in Section 4.1 of [RFC7240]."
   lines: [719, 721]
   original_lines: [719, 721]
   record: 24
@@ -335,6 +358,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The HTTP \"Accept\" header MUST be ignored for purposes of an asynchronous response."
+  summary: "When a SCIM client initiates an asynchronous SCIM request with the HTTP \"Prefer\" header set to \"respond-async\", the HTTP \"Accept\" header MUST be ignored for purposes of an asynchronous response."
   lines: [730, 731]
   original_lines: [730, 731]
   record: 25
@@ -349,6 +373,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Additionally, per Section 4.3 of [RFC7240], the \"wait\" preference SHOULD be supported to establish a maximum time before a SCIM service provider MAY choose to respond asynchronously."
+  summary: "When handling an asynchronous SCIM request, per Section 4.3 of [RFC7240], the \"wait\" preference SHOULD be supported to establish a maximum time before a SCIM service provider may choose to respond asynchronously."
   lines: [731, 733]
   original_lines: [731, 733]
   record: 26
@@ -363,6 +388,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The asynchronous response MUST contain no response body."
+  summary: "When a SCIM service provider returns HTTP status code 202 (Accepted) for an asynchronous SCIM request, the asynchronous response MUST contain no response body."
   lines: [736, 737]
   original_lines: [736, 737]
   record: 27
@@ -377,6 +403,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "To enable correlation of the future event, the HTTP response header \"Set-Txn\" (see Section 3) is returned with a value that MUST match the \"txn\" claim in a subsequent Security Event Token."
+  summary: "To enable correlation of the future event for an asynchronous SCIM request, the HTTP response header \"Set-Txn\" is returned with a value that MUST match the \"txn\" claim in a subsequent Security Event Token."
   lines: [737, 740]
   original_lines: [737, 740]
   record: 28
@@ -391,6 +418,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The \"Location\" header value MUST be one of the following: (a) a URI"
+  summary: "In an asynchronous SCIM 202 (Accepted) response, the \"Location\" header value MUST be either (a) a URI where the completion SCIM Event Token can be retrieved using HTTP GET or (b) the normal SCIM Location header response specified by [RFC7644]."
   lines: [741, 744]
   original_lines: [741, 744]
   record: 29
@@ -405,6 +433,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "where the completion SCIM Event Token MAY be retrieved using HTTP GET or (b) the normal SCIM location header response specified by [RFC7644]."
+  summary: "When the \"Location\" header in an asynchronous SCIM 202 (Accepted) response provides a completion URI rather than the normal SCIM Location header response, the completion SCIM Event Token MAY be retrieved from that URI using HTTP GET."
   lines: [741, 744]
   original_lines: [741, 744]
   record: 30
@@ -419,6 +448,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "When an asynchronous response is requested, a single Asynchronous Request Completion Event MUST be generated for each requested operation."
+  summary: "When an asynchronous response is requested for a SCIM bulk request, a single Asynchronous Request Completion Event MUST be generated for each requested operation."
   lines: [787, 789]
   original_lines: [787, 789]
   record: 31
@@ -433,6 +463,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The \"txn\" claim MUST be set to the value originally returned to the requesting SCIM client (see Section 2.5.1.1) appended with a colon \":\" and the zero-based array index of the operation expressed in the \"Operations\" attribute of the original bulk request."
+  summary: "In an Asynchronous Request Completion Event for a bulk request operation, the \"txn\" claim MUST be set to the value originally returned to the requesting SCIM client appended with a colon \":\" and the zero-based array index of the operation expressed in the \"Operations\" attribute of the original bulk request."
   lines: [793, 796]
   original_lines: [793, 796]
   record: 32
@@ -447,6 +478,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "The \"bulkId\" parameter MUST NOT be used for this purpose as it is a temporary identifier and is not required for every operation."
+  summary: "In an Asynchronous Request Completion Event for a bulk request operation, the \"bulkId\" parameter MUST NOT be used to construct the \"txn\" claim value as it is a temporary identifier and is not required for every operation."
   lines: [796, 798]
   original_lines: [796, 798]
   record: 33
@@ -461,6 +493,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "If a SCIM service provider optimizes the sequence of operations (per Section 3.7 of [RFC7644]), the Asynchronous Request Completion Events MAY be generated out of sequence from the original request."
+  summary: "If a SCIM service provider optimizes the sequence of operations in an asynchronous bulk request (per Section 3.7 of [RFC7644]), the Asynchronous Request Completion Events MAY be generated out of sequence from the original request."
   lines: [808, 810]
   original_lines: [808, 810]
   record: 34
@@ -475,6 +508,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "In this case, the \"txn\" claims in those events MUST use operation numbers that correspond to the order in the original request."
+  summary: "When Asynchronous Request Completion Events for an asynchronous bulk request are generated out of sequence due to operation sequence optimization, the \"txn\" claims in those events MUST use operation numbers that correspond to the order in the original request."
   lines: [810, 812]
   original_lines: [810, 812]
   record: 35
@@ -489,6 +523,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "In the event, the \"txn\" claim MUST be set to the value originally returned to the requesting SCIM client (see Section 2.5.1.1)."
+  summary: "In the \"urn:ietf:params:scim:event:misc:asyncresp\" Asynchronous Response Event signaling the completion of a SCIM request, the \"txn\" claim MUST be set to the value originally returned to the requesting SCIM client."
   lines: [819, 821]
   original_lines: [819, 821]
   record: 36
@@ -503,6 +538,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "If an error occurs during asynchronous processing, the event operation MUST include a \"response\" attribute indicating a non- 200-series HTTP status as defined in Section 3.7 of [RFC7644], and that \"response\" attribute MUST contain the sub-attributes defined in Section 3.12 of [RFC7644]."
+  summary: "If an error occurs during asynchronous processing of a SCIM request, the \"urn:ietf:params:scim:event:misc:asyncresp\" event operation MUST include a \"response\" attribute indicating a non-200-series HTTP status as defined in Section 3.7 of [RFC7644], and that \"response\" attribute MUST contain the error sub-attributes defined in Section 3.12 of [RFC7644]."
   lines: [846, 850]
   original_lines: [846, 850]
   record: 37
@@ -517,6 +553,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The header field MUST be used in SCIM responses when HTTP status code 202 (Accepted) is being returned with no message body."
+  summary: "The \"Set-Txn\" HTTP response header field MUST be used in SCIM responses when HTTP status code 202 (Accepted) is being returned with no message body for an asynchronous request."
   lines: [988, 990]
   original_lines: [988, 990]
   record: 38
@@ -531,6 +568,7 @@
   level: "SHOULD"
   polarity: "negative"
   quote: "Intermediaries SHOULD NOT insert, modify, or delete the field's value."
+  summary: "HTTP intermediaries SHOULD NOT insert, modify, or delete the value of the \"Set-Txn\" HTTP response header field."
   lines: [998, 999]
   original_lines: [998, 999]
   record: 39
@@ -546,6 +584,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "SCIM clients MAY ignore the header in cases where confirmation of completion is not required."
+  summary: "SCIM clients MAY ignore the \"Set-Txn\" HTTP response header in cases where confirmation of asynchronous request completion is not required."
   lines: [1001, 1002]
   original_lines: [1001, 1002]
   record: 40
@@ -561,6 +600,7 @@
   level: "MAY"
   polarity: "positive"
   quote: "This attribute is OPTIONAL, and when absent, it indicates the SCIM service provider does not support or is not currently configured for Security Events."
+  summary: "In the Events Discovery Schema for Service Provider Configuration, the \"securityEvents\" complex attribute (which specifies available capabilities related to asynchronous Security Events) is OPTIONAL, and when absent, it indicates the SCIM service provider does not support or is not currently configured for Security Events."
   lines: [1014, 1017]
   original_lines: [1014, 1017]
   record: 41
@@ -575,6 +615,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "In such cases, SET Transmitters and SET Recipients MUST protect the confidentiality of the SET contents in transit using TLS [BCP195]."
+  summary: "When Security Event Tokens (SETs) contain sensitive information such as Personally Identifiable Information (PII), SET Transmitters and SET Recipients MUST protect the confidentiality of the SET contents in transit using TLS [BCP195]."
   lines: [1053, 1055]
   original_lines: [1053, 1055]
   record: 42
@@ -590,6 +631,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "Similarly, Event Receivers MUST ensure events are persisted directly or indirectly to meet local recovery needs before acknowledging the SET Events were received."
+  summary: "When coordinating provisioning between entities, Event Receivers MUST ensure events are persisted directly or indirectly to meet local recovery needs before acknowledging that the SET Events were received."
   lines: [1062, 1065]
   original_lines: [1062, 1065]
   record: 43
@@ -605,6 +647,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "To mitigate this, access to event recovery and forwarding MUST be limited to the parties needed to support recovery or SET forwarding."
+  summary: "To mitigate the risk of an attacker leveraging transaction or signal information contained in a SET Event Publisher or Receiver system, access to event recovery and forwarding MUST be limited to the parties needed to support recovery or SET forwarding."
   lines: [1068, 1070]
   original_lines: [1068, 1070]
   record: 44
@@ -619,6 +662,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "To mitigate, Event Receivers MUST verify the originator of a SET using JSON Web Signature (JWS) [RFC7515] signatures when the Event Publisher is not communicating directly with the Event Receiver."
+  summary: "To mitigate the risk of an attacker or intermediate system inserting an event, Event Receivers MUST verify the originator of a SET using JSON Web Signature (JWS) [RFC7515] signatures when the Event Publisher is not communicating directly with the Event Receiver."
   lines: [1075, 1077]
   original_lines: [1075, 1077]
   record: 45
@@ -634,6 +678,7 @@
   level: "SHOULD"
   polarity: "positive"
   quote: "Instead, it is RECOMMENDED to use SCIM PATCH (Section 3.5.2 of [RFC7644]) to focus on updating and notifying about changed information."
+  summary: "To avoid conveying excessive data in Security Event payloads (such as when using SCIM PUT with large SCIM Groups), it is RECOMMENDED to use SCIM PATCH (Section 3.5.2 of [RFC7644]) to focus on updating and notifying about changed information."
   lines: [1092, 1094]
   original_lines: [1092, 1094]
   record: 46
@@ -649,6 +694,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "To mitigate, the returned URI endpoint MUST be protected and requires an HTTP Authorization header or some other form of client authentication."
+  summary: "To prevent unauthorized entities from obtaining Asynchronous Request Completion Event information from the result URI returned in a SCIM Accepted response, the returned URI endpoint MUST be protected and require an HTTP Authorization header or some other form of client authentication."
   lines: [1114, 1116]
   original_lines: [1114, 1116]
   record: 47
@@ -663,6 +709,7 @@
   level: "MUST"
   polarity: "negative"
   quote: "Once a name has been allocated, it MUST NOT be reallocated for a different purpose."
+  summary: "In the SCIM Event URIs Registry, once a name has been allocated, it MUST NOT be reallocated for a different purpose."
   lines: [1219, 1220]
   original_lines: [1219, 1220]
   record: 48
@@ -678,6 +725,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "The rules provided for the assignment of values within a sub-namespace MUST be constructed so that the meaning of values cannot change."
+  summary: "In the SCIM Event URIs Registry, the rules provided for the assignment of values within a sub-namespace MUST be constructed so that the meaning of values cannot change."
   lines: [1220, 1222]
   original_lines: [1220, 1222]
   record: 49
@@ -693,6 +741,7 @@
   level: "MUST"
   polarity: "positive"
   quote: "An event registration MUST include the following fields:"
+  summary: "In the SCIM Event URIs Registry, an event registration MUST include the required registration format fields."
   lines: [1227, 1227]
   original_lines: [1227, 1227]
   record: 50

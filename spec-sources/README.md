@@ -166,11 +166,11 @@ replace the earlier hand-written catalog of the same name, which covered only pa
 sentences and described them by paraphrase (it is still in git history).
 
 ```
-python3 -I generate_requirements.py 7643    # deterministic; never edit the output by hand
-python3 -I check_requirements.py 7643       # id form, verbatim quote at the cited lines, level/polarity, coverage
+python3 -I generate_requirements.py 7643    # deterministic; preserves curated summary/disposition/reason by id
+python3 -I check_requirements.py 7643       # id form, verbatim quote at the cited lines, summary, level/polarity, coverage
 ```
 
-Each entry carries the verbatim `quote`, `subject`, `level`, `polarity`, `lines`, `original_lines`,
+Each entry carries the verbatim `quote`, `summary`, `subject`, `level`, `polarity`, `lines`, `original_lines`,
 `record`, `area`, `capability`, `disposition`, and `errata`/`amended_by`/`in_table` where they apply.
 
 - **Ids** are `RFC<N>-<section>-<hash>`: the first 6 hex digits of a SHA-256 over rfc, section, subject
@@ -178,6 +178,13 @@ Each entry carries the verbatim `quote`, `subject`, `level`, `polarity`, `lines`
   An id does not change when other sentences move; it changes only if the sentence's own wording
   changes, which is when its test has to be reviewed. A test tagged with a vanished id then fails the
   traceability check. `check_requirements.py` recomputes every hash.
+- **`summary`** is a self-contained one-sentence normative statement (a curated paraphrase rather than
+  verbatim RFC text) that incorporates the section and `subject` context so bare-keyword sentences such
+  as `"REQUIRED."` or `"OPTIONAL."` are meaningful on their own in UI matrices and compliance reports.
+  Like `disposition` and `reason`, `summary` is maintained in `rfcNNNN-requirements.yaml` and preserved
+  by `id` when `generate_requirements.py` is re-run. To add or update a summary, edit the `summary` field
+  for that `id` in `src/main/resources/spec/rfcNNNN-requirements.yaml` and run `check_requirements.py`
+  (which enforces that every entry has a non-blank summary and that bare-keyword/fragment quotes are expanded).
 - **`area`** is what the requirement is about, used to group tests into spec classes: `general`,
   `attribute-model`, `resource-schemas`, `discovery`, `auth`, `resources`, `query`, `patch`, `bulk`, `me`,
   `formats`, `errors`, `versioning`, `multi-tenancy`, `security`, `registry`, `cursor-pagination`,
@@ -188,7 +195,8 @@ Each entry carries the verbatim `quote`, `subject`, `level`, `polarity`, `lines`
   (`CAPABILITY_RULES`): an approximate grouping, not a judgment of each sentence. Currently 357 of 550
   entries are `core`; `changePassword` is not assigned by any rule.
 - **`disposition`** is test-planning state that is not in the RFC. It starts as `unassigned`, then
-  `tested`, `optional`, `na` (not testable by a client, with a reason) or `gap`.
+  `tested`, `optional`, `na` (not testable by a client, with a reason) or `gap`. Like `summary`, it is
+  preserved by `id` across regenerations.
 
 `check_requirements.py` was tested against an altered quote, a wrong level, a wrong id, a tampered
 hash, a wrong capability, an invalid disposition and a missing entry; each is reported.

@@ -23,9 +23,14 @@ class SpecTraceabilitySpec extends Specification {
         def requirements = generator.loadCatalog()
         def features = generator.scanFeatures()
 
-        then: "Catalogs are non-empty"
+        then: "Catalogs are non-empty and every requirement has a self-contained summary"
         !requirements.isEmpty()
         !features.isEmpty()
+        requirements.values().every { Requirement r ->
+            String s = (r.summary ?: "").trim()
+            String q = (r.quote ?: "").trim()
+            !s.isEmpty() && (q.split(/\s+/).size() > 3 || s != q)
+        }
 
         and: "Traceability validation succeeds"
         def errors = generator.validate(requirements, features)
