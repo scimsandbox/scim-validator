@@ -27,8 +27,9 @@ class SpecTraceabilitySpec extends Specification {
         !requirements.isEmpty()
         !features.isEmpty()
         requirements.values().every { Requirement r ->
-            r.summary != null && !r.summary.trim().isEmpty() &&
-                (!(r.quote in ["REQUIRED.", "RECOMMENDED.", "OPTIONAL."]) || r.summary != r.quote)
+            String s = (r.summary ?: "").trim()
+            String q = (r.quote ?: "").trim()
+            !s.isEmpty() && (q.split(/\s+/).size() > 3 || s != q)
         }
 
         and: "Traceability validation succeeds"

@@ -48,7 +48,7 @@
 
 ### Requirements
 
-| Requirement ID | RFC | Section | Area | Level | Capability | Disposition | Status | Feature | Quote / Reason |
+| Requirement ID | RFC | Section | Area | Level | Capability | Disposition | Status | Feature | Summary / Reason |
 | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :--- | :--- |
 | RFC7643-1.2-b6ad9c | 7643 | [1.2](https://www.rfc-editor.org/rfc/rfc7643#section-1.2) | general | MAY | core | optional | Implemented | [Rfc7643GeneralSpec.groovy:16](../src/main/groovy/de/palsoftware/scim/validator/specs/Rfc7643GeneralSpec.groovy#L16) | Service provider schemas MAY be returned from the "/Schemas" endpoint. |
 | RFC7643-1.2-8bf98b | 7643 | [1.2](https://www.rfc-editor.org/rfc/rfc7643#section-1.2) | general | MUST | core | tested | Implemented | [Rfc7643GeneralSpec.groovy:34](../src/main/groovy/de/palsoftware/scim/validator/specs/Rfc7643GeneralSpec.groovy#L34) | A simple attribute (a singular or multi-valued attribute whose value is a primitive) MUST NOT contain sub-attributes. |
