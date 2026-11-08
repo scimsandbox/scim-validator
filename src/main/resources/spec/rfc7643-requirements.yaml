@@ -1,7 +1,7 @@
 # RFC 7643: requirements generated from normative-rfc7643.json (generate_requirements.py)
 # One entry per upper-case-keyword sentence of rfc7643-fixed.txt (RFC text + Verified errata).
-# Do not edit by hand: regenerate. capability/disposition/legacy_ids are filled
-# through the overlay described in README.md.
+# Structural fields are regenerated deterministically; curated fields (summary, disposition, reason)
+# are preserved by id across regenerations (see spec-sources/README.md).
 
 - id: RFC7643-1.2-b6ad9c
   rfc: "7643"

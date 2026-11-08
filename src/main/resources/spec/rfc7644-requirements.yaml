@@ -1,7 +1,7 @@
 # RFC 7644: requirements generated from normative-rfc7644.json (generate_requirements.py)
 # One entry per upper-case-keyword sentence of rfc7644-fixed.txt (RFC text + Verified errata).
-# Do not edit by hand: regenerate. capability/disposition/legacy_ids are filled
-# through the overlay described in README.md.
+# Structural fields are regenerated deterministically; curated fields (summary, disposition, reason)
+# are preserved by id across regenerations (see spec-sources/README.md).
 
 - id: RFC7644-1.2-258cd0
   rfc: "7644"

@@ -110,8 +110,12 @@ def main():
         for k in ("rfc", "section", "subject", "level", "polarity", "quote", "summary", "lines", "record", "area", "capability", "disposition"):
             if k not in e:
                 err(w, f"missing field {k}")
-        if not (e.get("summary") or "").strip():
+        summary = (e.get("summary") or "").strip()
+        quote_plain = plain(e.get("quote", ""))
+        if not summary:
             err(w, "empty summary")
+        elif plain(summary) == quote_plain and (quote_plain.rstrip(".") in LEVEL or len(quote_plain.split()) <= 3):
+            err(w, f"summary must expand bare keyword/fragment quote {e.get('quote')!r}")
         if e.get("rfc") != RFC:
             err(w, f"rfc {e.get('rfc')!r} != {RFC}")
         a, b = (e.get("lines") or [0, 0])[:2]

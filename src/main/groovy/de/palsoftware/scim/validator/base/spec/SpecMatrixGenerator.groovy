@@ -163,6 +163,7 @@ class SpecMatrixGenerator {
                         level: item.level?.toString()?.trim(),
                         polarity: item.polarity?.toString()?.trim(),
                         quote: item.quote?.toString()?.trim() ?: "",
+                        summary: item.summary?.toString()?.trim() ?: "",
                         area: item.area?.toString()?.trim() ?: "",
                         capability: item.capability?.toString()?.trim() ?: CORE,
                         disposition: item.disposition?.toString()?.trim() ?: "unassigned",
@@ -329,8 +330,9 @@ class SpecMatrixGenerator {
             } else {
                 f.specRefs.each { refId ->
                     Requirement req = requirements.get(refId)
+                    String desc = req ? (req.summary ?: req.quote) : null
                     sb.append("| ${refId} | ${escapePipes(f.label)} | ${link} | ${req ? req.rfc : '-'} | ${req ? sectionLink(req) : '-'} | " +
-                        "${req ? req.area : '-'} | ${req ? req.level : '-'} | ${f.capability} | ${req ? req.disposition : '-'} | ${stateOf(f)} | ${req ? escapePipes(req.quote) : '-'} |\n")
+                        "${req ? req.area : '-'} | ${req ? req.level : '-'} | ${f.capability} | ${req ? req.disposition : '-'} | ${stateOf(f)} | ${desc ? escapePipes(desc) : '-'} |\n")
                 }
             }
         }
@@ -406,7 +408,7 @@ class SpecMatrixGenerator {
             }
             String featureStr = req.features.isEmpty() ? "-" :
                 req.features.collect { "[${it.fileName}:${it.lineNumber}](../${SPECS_PATH}/${it.fileName}#L${it.lineNumber})" }.join(", ")
-            String text = escapePipes(req.quote)
+            String text = escapePipes(req.summary ?: req.quote)
             if (req.reason) {
                 text += " (reason: ${escapePipes(req.reason)})"
             }

@@ -1,7 +1,7 @@
 # RFC 9865: requirements generated from normative-rfc9865.json (generate_requirements.py)
 # One entry per upper-case-keyword sentence of rfc9865-fixed.txt (RFC text + Verified errata).
-# Do not edit by hand: regenerate. capability/disposition/legacy_ids are filled
-# through the overlay described in README.md.
+# Structural fields are regenerated deterministically; curated fields (summary, disposition, reason)
+# are preserved by id across regenerations (see spec-sources/README.md).
 
 - id: RFC9865-2-351699
   rfc: "9865"
