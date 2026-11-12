@@ -9,6 +9,7 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 dist/
+.scannerwork/
 
 # IDEs and editors
 .idea/
