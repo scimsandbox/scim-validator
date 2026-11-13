@@ -1,6 +1,7 @@
 package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.Rfc9967BaseSpec
+import de.palsoftware.scim.validator.base.ScimJsonSupport
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
@@ -146,8 +147,7 @@ class Rfc9967EventsSpec extends Rfc9967BaseSpec {
         given: "an asynchronously created user with a unique userName"
         Map s = creationSet()
         Map subId = s.claims.sub_id as Map
-        Set known = ["format", "uri", "externalId", "id"] as Set
-        Set extra = ((subId ?: [:]).keySet() as Set) - known
+        Set<String> extra = ScimJsonSupport.extractExtraSubIdAttributeNames(subId)
 
         when: "the retrieved resource is read"
         Response user = scimRequestQuiet().get("/Users/${s.id}")
@@ -155,9 +155,11 @@ class Rfc9967EventsSpec extends Rfc9967BaseSpec {
         then: "any additional sub_id attributes are attributes of the resource with the same value"
         assert subId != null : "RFC 9967 2.1: token has no 'sub_id'"
         assert user.statusCode() == 200
+        Map<String, Object> userMap = ScimJsonSupport.parseMap(user)
         for (String name : extra) {
-            assert user.jsonPath().get(name) == subId[name] :
-                "RFC 9967 2.1: sub_id attribute '${name}' must equal the resource's value ${user.jsonPath().get(name)} but was ${subId[name]}"
+            Object actualValue = ScimJsonSupport.getLiteralAttribute(userMap, name)
+            assert actualValue == subId[name] :
+                "RFC 9967 2.1: sub_id attribute '${name}' must equal the resource's value ${actualValue} but was ${subId[name]}"
         }
     }
 
@@ -300,10 +302,10 @@ class Rfc9967EventsSpec extends Rfc9967BaseSpec {
         when: "an asynchronous create completes and the sub_id is used for a SCIM GET"
         Map s = creationSet()
         String uri = (s.claims.sub_id as Map)?.uri
-        Response get = (uri != null) ? getUrl(resolveUrl(uri)) : null
+        Response get = hasText(uri) ? getUrl(resolveUrl(uri)) : null
 
         then: "the GET based on sub_id returns the created resource"
-        assert uri : "RFC 9967 2.1: token has no sub_id.uri"
+        assert hasText(uri) : "RFC 9967 2.1: token has no sub_id.uri"
         assert get.statusCode() == 200 : "RFC 9967 2.4.1: GET on sub_id uri '${uri}' must return 200 but was ${get.statusCode()}"
         assert get.jsonPath().getString("id") == s.id : "RFC 9967 2.4.1: GET on sub_id uri must return the resource ${s.id} but returned ${get.jsonPath().getString('id')}"
     }

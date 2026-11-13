@@ -109,14 +109,12 @@ abstract class Rfc9967BaseSpec extends ScimBaseSpec {
     }
 
     protected String resolveUrl(String ref) {
-        if (ref ==~ /(?i)^https?:.*/) return ref
-        String origin = state().scimApiUrl
-        if (BASE_PATH && ref.startsWith(BASE_PATH)) return origin + ref
-        return BASE_URL + (ref.startsWith("/") ? ref : "/" + ref)
+        return ScimUrlSecurity.resolveScimReferenceUrl(state().scimApiUrl, BASE_URL, BASE_PATH, ref)
     }
 
     protected Response getUrl(String url) {
-        return scimRequestQuiet().accept("*/*").baseUri(url).basePath("").get()
+        String safeUrl = ScimUrlSecurity.validateSameOriginUrl(state().scimApiUrl, url)
+        return scimRequestQuiet().accept("*/*").baseUri(safeUrl).basePath("").get()
     }
 
     /** GET the Location header of an accepted response (same origin only, polling while not ready). */
@@ -124,9 +122,6 @@ abstract class Rfc9967BaseSpec extends ScimBaseSpec {
         String loc = accepted.header("Location")
         assert loc : "RFC 9967 2.5.1.1: the 202 response must carry a Location header"
         String url = resolveUrl(loc)
-        if (URI.create(url).authority != URI.create(state().scimApiUrl).authority) {
-            throw new TestAbortedException("Location points to another origin (${URI.create(url).authority}); not queried to avoid leaking credentials")
-        }
         Response r = null
         for (int i = 0; i < 10; i++) {
             r = getUrl(url)
@@ -244,7 +239,7 @@ abstract class Rfc9967BaseSpec extends ScimBaseSpec {
         assert txn && loc : "RFC 9967 2.5.1.1: the 202 response must carry Set-Txn and Location"
         String url = resolveUrl(loc)
         if (!url.endsWith(txn)) throw new TestAbortedException("Location does not end with the txn value; cannot locate the per-operation events")
-        String opUrl = url + ":" + index
+        String opUrl = ScimUrlSecurity.validateSameOriginUrl(state().scimApiUrl, url + ":" + index)
         Response r = null
         for (int i = 0; i < 10; i++) {
             r = getUrl(opUrl)

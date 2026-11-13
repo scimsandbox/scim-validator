@@ -1,6 +1,7 @@
 package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
+import de.palsoftware.scim.validator.base.ScimJsonSupport
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import io.restassured.response.Response
@@ -40,15 +41,19 @@ class Rfc7644SortingPaginationSpec extends ScimBaseSpec {
     }
 
     private static List<String> valuesOf(Response r, String attr) {
-        return r.jsonPath().getList("Resources.${attr}") ?: []
+        Map<String, Object> parsed = ScimJsonSupport.parseMap(r)
+        List<?> resources = parsed.get("Resources") instanceof List ? (parsed.get("Resources") as List<?>) : []
+        return resources.collect { Object item ->
+            item instanceof Map ? ((item as Map).get(attr) as String) : null
+        }
     }
 
     private static List<String> ciSorted(List<String> values) {
-        return values.sort(false) { String a, String b -> a.toLowerCase() <=> b.toLowerCase() }
+        return values.toSorted { String a, String b -> a.toLowerCase() <=> b.toLowerCase() }
     }
 
     private static List<String> csSorted(List<String> values) {
-        return values.sort(false) { String a, String b -> a <=> b }
+        return values.toSorted { String a, String b -> a <=> b }
     }
 
     /** Three users with unique prefix; creation order differs from every sort order used by the tests. */
@@ -286,7 +291,7 @@ class Rfc7644SortingPaginationSpec extends ScimBaseSpec {
         }
 
         then: "paging by what was returned reaches every resource exactly once"
-        assert collected.sort(false) == expected.toList().sort(false) :
+        assert collected.toSorted() == expected.toList().toSorted() :
             "RFC 7644 3.4.2.4: a page with fewer results than count must still allow reaching all resources: collected ${collected}, expected ${expected}"
     }
 }

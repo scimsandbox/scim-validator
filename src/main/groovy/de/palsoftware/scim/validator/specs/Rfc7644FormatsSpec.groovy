@@ -291,6 +291,7 @@ class Rfc7644FormatsSpec extends ScimBaseSpec {
         configureRestAssured()
         def s = state()
         return RestAssured.given()
+            .config(SCIM_REST_ASSURED_CONFIG)
             .baseUri(s.scimApiUrl)
             .basePath(s.basePath)
             .filter(new ScimExchangeCaptureFilter())

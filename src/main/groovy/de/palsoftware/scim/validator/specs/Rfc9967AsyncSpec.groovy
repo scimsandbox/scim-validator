@@ -2,15 +2,19 @@ package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.CapabilityState
 import de.palsoftware.scim.validator.base.Rfc9967BaseSpec
+import de.palsoftware.scim.validator.base.ScimJsonSupport
+import de.palsoftware.scim.validator.base.ScimUrlSecurity
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import groovy.json.JsonOutput
 import io.restassured.response.Response
 import org.opentest4j.TestAbortedException
 
+import java.io.InputStream
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Duration
 
 /**
  * RFC 9967: SCIM Profile for Security Event Tokens
@@ -20,6 +24,12 @@ import java.net.http.HttpResponse
  * @SpecRef ids; spec-sources/check_spec_coverage.py enforces exactly one feature per requirement.
  */
 class Rfc9967AsyncSpec extends Rfc9967BaseSpec {
+
+    private static final int MAX_ASYNC_RESPONSE_BYTES = 4 * 1024 * 1024
+    private static final HttpClient ASYNC_HTTP_CLIENT = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofMillis(HTTP_CONNECT_TIMEOUT_MS))
+        .followRedirects(HttpClient.Redirect.NEVER)
+        .build()
 
     // RFC 9967 section 2.5.1.1 (Making an Asynchronous SCIM Request), MAY, lines 719-721
     // A SCIM client making SCIM HTTP requests defined in Section 3 of [RFC7644] MAY request asynchronous processing using the "Prefer" HTTP header as defined in Section 4.1 of [RFC7240].
@@ -69,15 +79,21 @@ class Rfc9967AsyncSpec extends Rfc9967BaseSpec {
         for (String accept : ["application/xml", "text/html"]) {
             String userName = uniqueUserName()
             asyncUserNames << userName
-            HttpRequest req = HttpRequest.newBuilder(URI.create(BASE_URL + "/Users"))
+            String usersUrl = ScimUrlSecurity.validateSameOriginUrl(state().scimApiUrl, BASE_URL + "/Users")
+            HttpRequest req = HttpRequest.newBuilder(URI.create(usersUrl))
+                .timeout(Duration.ofMillis(HTTP_SOCKET_TIMEOUT_MS))
                 .header("Authorization", "Bearer " + AUTH_TOKEN)
                 .header("Content-Type", SCIM_CONTENT_TYPE)
                 .header("Accept", accept)
                 .header("Prefer", "respond-async")
                 .POST(HttpRequest.BodyPublishers.ofString(JsonOutput.toJson([schemas: [USER_SCHEMA], userName: userName])))
                 .build()
-            HttpResponse<String> resp = HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString())
-            results << [accept: accept, status: resp.statusCode(), body: resp.body()]
+            HttpResponse<InputStream> resp = ASYNC_HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream())
+            String respBody
+            try (InputStream bodyStream = resp.body()) {
+                respBody = ScimJsonSupport.readBoundedUtf8(bodyStream, MAX_ASYNC_RESPONSE_BYTES)
+            }
+            results << [accept: accept, status: resp.statusCode(), body: respBody]
         }
 
         then: "the Accept header does not turn the asynchronous response into 406 or a body"

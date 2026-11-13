@@ -1,6 +1,7 @@
 package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
+import de.palsoftware.scim.validator.base.ScimJsonSupport
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import groovy.json.JsonOutput
@@ -513,7 +514,11 @@ class Rfc7644BulkSpec extends ScimBaseSpec {
         assert res?.size() == 2 && res.every { (it.status as String) == "201" } : "RFC 7644 3.7.2: bulk with bulkId in an extension attribute failed: ${res}"
         String mgrId = (res[0].location as String).tokenize("/").last()
         String empId = (res[1].location as String).tokenize("/").last()
-        def mv = scimRequestQuiet().get("/Users/${empId}").jsonPath().get("'${ENT}'.manager.value")
+        Map<String, Object> empMap = ScimJsonSupport.parseMap(scimRequestQuiet().get("/Users/${empId}"))
+        Object extObj = ScimJsonSupport.getLiteralAttribute(empMap, ENT)
+        Object mv = (extObj instanceof Map && (extObj as Map).get("manager") instanceof Map)
+            ? ((extObj as Map).get("manager") as Map).get("value")
+            : null
         assert mv == mgrId : "RFC 7644 3.7.2: bulkId reference in the enterprise extension manager.value must be replaced with ${mgrId}, but was '${mv}'"
     }
 
