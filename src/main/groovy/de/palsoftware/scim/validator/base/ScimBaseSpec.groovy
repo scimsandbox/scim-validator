@@ -286,7 +286,7 @@ abstract class ScimBaseSpec extends Specification {
 
     protected static String resolveSameOriginUrl(String candidateUrl) {
         RuntimeState currentState = state()
-        return ScimUrlSecurity.resolveSameOriginUrl(currentState.scimApiUrl, currentState.baseUrl, candidateUrl)
+        return ScimUrlSecurity.resolveScimReferenceUrl(currentState.scimApiUrl, currentState.baseUrl, currentState.basePath, candidateUrl)
     }
 
     /**

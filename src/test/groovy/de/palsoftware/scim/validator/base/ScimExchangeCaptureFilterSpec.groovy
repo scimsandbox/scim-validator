@@ -114,4 +114,48 @@ class ScimExchangeCaptureFilterSpec extends Specification {
         withoutSuffix.getBytes(StandardCharsets.UTF_8).length <= ScimExchangeCaptureFilter.MAX_CAPTURED_BODY_BYTES
         withoutSuffix == prefix
     }
+
+    def "filter handles disabled capture, null headers/bodies, all-sensitive headers, and edge truncation limits"() {
+        given:
+        def filter = new ScimExchangeCaptureFilter()
+        def requestSpec = Mock(FilterableRequestSpecification) {
+            getMethod() >> "DELETE"
+            getURI() >> "https://example.test/ws/123/scim/v2/Users/u-1"
+            getHeaders() >> new Headers(new Header("Authorization", "Bearer only-secret"))
+            getBody() >> null
+        }
+        def responseSpec = Mock(FilterableResponseSpecification)
+        def response = Mock(Response) {
+            statusCode() >> 204
+            getHeaders() >> null
+            getBody() >> null
+        }
+        def context = Mock(FilterContext) {
+            next(requestSpec, responseSpec) >> response
+        }
+
+        when: "capture mode is disabled"
+        Response passThrough = filter.filter(requestSpec, responseSpec, context)
+
+        then: "no exchange is recorded"
+        passThrough.is(response)
+        !ScimRunContext.isCaptureEnabled()
+
+        when: "capture mode is enabled with null response headers/body and sensitive-only request headers"
+        ScimRunContext.beginRun("run-edge")
+        ScimRunContext.beginTest("test-edge")
+        filter.filter(requestSpec, responseSpec, context)
+
+        then:
+        def exchanges = ScimRunContext.getForTest("test-edge")
+        exchanges.size() == 1
+        exchanges[0].requestHeaders == null
+        exchanges[0].requestBody == null
+        exchanges[0].responseHeaders == null
+        exchanges[0].responseBody == null
+        ScimExchangeCaptureFilter.truncateUtf8(null) == null
+        ScimExchangeCaptureFilter.truncateUtf8("short", 10) == "short"
+        ScimExchangeCaptureFilter.truncateUtf8("non-empty", 0) == ScimExchangeCaptureFilter.TRUNCATED_SUFFIX
+        ScimExchangeCaptureFilter.truncateUtf8("non-empty", -5) == ScimExchangeCaptureFilter.TRUNCATED_SUFFIX
+    }
 }

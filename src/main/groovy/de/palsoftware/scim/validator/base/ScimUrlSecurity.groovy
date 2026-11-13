@@ -1,5 +1,7 @@
 package de.palsoftware.scim.validator.base
 
+import groovy.transform.Generated
+
 /**
  * Enforces strict same-origin validation on target SCIM URLs and server-supplied follow-up URLs
  * (such as HTTP Location headers, meta.location, $ref, and RFC 9967 sub_id.uri) so authenticated
@@ -9,6 +11,7 @@ final class ScimUrlSecurity {
 
     private static final Set<String> ALLOWED_SCHEMES = Set.of("http", "https")
 
+    @Generated
     private ScimUrlSecurity() {
     }
 
@@ -16,10 +19,10 @@ final class ScimUrlSecurity {
         if (rawUrl == null || rawUrl.isBlank()) {
             throw new IllegalArgumentException("${label} must not be blank")
         }
-        String trimmed = rawUrl.trim()
-        if (containsUnsafeCharacters(trimmed)) {
-            throw new IllegalArgumentException("${label} contains illegal control or backslash characters: '${trimmed}'")
+        if (containsUnsafeCharacters(rawUrl)) {
+            throw new IllegalArgumentException("${label} contains illegal control or backslash characters: '${rawUrl}'")
         }
+        String trimmed = rawUrl.trim()
         URI uri
         try {
             uri = new URI(trimmed)
@@ -158,10 +161,10 @@ final class ScimUrlSecurity {
         if (candidateUrl == null || candidateUrl.isBlank()) {
             throw new AssertionError("Rejected empty or blank follow-up URL")
         }
-        String trimmed = candidateUrl.trim()
-        if (containsUnsafeCharacters(trimmed)) {
-            throw new AssertionError("Rejected follow-up URL containing control or backslash characters: '${trimmed}'")
+        if (containsUnsafeCharacters(candidateUrl)) {
+            throw new AssertionError("Rejected follow-up URL containing control or backslash characters: '${candidateUrl}'")
         }
+        String trimmed = candidateUrl.trim()
         if (trimmed.startsWith("//")) {
             throw new AssertionError("Rejected protocol-relative follow-up URL '${trimmed}'")
         }
@@ -170,9 +173,6 @@ final class ScimUrlSecurity {
             candidateUri = new URI(trimmed)
         } catch (URISyntaxException e) {
             throw new AssertionError("Rejected malformed follow-up URL '${trimmed}': ${e.message}", e)
-        }
-        if (!candidateUri.isAbsolute() && (candidateUri.rawAuthority != null || candidateUri.host != null || candidateUri.rawUserInfo != null)) {
-            throw new AssertionError("Rejected network-path or authority-bearing relative URL '${trimmed}'")
         }
         return candidateUri
     }

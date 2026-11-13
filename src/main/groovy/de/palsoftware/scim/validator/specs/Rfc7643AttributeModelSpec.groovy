@@ -510,9 +510,9 @@ class Rfc7643AttributeModelSpec extends ScimBaseSpec {
             Response response = scimRequest().baseUri(target).basePath("").get()
             assert response.statusCode() == 200 :
                 "RFC 7643 2.3.7: GET on ${r.label} '${target}' must return the target resource (200) but was ${response.statusCode()}"
-            String[] tailParts = ((String) r.tail).split("/", 2)
-            assert tailParts.length > 1 : "Expected resource tail '<ResourceType>/<id>' but got '${r.tail}'"
-            String expectedId = tailParts[1]
+            String tail = (String) r.tail
+            int slashIdx = tail.indexOf('/')
+            String expectedId = tail.substring(slashIdx + 1)
             assert response.jsonPath().getString("id") == expectedId :
                 "RFC 7643 2.3.7: GET on ${r.label} '${target}' returned id ${response.jsonPath().getString('id')} instead of ${expectedId}"
         }

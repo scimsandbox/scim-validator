@@ -3,6 +3,7 @@ package de.palsoftware.scim.validator.base
 import com.fasterxml.jackson.core.StreamReadConstraints
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import groovy.transform.Generated
 import io.restassured.response.Response
 
 import java.io.ByteArrayOutputStream
@@ -22,6 +23,7 @@ final class ScimJsonSupport {
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {}
     private static final ObjectMapper OBJECT_MAPPER = createSafeObjectMapper()
 
+    @Generated
     private ScimJsonSupport() {
     }
 

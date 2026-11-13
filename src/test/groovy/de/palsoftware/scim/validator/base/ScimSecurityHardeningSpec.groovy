@@ -2,8 +2,15 @@ package de.palsoftware.scim.validator.base
 
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
+import de.palsoftware.scim.validator.specs.Rfc7644MeSpec
 import groovy.json.JsonOutput
 import io.restassured.response.Response
+import io.restassured.response.ResponseBody
+import org.junit.platform.engine.discovery.DiscoverySelectors
+import org.junit.platform.launcher.LauncherDiscoveryRequest
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder
+import org.junit.platform.launcher.core.LauncherFactory
+import org.junit.platform.launcher.listeners.SummaryGeneratingListener
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -223,19 +230,304 @@ class ScimSecurityHardeningSpec extends Specification {
         localServer?.stop(0)
     }
 
-    def "bounded UTF-8 stream reader enforces size cap"() {
+    def "bounded UTF-8 stream reader and ScimJsonSupport handle null, blank, malformed, and oversized inputs safely"() {
         given:
         byte[] okPayload = ("x" * 1024).getBytes(StandardCharsets.UTF_8)
         byte[] oversizedPayload = ("y" * 2049).getBytes(StandardCharsets.UTF_8)
+        Response nullBodyResponse = Mock(Response) {
+            getBody() >> null
+        }
+        ResponseBody validBody = Stub(ResponseBody) {
+            asString() >> '{"id":"u-42","active":true}'
+        }
+        Response validResponse = Mock(Response) {
+            getBody() >> validBody
+        }
 
         expect:
+        ScimJsonSupport.readBoundedUtf8(null) == ""
         ScimJsonSupport.readBoundedUtf8(new ByteArrayInputStream(okPayload), 2048).length() == 1024
+        ScimJsonSupport.parseMap((Response) null).isEmpty()
+        ScimJsonSupport.parseMap(nullBodyResponse).isEmpty()
+        ScimJsonSupport.parseMap(validResponse) == [id: "u-42", active: true]
+        ScimJsonSupport.parseMap((String) null).isEmpty()
+        ScimJsonSupport.parseMap("   ").isEmpty()
+        ScimJsonSupport.parseMap("null").isEmpty()
+        ScimJsonSupport.getLiteralAttribute(null, "id") == null
+        ScimJsonSupport.getLiteralAttribute([id: "u-42"], null) == null
+        ScimJsonSupport.extractExtraSubIdAttributeNames(null).isEmpty()
+        ScimJsonSupport.extractExtraSubIdAttributeNames([:]).isEmpty()
+        ScimJsonSupport.extractExtraSubIdAttributeNames([(null): "ignored", format: "uri", tenantKey: "t-1"]) == ["tenantKey"] as Set
 
-        when:
+        when: "stream exceeds maxBytes"
         ScimJsonSupport.readBoundedUtf8(new ByteArrayInputStream(oversizedPayload), 2048)
 
         then:
         thrown(IllegalStateException)
+
+        when: "maxBytes is negative"
+        ScimJsonSupport.readBoundedUtf8(new ByteArrayInputStream(okPayload), -1)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when: "JSON payload is malformed"
+        ScimJsonSupport.parseMap("{unclosed-json")
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
+    @Unroll
+    def "validateOriginUri rejects invalid origin URL (#invalidUrl)"() {
+        when:
+        ScimUrlSecurity.validateOriginUri(invalidUrl, "TEST_URL")
+
+        then:
+        thrown(IllegalArgumentException)
+
+        where:
+        invalidUrl << [
+            null,
+            "",
+            "   ",
+            "https://scim.example.test/scim\r\n",
+            "https://scim.example.test/scim\u007f",
+            "https://scim.example.test\\evil",
+            "https://[::1",
+            "/relative/only",
+            "ftp://scim.example.test/scim",
+            "https://user:secret@scim.example.test/scim",
+            "http:///missing-host",
+            "http://scim.example.test:0/scim",
+            "https://scim.example.test:70000/scim"
+        ]
+    }
+
+    def "effectivePort, isSameOrigin, resolveScimReferenceUrl, and error paths enforce strict origin semantics"() {
+        given:
+        URI httpsDefault = ScimUrlSecurity.validateOriginUri("https://scim.example.test/ws/1/scim/v2")
+        URI httpDefault = ScimUrlSecurity.validateOriginUri("http://scim.example.test/ws/1/scim/v2")
+        URI httpsExplicit = ScimUrlSecurity.validateOriginUri("https://SCIM.EXAMPLE.TEST:443/Users")
+
+        expect:
+        ScimUrlSecurity.effectivePort(null) == -1
+        ScimUrlSecurity.effectivePort(new URI("/relative")) == -1
+        ScimUrlSecurity.effectivePort(new URI("ftp://scim.example.test")) == -1
+        ScimUrlSecurity.effectivePort(httpDefault) == 80
+        ScimUrlSecurity.effectivePort(httpsDefault) == 443
+        ScimUrlSecurity.isSameOrigin(httpsDefault, httpsExplicit)
+        !ScimUrlSecurity.isSameOrigin(null, httpsDefault)
+        !ScimUrlSecurity.isSameOrigin(httpsDefault, null)
+        !ScimUrlSecurity.isSameOrigin(new URI("/no-scheme"), httpsDefault)
+        !ScimUrlSecurity.isSameOrigin(httpsDefault, new URI("/relative"))
+        !ScimUrlSecurity.isSameOrigin(httpsDefault, new URI("https:///nohost"))
+        !ScimUrlSecurity.isSameOrigin(httpsDefault, new URI("https://user@scim.example.test"))
+        !ScimUrlSecurity.isSameOrigin(httpsDefault, new URI("ftp://scim.example.test"))
+
+        and: "resolveScimReferenceUrl handles absolute, basePath-prefixed, slash-prefixed, and relative paths"
+        ScimUrlSecurity.resolveScimReferenceUrl(
+            "https://scim.example.test",
+            "https://scim.example.test/ws/t1/scim/v2",
+            "/ws/t1/scim/v2",
+            "https://scim.example.test/ws/t1/scim/v2/Users/u-1"
+        ) == "https://scim.example.test/ws/t1/scim/v2/Users/u-1"
+        ScimUrlSecurity.resolveScimReferenceUrl(
+            "https://scim.example.test",
+            "https://scim.example.test/ws/t1/scim/v2",
+            "/ws/t1/scim/v2",
+            "/ws/t1/scim/v2/Events/tx-1"
+        ) == "https://scim.example.test/ws/t1/scim/v2/Events/tx-1"
+        ScimUrlSecurity.resolveScimReferenceUrl(
+            "https://scim.example.test/",
+            "https://scim.example.test/ws/t1/scim/v2/",
+            "/ws/t1/scim/v2",
+            "/ws/t1/scim/v2/Events/tx-2"
+        ) == "https://scim.example.test/ws/t1/scim/v2/Events/tx-2"
+        ScimUrlSecurity.resolveScimReferenceUrl(
+            "https://scim.example.test",
+            "https://scim.example.test/ws/t1/scim/v2",
+            "/ws/t1/scim/v2",
+            "/Users/u-2"
+        ) == "https://scim.example.test/ws/t1/scim/v2/Users/u-2"
+        ScimUrlSecurity.resolveScimReferenceUrl(
+            "https://scim.example.test",
+            "https://scim.example.test/ws/t1/scim/v2/",
+            "",
+            "Users/u-3"
+        ) == "https://scim.example.test/ws/t1/scim/v2/Users/u-3"
+        ScimUrlSecurity.resolveScimReferenceUrl(
+            "https://scim.example.test",
+            null,
+            null,
+            "/Users/u-4"
+        ) == "https://scim.example.test/Users/u-4"
+        ScimUrlSecurity.resolveSameOriginUrl("https://scim.example.test", null, "/Users/u-5") == "https://scim.example.test/Users/u-5"
+        ScimUrlSecurity.resolveSameOriginUrl("https://scim.example.test", "   ", "/Users/u-5") == "https://scim.example.test/Users/u-5"
+
+        when: "expected origin itself is invalid"
+        ScimUrlSecurity.resolveSameOriginUrl("not-an-http-origin", "https://scim.example.test", "/Users/u-1")
+
+        then:
+        thrown(AssertionError)
+
+        when: "resolution base URL is malformed"
+        ScimUrlSecurity.resolveSameOriginUrl("https://scim.example.test", "not a valid url", "/Users/u-1")
+
+        then:
+        thrown(AssertionError)
+
+        when: "candidate URL is null"
+        ScimUrlSecurity.resolveSameOriginUrl("https://scim.example.test", "https://scim.example.test", null)
+
+        then:
+        thrown(AssertionError)
+
+        when: "candidate URL has invalid URI syntax"
+        ScimUrlSecurity.resolveSameOriginUrl("https://scim.example.test", "https://scim.example.test", "http://[::1")
+
+        then:
+        thrown(AssertionError)
+    }
+
+    def "ScimBaseSpec patch follow-up and Rfc7644MeSpec 308 and 200 follow-up URLs enforce same-origin validation"() {
+        given:
+        AtomicInteger foreignHits = new AtomicInteger(0)
+        HttpServer foreignServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
+        foreignServer.createContext("/") { HttpExchange exchange ->
+            foreignHits.incrementAndGet()
+            exchange.sendResponseHeaders(200, 2)
+            exchange.responseBody.withCloseable { it.write("{}".getBytes(StandardCharsets.UTF_8)) }
+        }
+        foreignServer.start()
+        int foreignPort = foreignServer.address.port
+
+        AtomicReference<String> meMode = new AtomicReference<>("308-same-origin")
+        HttpServer scimServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
+        int scimPort = scimServer.address.port
+        scimServer.createContext("/ws/t1/scim/v2/ServiceProviderConfig") { HttpExchange exchange ->
+            byte[] body = '{"schemas":["urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"]}'.getBytes(StandardCharsets.UTF_8)
+            exchange.responseHeaders.add("Content-Type", "application/scim+json")
+            exchange.sendResponseHeaders(200, body.length)
+            exchange.responseBody.withCloseable { it.write(body) }
+        }
+        scimServer.createContext("/ws/t1/scim/v2/Users/u-me") { HttpExchange exchange ->
+            byte[] body = JsonOutput.toJson([
+                schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
+                id     : "u-me",
+                meta   : [location: "http://127.0.0.1:${scimPort}/ws/t1/scim/v2/Users/u-me"]
+            ]).getBytes(StandardCharsets.UTF_8)
+            exchange.responseHeaders.add("Content-Type", "application/scim+json")
+            exchange.sendResponseHeaders(200, body.length)
+            exchange.responseBody.withCloseable { it.write(body) }
+        }
+        scimServer.createContext("/ws/t1/scim/v2/Me") { HttpExchange exchange ->
+            String mode = meMode.get()
+            if (mode == "308-same-origin") {
+                exchange.responseHeaders.add("Location", "/ws/t1/scim/v2/Users/u-me")
+                exchange.sendResponseHeaders(308, -1)
+                exchange.close()
+            } else if (mode == "308-cross-origin") {
+                exchange.responseHeaders.add("Location", "http://127.0.0.1:${foreignPort}/ws/t1/scim/v2/Users/u-me")
+                exchange.sendResponseHeaders(308, -1)
+                exchange.close()
+            } else if (mode == "200-same-origin") {
+                byte[] body = JsonOutput.toJson([
+                    schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
+                    id     : "u-me",
+                    meta   : [location: "http://127.0.0.1:${scimPort}/ws/t1/scim/v2/Users/u-me"]
+                ]).getBytes(StandardCharsets.UTF_8)
+                exchange.responseHeaders.add("Content-Type", "application/scim+json")
+                exchange.sendResponseHeaders(200, body.length)
+                exchange.responseBody.withCloseable { it.write(body) }
+            } else {
+                byte[] body = JsonOutput.toJson([
+                    schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
+                    id     : "u-me",
+                    meta   : [location: "http://127.0.0.1:${foreignPort}/ws/t1/scim/v2/Users/u-me"]
+                ]).getBytes(StandardCharsets.UTF_8)
+                exchange.responseHeaders.add("Content-Type", "application/scim+json")
+                exchange.sendResponseHeaders(200, body.length)
+                exchange.responseBody.withCloseable { it.write(body) }
+            }
+        }
+        scimServer.start()
+
+        ValidatorConfiguration.useRunOverrides("http://127.0.0.1:${scimPort}/ws/t1/scim/v2", "me-secret-token")
+        TestSecuritySpecHarness.resetRunState()
+        TestSecuritySpecHarness.initConfig()
+        TestSecuritySpecHarness harness = new TestSecuritySpecHarness()
+
+        Response patch204 = Mock(Response) {
+            statusCode() >> 204
+        }
+        Response patch200 = Mock(Response) {
+            statusCode() >> 200
+        }
+
+        when: "resolveSameOriginUrl and resolvePatchRepresentation follow a valid 200 or 204 resource path"
+        String resolvedHelper = TestSecuritySpecHarness.resolveBaseRelative("Users/u-me")
+        Response patchDirect = harness.followPatch(patch200, "/Users/u-me")
+        Response patchFollowed = harness.followPatch(patch204, "/Users/u-me")
+
+        then:
+        resolvedHelper == "http://127.0.0.1:${scimPort}/ws/t1/scim/v2/Users/u-me"
+        patchDirect.is(patch200)
+        patchFollowed.statusCode() == 200
+        patchFollowed.jsonPath().getString("id") == "u-me"
+
+        when: "resolvePatchRepresentation receives a cross-origin resourcePath"
+        harness.followPatch(patch204, "http://127.0.0.1:${foreignPort}/Users/u-me")
+
+        then:
+        thrown(AssertionError)
+        foreignHits.get() == 0
+
+        when: "/Me responds 308 with same-origin Location"
+        meMode.set("308-same-origin")
+        def summary308Ok = executeMeSpec()
+
+        then:
+        summary308Ok.testsFailedCount == 0
+        foreignHits.get() == 0
+
+        when: "/Me responds 200 with same-origin meta.location"
+        meMode.set("200-same-origin")
+        def summary200Ok = executeMeSpec()
+
+        then:
+        summary200Ok.testsFailedCount == 0
+        foreignHits.get() == 0
+
+        when: "/Me responds 308 with cross-origin Location"
+        meMode.set("308-cross-origin")
+        def summary308Evil = executeMeSpec()
+
+        then:
+        summary308Evil.testsFailedCount >= 1
+        foreignHits.get() == 0
+
+        when: "/Me responds 200 with cross-origin meta.location"
+        meMode.set("200-cross-origin")
+        def summary200Evil = executeMeSpec()
+
+        then:
+        summary200Evil.testsFailedCount >= 1
+        foreignHits.get() == 0
+
+        cleanup:
+        TestSecuritySpecHarness.resetRunState()
+        scimServer?.stop(0)
+        foreignServer?.stop(0)
+    }
+
+    private static def executeMeSpec() {
+        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+            .selectors(DiscoverySelectors.selectClass(Rfc7644MeSpec))
+            .build()
+        SummaryGeneratingListener listener = new SummaryGeneratingListener()
+        LauncherFactory.create().execute(request, listener)
+        return listener.summary
     }
 
     private static final class TestSecuritySpecHarness extends Rfc9967BaseSpec {
@@ -253,12 +545,20 @@ class ScimSecurityHardeningSpec extends Specification {
             return createRedactingRequestLoggingFilter(stream)
         }
 
+        static String resolveBaseRelative(String candidate) {
+            return resolveSameOriginUrl(candidate)
+        }
+
         Response issueRequest(String path) {
             return scimRequest().get(path)
         }
 
         Response fetchFollowUp(String candidate) {
             return getUrl(resolveUrl(candidate))
+        }
+
+        Response followPatch(Response patchResponse, String resourcePath) {
+            return resolvePatchRepresentation(patchResponse, resourcePath)
         }
     }
 }
