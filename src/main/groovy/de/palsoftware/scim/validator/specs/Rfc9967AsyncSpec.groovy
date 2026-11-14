@@ -3,6 +3,7 @@ package de.palsoftware.scim.validator.specs
 import de.palsoftware.scim.validator.base.CapabilityState
 import de.palsoftware.scim.validator.base.Rfc9967BaseSpec
 import de.palsoftware.scim.validator.base.ScimJsonSupport
+import de.palsoftware.scim.validator.base.ScimSafeRedirectStrategy
 import de.palsoftware.scim.validator.base.ScimUrlSecurity
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
@@ -10,9 +11,7 @@ import groovy.json.JsonOutput
 import io.restassured.response.Response
 import org.opentest4j.TestAbortedException
 
-import java.io.InputStream
 import java.net.http.HttpClient
-import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 
@@ -80,15 +79,18 @@ class Rfc9967AsyncSpec extends Rfc9967BaseSpec {
             String userName = uniqueUserName()
             asyncUserNames << userName
             String usersUrl = ScimUrlSecurity.validateSameOriginUrl(state().scimApiUrl, BASE_URL + "/Users")
-            HttpRequest req = HttpRequest.newBuilder(URI.create(usersUrl))
-                .timeout(Duration.ofMillis(HTTP_SOCKET_TIMEOUT_MS))
-                .header("Authorization", "Bearer " + AUTH_TOKEN)
-                .header("Content-Type", SCIM_CONTENT_TYPE)
-                .header("Accept", accept)
-                .header("Prefer", "respond-async")
-                .POST(HttpRequest.BodyPublishers.ofString(JsonOutput.toJson([schemas: [USER_SCHEMA], userName: userName])))
-                .build()
-            HttpResponse<InputStream> resp = ASYNC_HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream())
+            Map<String, String> headers = new LinkedHashMap<>()
+            headers.put("Authorization", "Bearer " + AUTH_TOKEN)
+            headers.put("Content-Type", SCIM_CONTENT_TYPE)
+            headers.put("Accept", accept)
+            headers.put("Prefer", "respond-async")
+            HttpResponse<InputStream> resp = ScimSafeRedirectStrategy.sendPostWithSafeRedirects(
+                ASYNC_HTTP_CLIENT,
+                URI.create(usersUrl),
+                Duration.ofMillis(HTTP_SOCKET_TIMEOUT_MS),
+                headers,
+                JsonOutput.toJson([schemas: [USER_SCHEMA], userName: userName])
+            )
             String respBody
             try (InputStream bodyStream = resp.body()) {
                 respBody = ScimJsonSupport.readBoundedUtf8(bodyStream, MAX_ASYNC_RESPONSE_BYTES)

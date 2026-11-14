@@ -288,7 +288,6 @@ class Rfc7644FormatsSpec extends ScimBaseSpec {
 
     /** A request without the default Accept and Content-Type headers of scimRequest(). */
     private RequestSpecification bareRequest() {
-        configureRestAssured()
         def s = state()
         return RestAssured.given()
             .config(SCIM_REST_ASSURED_CONFIG)

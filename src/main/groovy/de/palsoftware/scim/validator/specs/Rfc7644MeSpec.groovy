@@ -120,9 +120,20 @@ class Rfc7644MeSpec extends ScimBaseSpec {
         }
     }
 
-    /** GET <base>/Me without following redirects, so that a 308 stays visible. */
+    /** GET <base>/Me without following alias redirects, allowing at most one same-endpoint http->https transport upgrade. */
     private Response meGet() {
-        return scimRequest().redirects().follow(false).get("/Me")
+        Response r = scimRequest().redirects().follow(false).get("/Me")
+        if (r.statusCode() in [301, 302, 307, 308]) {
+            String upgradedMeUrl = ScimUrlSecurity.resolveSameEndpointHttpsUpgrade(
+                state().scimApiUrl,
+                "${state().baseUrl}/Me",
+                r.header("Location")
+            )
+            if (upgradedMeUrl != null) {
+                return scimRequest().redirects().follow(false).baseUri(upgradedMeUrl).basePath("").get()
+            }
+        }
+        return r
     }
 
     private Response getAtLocation(String location) {
@@ -131,6 +142,6 @@ class Rfc7644MeSpec extends ScimBaseSpec {
 
     /** Resolve a Location value (absolute or relative) against the SCIM base URL, enforcing same-origin. */
     private static String resolveLocation(String location) {
-        return ScimUrlSecurity.resolveSameOriginUrl(state().scimApiUrl, "${state().baseUrl}/Me", location)
+        return ScimUrlSecurity.resolveScimReferenceUrl(state().scimApiUrl, state().baseUrl, state().basePath, location)
     }
 }

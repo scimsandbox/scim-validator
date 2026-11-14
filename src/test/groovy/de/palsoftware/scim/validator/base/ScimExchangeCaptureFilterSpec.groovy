@@ -17,7 +17,24 @@ class ScimExchangeCaptureFilterSpec extends Specification {
         ScimRunContext.endRun()
     }
 
-    def "filter redacts sensitive request and response headers"() {
+    def "SENSITIVE_HEADER_NAMES exposes canonical immutable header set including X-API-Key"() {
+        expect:
+        ScimExchangeCaptureFilter.SENSITIVE_HEADER_NAMES == [
+            "Authorization",
+            "Proxy-Authorization",
+            "Cookie",
+            "Set-Cookie",
+            "X-API-Key"
+        ] as Set
+
+        when:
+        ScimExchangeCaptureFilter.SENSITIVE_HEADER_NAMES.add("X-Custom")
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
+    def "filter redacts sensitive request and response headers case-insensitively"() {
         given:
         def filter = new ScimExchangeCaptureFilter()
         def requestSpec = Mock(FilterableRequestSpecification) {
@@ -25,9 +42,10 @@ class ScimExchangeCaptureFilterSpec extends Specification {
             getURI() >> "https://example.test/ws/123/scim/v2/Users"
             getHeaders() >> new Headers(
                 new Header("Authorization", "Bearer secret-token"),
-                new Header("Proxy-Authorization", "Basic c2VjcmV0"),
-                new Header("Cookie", "SESSION=secret-cookie"),
+                new Header("proxy-authorization", "Basic c2VjcmV0"),
+                new Header("COOKIE", "SESSION=secret-cookie"),
                 new Header("X-API-Key", "secret-api-key"),
+                new Header("x-api-key", "lowercase-api-key"),
                 new Header("Accept", "application/scim+json"),
                 new Header("Content-Type", "application/scim+json")
             )
@@ -41,7 +59,8 @@ class ScimExchangeCaptureFilterSpec extends Specification {
             statusCode() >> 200
             getHeaders() >> new Headers(
                 new Header("Content-Type", "application/scim+json"),
-                new Header("Set-Cookie", "SESSION=rotated-secret; HttpOnly")
+                new Header("Set-Cookie", "SESSION=rotated-secret; HttpOnly"),
+                new Header("X-API-Key", "echoed-secret-key")
             )
             getBody() >> responseBody
         }
@@ -62,16 +81,19 @@ class ScimExchangeCaptureFilterSpec extends Specification {
         !exchanges[0].requestHeaders.contains("secret-token")
         !exchanges[0].requestHeaders.contains("Cookie")
         !exchanges[0].requestHeaders.contains("X-API-Key")
+        !exchanges[0].requestHeaders.contains("secret-api-key")
+        !exchanges[0].requestHeaders.contains("lowercase-api-key")
         exchanges[0].responseHeaders == "Content-Type=application/scim+json"
         !exchanges[0].responseHeaders.contains("Set-Cookie")
         !exchanges[0].responseHeaders.contains("rotated-secret")
+        !exchanges[0].responseHeaders.contains("echoed-secret-key")
     }
 
     def "filter truncates oversized request and response bodies at 64 KiB UTF-8 safely"() {
         given:
         def filter = new ScimExchangeCaptureFilter()
         String oversizedRequest = "A" * (ScimExchangeCaptureFilter.MAX_CAPTURED_BODY_BYTES + 2048)
-        // Place multi-byte UTF-8 characters ('é' = 2 bytes, '🚀' = 4 bytes) across the 64 KiB boundary
+        // Place multi-byte UTF-8 characters ('🚀' = 4 bytes) across the 64 KiB boundary
         String prefix = "x" * (ScimExchangeCaptureFilter.MAX_CAPTURED_BODY_BYTES - 3)
         String oversizedResponse = prefix + "🚀" + ("Z" * 512)
 

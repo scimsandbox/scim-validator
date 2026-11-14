@@ -19,12 +19,15 @@ class ScimExchangeCaptureFilter implements Filter {
 
     static final int MAX_CAPTURED_BODY_BYTES = 64 * 1024
     static final String TRUNCATED_SUFFIX = "...[truncated]"
-    private static final Set<String> SENSITIVE_HEADER_NAMES = Set.of(
-        "authorization",
-        "proxy-authorization",
-        "cookie",
-        "set-cookie",
-        "x-api-key"
+    static final Set<String> SENSITIVE_HEADER_NAMES = Set.of(
+        "Authorization",
+        "Proxy-Authorization",
+        "Cookie",
+        "Set-Cookie",
+        "X-API-Key"
+    )
+    private static final Set<String> SENSITIVE_HEADER_NAMES_LOWER = Set.copyOf(
+        SENSITIVE_HEADER_NAMES.collect { String name -> name.toLowerCase(Locale.ROOT) }
     )
 
     @Override
@@ -85,7 +88,7 @@ class ScimExchangeCaptureFilter implements Filter {
         }
 
         List<Header> sanitizedHeaders = headers.asList().findAll { Header header ->
-            header?.name != null && !SENSITIVE_HEADER_NAMES.contains(header.name.toLowerCase(Locale.ROOT))
+            header?.name != null && !SENSITIVE_HEADER_NAMES_LOWER.contains(header.name.toLowerCase(Locale.ROOT))
         }
         if (sanitizedHeaders.isEmpty()) {
             return null

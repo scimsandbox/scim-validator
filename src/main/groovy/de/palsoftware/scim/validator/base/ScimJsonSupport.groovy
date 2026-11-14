@@ -6,14 +6,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.Generated
 import io.restassured.response.Response
 
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
 /**
- * Safe JSON parsing and bounded response helpers that avoid REST Assured's GPath/GroovyShell
- * evaluation on untrusted server-supplied keys or payloads.
+ * Safe JSON parsing and bounded stream-reading helpers.
+ *
+ * <p>{@link #parseMap(String)} and {@link #parseMap(Response)} parse JSON via Jackson rather than
+ * REST Assured's GPath/{@code GroovyShell} evaluator—preventing code execution on untrusted attribute
+ * names—and enforce document length ({@link #DEFAULT_MAX_RESPONSE_BYTES}), string length, and nesting
+ * depth ({@link #MAX_JSON_NESTING_DEPTH}) limits before allocating {@code Map}/{@code List} AST nodes.
+ * Note that {@link #parseMap(Response)} inspects a response body already buffered by REST Assured, whereas
+ * {@link #readBoundedUtf8(InputStream, int)} bounds raw HTTP stream reads prior to buffering.</p>
  */
 final class ScimJsonSupport {
 
@@ -31,6 +34,7 @@ final class ScimJsonSupport {
         ObjectMapper mapper = new ObjectMapper()
         mapper.getFactory().setStreamReadConstraints(
             StreamReadConstraints.builder()
+                .maxDocumentLength(DEFAULT_MAX_RESPONSE_BYTES)
                 .maxNestingDepth(MAX_JSON_NESTING_DEPTH)
                 .maxStringLength(DEFAULT_MAX_RESPONSE_BYTES)
                 .build()
@@ -38,23 +42,53 @@ final class ScimJsonSupport {
         return mapper
     }
 
+    /**
+     * Parses a REST Assured {@link Response} body (already buffered by REST Assured) into a {@code Map}
+     * without GPath/{@code GroovyShell} evaluation, enforcing {@link #DEFAULT_MAX_RESPONSE_BYTES} and
+     * {@link #MAX_JSON_NESTING_DEPTH}.
+     */
     static Map<String, Object> parseMap(Response response) {
         if (response == null || response.getBody() == null) {
             return Collections.emptyMap()
         }
-        return parseMap(response.getBody().asString())
+        return parseMap(response.getBody().asString(), DEFAULT_MAX_RESPONSE_BYTES)
     }
 
+    /**
+     * Parses {@code rawJson} into a {@code Map} without GPath/{@code GroovyShell} evaluation,
+     * rejecting payloads exceeding {@link #DEFAULT_MAX_RESPONSE_BYTES} or {@link #MAX_JSON_NESTING_DEPTH}.
+     */
     static Map<String, Object> parseMap(String rawJson) {
+        return parseMap(rawJson, DEFAULT_MAX_RESPONSE_BYTES)
+    }
+
+    static Map<String, Object> parseMap(String rawJson, int maxBytes) {
+        if (maxBytes < 0) {
+            throw new IllegalArgumentException("maxBytes must be non-negative")
+        }
         if (rawJson == null || rawJson.isBlank()) {
             return Collections.emptyMap()
         }
+        enforceMaxJsonBytes(rawJson, maxBytes)
         try {
             Map<String, Object> parsed = OBJECT_MAPPER.readValue(rawJson, MAP_TYPE)
             return parsed != null ? parsed : Collections.emptyMap()
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to parse SCIM JSON object: " + e.getMessage(), e)
         }
+    }
+
+    private static void enforceMaxJsonBytes(String rawJson, int maxBytes) {
+        if (rawJson.length() > maxBytes) {
+            throw new IllegalArgumentException(maxSizeExceededMessage("SCIM JSON payload", maxBytes))
+        }
+        if (rawJson.length() * 3L > maxBytes && rawJson.getBytes(StandardCharsets.UTF_8).length > maxBytes) {
+            throw new IllegalArgumentException(maxSizeExceededMessage("SCIM JSON payload", maxBytes))
+        }
+    }
+
+    private static String maxSizeExceededMessage(String label, int maxBytes) {
+        return label + " exceeded maximum allowed size of " + maxBytes + " bytes"
     }
 
     /**
@@ -85,8 +119,8 @@ final class ScimJsonSupport {
     }
 
     /**
-     * Reads at most {@code maxBytes} from {@code inputStream} as UTF-8 text, throwing an
-     * {@link IllegalStateException} immediately if the stream exceeds {@code maxBytes}.
+     * Reads at most {@code maxBytes} from {@code inputStream} as UTF-8 text before buffering the
+     * full stream, throwing an {@link IllegalStateException} immediately if the stream exceeds {@code maxBytes}.
      */
     static String readBoundedUtf8(InputStream inputStream, int maxBytes = DEFAULT_MAX_RESPONSE_BYTES) {
         if (inputStream == null) {
@@ -102,7 +136,7 @@ final class ScimJsonSupport {
         while ((read = inputStream.read(chunk)) != -1) {
             totalRead += read
             if (totalRead > maxBytes) {
-                throw new IllegalStateException("HTTP response body exceeded maximum allowed size of " + maxBytes + " bytes")
+                throw new IllegalStateException(maxSizeExceededMessage("HTTP response body", maxBytes))
             }
             buffer.write(chunk, 0, read)
         }

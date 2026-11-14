@@ -1,22 +1,27 @@
 package de.palsoftware.scim.validator.base
 
 import io.restassured.RestAssured
+import io.restassured.builder.ResponseBuilder
 import io.restassured.config.EncoderConfig
 import io.restassured.config.HttpClientConfig
 import io.restassured.config.LogConfig
 import io.restassured.config.RedirectConfig
 import io.restassured.config.RestAssuredConfig
+import io.restassured.filter.Filter
+import io.restassured.filter.FilterContext
 import io.restassured.filter.log.LogDetail
 import io.restassured.filter.log.RequestLoggingFilter
-import io.restassured.http.ContentType
+import io.restassured.internal.RestAssuredResponseImpl
+import io.restassured.internal.print.ResponsePrinter
 import io.restassured.response.Response
+import io.restassured.specification.FilterableRequestSpecification
+import io.restassured.specification.FilterableResponseSpecification
 import io.restassured.specification.RequestSpecification
 import groovy.json.JsonOutput
 import net.datafaker.Faker
+import org.apache.http.impl.client.DefaultHttpClient
 import spock.lang.Shared
 import spock.lang.Specification
-
-import java.io.PrintStream
 
 /**
  * Abstract base class for all SCIM 2.0 compliance test specifications.
@@ -29,9 +34,26 @@ abstract class ScimBaseSpec extends Specification {
 
     private static final InheritableThreadLocal<RuntimeState> STATE = new InheritableThreadLocal<>()
 
-    static final int HTTP_CONNECT_TIMEOUT_MS = 5_000
-    static final int HTTP_SOCKET_TIMEOUT_MS = 15_000
-    static final long HTTP_CONNECTION_MANAGER_TIMEOUT_MS = 5_000L
+    static final int DEFAULT_HTTP_CONNECT_TIMEOUT_MS = 10_000
+    static final int DEFAULT_HTTP_SOCKET_TIMEOUT_MS = 60_000
+    static final long DEFAULT_HTTP_CONNECTION_MANAGER_TIMEOUT_MS = 10_000L
+    static final int MAX_SAFE_REDIRECTS = ScimSafeRedirectStrategy.DEFAULT_MAX_REDIRECTS
+
+    static final int HTTP_CONNECT_TIMEOUT_MS = resolveTimeoutMs(
+        "scim.http.connectTimeoutMs",
+        "SCIM_HTTP_CONNECT_TIMEOUT_MS",
+        DEFAULT_HTTP_CONNECT_TIMEOUT_MS
+    )
+    static final int HTTP_SOCKET_TIMEOUT_MS = resolveTimeoutMs(
+        "scim.http.socketTimeoutMs",
+        "SCIM_HTTP_SOCKET_TIMEOUT_MS",
+        DEFAULT_HTTP_SOCKET_TIMEOUT_MS
+    )
+    static final long HTTP_CONNECTION_MANAGER_TIMEOUT_MS = resolveTimeoutMs(
+        "scim.http.connectionManagerTimeoutMs",
+        "SCIM_HTTP_CONNECTION_MANAGER_TIMEOUT_MS",
+        (int) DEFAULT_HTTP_CONNECTION_MANAGER_TIMEOUT_MS
+    ) as long
 
     static final RestAssuredConfig SCIM_REST_ASSURED_CONFIG = RestAssuredConfig.config()
         .encoderConfig(
@@ -41,10 +63,16 @@ abstract class ScimBaseSpec extends Specification {
         )
         .redirect(
             RedirectConfig.redirectConfig()
-                .followRedirects(false)
+                .followRedirects(true)
+                .maxRedirects(MAX_SAFE_REDIRECTS)
         )
         .httpClient(
             HttpClientConfig.httpClientConfig()
+                .httpClientFactory({
+                    DefaultHttpClient client = new DefaultHttpClient()
+                    client.setRedirectStrategy(new ScimSafeRedirectStrategy())
+                    return client
+                } as HttpClientConfig.HttpClientFactory)
                 .setParam("http.connection.timeout", HTTP_CONNECT_TIMEOUT_MS)
                 .setParam("http.socket.timeout", HTTP_SOCKET_TIMEOUT_MS)
                 .setParam("http.connection-manager.timeout", HTTP_CONNECTION_MANAGER_TIMEOUT_MS)
@@ -52,7 +80,7 @@ abstract class ScimBaseSpec extends Specification {
         .logConfig(
             LogConfig.logConfig()
                 .blacklistDefaultSensitiveHeaders()
-                .blacklistHeader("Authorization", "Proxy-Authorization", "Cookie", "Set-Cookie")
+                .blacklistHeaders(ScimExchangeCaptureFilter.SENSITIVE_HEADER_NAMES)
         )
 
     // ─── Configuration ───────────────────────────────────────────────────
@@ -228,9 +256,10 @@ abstract class ScimBaseSpec extends Specification {
                     )
                 }
                 ScimRuntimeConfiguration runtimeConfiguration = providers.next().bootstrap()
+                ScimUrlSecurity.validateOriginUri(runtimeConfiguration.apiUrl, "SCIM_API_URL")
                 currentState.workspaceId = runtimeConfiguration.workspaceId
                 currentState.authToken = runtimeConfiguration.authToken
-                currentState.scimApiUrl = runtimeConfiguration.apiUrl
+                currentState.scimApiUrl = ScimUrlSecurity.stripTrailingSlashes(runtimeConfiguration.apiUrl.trim())
                 currentState.basePath = "/ws/${currentState.workspaceId}/scim/v2"
                 currentState.baseUrl = "${currentState.scimApiUrl}${currentState.basePath}"
                 return
@@ -250,18 +279,43 @@ abstract class ScimBaseSpec extends Specification {
         }
 
         if (explicitBaseUrl != null && !explicitBaseUrl.isBlank()) {
-            URI uri = ScimUrlSecurity.validateOriginUri(explicitBaseUrl.trim(), "SCIM_BASE_URL")
-            currentState.scimApiUrl = "${uri.scheme}://${uri.authority}"
+            String normalizedBaseUrl = ScimUrlSecurity.stripTrailingSlashes(explicitBaseUrl.trim())
+            URI uri = ScimUrlSecurity.validateOriginUri(normalizedBaseUrl, "SCIM_BASE_URL")
+            currentState.scimApiUrl = "${uri.scheme}://${uri.rawAuthority}"
             currentState.basePath = uri.path != null && !uri.path.isBlank() ? uri.path : "/"
-            currentState.baseUrl = explicitBaseUrl.trim()
+            currentState.baseUrl = normalizedBaseUrl
         } else {
             if (currentState.workspaceId == null || currentState.workspaceId.isBlank()) {
                 throw new IllegalStateException("SCIM_WORKSPACE_ID or -Dscim.workspaceId must be configured when SCIM_BASE_URL is not set")
             }
             ScimUrlSecurity.validateOriginUri(explicitApiUrl, "SCIM_API_URL")
-            currentState.scimApiUrl = explicitApiUrl.trim()
+            currentState.scimApiUrl = ScimUrlSecurity.stripTrailingSlashes(explicitApiUrl.trim())
             currentState.basePath = "/ws/${currentState.workspaceId}/scim/v2"
             currentState.baseUrl = "${currentState.scimApiUrl}${currentState.basePath}"
+        }
+    }
+
+    static int resolveTimeoutMs(String systemProperty,
+                                String envVar,
+                                int defaultValue,
+                                Map<String, String> environment = System.getenv()) {
+        Integer fromProperty = parsePositiveTimeout(System.getProperty(systemProperty))
+        if (fromProperty != null) {
+            return fromProperty
+        }
+        Integer fromEnv = environment != null ? parsePositiveTimeout(environment.get(envVar)) : null
+        return fromEnv != null ? fromEnv : defaultValue
+    }
+
+    private static Integer parsePositiveTimeout(String rawValue) {
+        if (rawValue == null || rawValue.isBlank()) {
+            return null
+        }
+        try {
+            int parsed = Integer.parseInt(rawValue.trim())
+            return parsed > 0 ? parsed : null
+        } catch (NumberFormatException ignored) {
+            return null
         }
     }
 
@@ -271,7 +325,6 @@ abstract class ScimBaseSpec extends Specification {
 
     protected static void configureRestAssured() {
         RestAssured.config = SCIM_REST_ASSURED_CONFIG
-        state()
     }
 
     protected static RequestLoggingFilter createRedactingRequestLoggingFilter(PrintStream stream = System.out) {
@@ -284,16 +337,26 @@ abstract class ScimBaseSpec extends Specification {
         )
     }
 
-    protected static String resolveSameOriginUrl(String candidateUrl) {
-        RuntimeState currentState = state()
-        return ScimUrlSecurity.resolveScimReferenceUrl(currentState.scimApiUrl, currentState.baseUrl, currentState.basePath, candidateUrl)
+    protected static Filter createRedactingResponseLoggingFilter(PrintStream stream = System.out) {
+        Set<String> blacklistedHeaders = SCIM_REST_ASSURED_CONFIG.logConfig.blacklistedHeaders()
+        return { FilterableRequestSpecification requestSpec,
+                 FilterableResponseSpecification responseSpec,
+                 FilterContext context ->
+            Response response = context.next(requestSpec, responseSpec)
+            ResponsePrinter.print(response, response, stream, LogDetail.ALL, true, blacklistedHeaders)
+            if (response instanceof RestAssuredResponseImpl && !response.hasExpectations) {
+                Response cloned = new ResponseBuilder().clone(response).setBody(response.asByteArray()).build()
+                ((RestAssuredResponseImpl) cloned).setHasExpectations(true)
+                return cloned
+            }
+            return response
+        } as Filter
     }
 
     /**
      * Load ServiceProviderConfig once across all specs.
      */
     protected static void loadServiceProviderConfig() {
-        configureRestAssured()
         RuntimeState currentState = state()
         if (currentState.spcLoaded) return
         try {
@@ -450,7 +513,6 @@ abstract class ScimBaseSpec extends Specification {
      * Build a REST Assured request with default SCIM headers.
      */
     protected RequestSpecification scimRequest() {
-        configureRestAssured()
         RuntimeState currentState = state()
         RequestSpecification req = RestAssured.given()
             .config(SCIM_REST_ASSURED_CONFIG)
@@ -465,7 +527,7 @@ abstract class ScimBaseSpec extends Specification {
         if (!ScimRunContext.isCaptureEnabled()) {
             req = req
                 .filter(createRedactingRequestLoggingFilter(System.out))
-                .response().log().all().request()
+                .filter(createRedactingResponseLoggingFilter(System.out))
         }
 
         return req
@@ -475,7 +537,6 @@ abstract class ScimBaseSpec extends Specification {
      * Build a REST Assured request without logging (for cleanup operations).
      */
     protected static RequestSpecification scimRequestQuiet() {
-        configureRestAssured()
         RuntimeState currentState = state()
         return RestAssured.given()
             .config(SCIM_REST_ASSURED_CONFIG)
@@ -491,7 +552,6 @@ abstract class ScimBaseSpec extends Specification {
      * Build a REST Assured request without an Authorization header.
      */
     protected static RequestSpecification scimRequestAnonymous() {
-        configureRestAssured()
         RuntimeState currentState = state()
         return RestAssured.given()
             .config(SCIM_REST_ASSURED_CONFIG)
@@ -710,8 +770,7 @@ abstract class ScimBaseSpec extends Specification {
         if (patchResponse.statusCode() == 200) {
             return patchResponse
         }
-        String safeTarget = ScimUrlSecurity.resolveScimReferenceUrl(state().scimApiUrl, state().baseUrl, state().basePath, resourcePath)
-        return scimRequestQuiet().baseUri(safeTarget).basePath("").get()
+        return scimRequestQuiet().get(resourcePath)
     }
 
     /**
