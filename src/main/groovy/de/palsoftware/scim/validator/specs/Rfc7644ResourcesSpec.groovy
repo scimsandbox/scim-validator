@@ -1,6 +1,7 @@
 package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
+import de.palsoftware.scim.validator.base.ScimJsonSupport
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import de.palsoftware.scim.validator.base.CapabilityState
@@ -175,9 +176,11 @@ class Rfc7644ResourcesSpec extends ScimBaseSpec {
         assert response.statusCode() == 201 : "RFC 7644 3.3: omitting readWrite attributes must be accepted (201) but was ${response.statusCode()}"
         Response get = scimRequest().get("/Users/${response.jsonPath().getString('id')}")
         assert get.statusCode() == 200
+        Map<String, Object> getMap = ScimJsonSupport.parseMap(get)
+        Map<String, Object> postMap = ScimJsonSupport.parseMap(response)
         ["displayName", "title", "nickName", "emails", "phoneNumbers", "name"].each { String attr ->
-            assert get.jsonPath().get(attr) == response.jsonPath().get(attr) :
-                "RFC 7644 3.3: non-asserted attribute '${attr}' must be the same in the POST response (${response.jsonPath().get(attr)}) and a later GET (${get.jsonPath().get(attr)})"
+            assert ScimJsonSupport.getLiteralAttribute(getMap, attr) == ScimJsonSupport.getLiteralAttribute(postMap, attr) :
+                "RFC 7644 3.3: non-asserted attribute '${attr}' must be the same in the POST response (${ScimJsonSupport.getLiteralAttribute(postMap, attr)}) and a later GET (${ScimJsonSupport.getLiteralAttribute(getMap, attr)})"
         }
         assert response.jsonPath().getString("userName") == name
     }

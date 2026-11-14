@@ -1,6 +1,7 @@
 package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
+import de.palsoftware.scim.validator.base.ScimUrlSecurity
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import groovy.json.JsonOutput
@@ -503,13 +504,15 @@ class Rfc7643AttributeModelSpec extends ScimBaseSpec {
     @SpecRef("RFC7643-2.3.7-1d19d6")
     def "RFC7643-2.3.7-1d19d6: An HTTP client performing a GET operation on a reference URI MUST receive the target resource or an..."() {
         expect:
-        URI base = new URI(scimBaseUrl() + "/")
+        String baseWithSlash = scimBaseUrl() + "/"
         def pass11 = sampleReferences().each { Map r ->
-            URI target = base.resolve(new URI((String) r.ref))
-            Response response = scimRequest().get(target.toString())
+            String target = ScimUrlSecurity.resolveSameOriginUrl(state().scimApiUrl, baseWithSlash, (String) r.ref)
+            Response response = scimRequest().baseUri(target).basePath("").get()
             assert response.statusCode() == 200 :
                 "RFC 7643 2.3.7: GET on ${r.label} '${target}' must return the target resource (200) but was ${response.statusCode()}"
-            String expectedId = ((String) r.tail).split("/")[1]
+            String tail = (String) r.tail
+            int slashIdx = tail.indexOf('/')
+            String expectedId = tail.substring(slashIdx + 1)
             assert response.jsonPath().getString("id") == expectedId :
                 "RFC 7643 2.3.7: GET on ${r.label} '${target}' returned id ${response.jsonPath().getString('id')} instead of ${expectedId}"
         }

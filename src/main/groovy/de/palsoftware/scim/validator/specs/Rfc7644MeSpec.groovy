@@ -1,6 +1,7 @@
 package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
+import de.palsoftware.scim.validator.base.ScimUrlSecurity
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
 import spock.lang.Ignore
@@ -29,7 +30,7 @@ class Rfc7644MeSpec extends ScimBaseSpec {
         if (r.statusCode() == 308) {
             String location = r.header("Location")
             assert location : "RFC 7644 3.11: the 308 response for /Me must carry a Location header"
-            Response followed = scimRequest().get(resolveLocation(location))
+            Response followed = getAtLocation(location)
             assert followed.statusCode() == 200 : "RFC 7644 3.11: the Location of the /Me redirect must be readable but gave ${followed.statusCode()}"
             assert followed.jsonPath().getString("id") : "RFC 7644 3.11: the resource behind /Me must have an id"
         } else if (r.statusCode() == 200) {
@@ -76,7 +77,7 @@ class Rfc7644MeSpec extends ScimBaseSpec {
         if (r.statusCode() == 308) {
             String location = r.header("Location")
             assert location : "RFC 7644 3.11: the 308 redirect for /Me must carry a Location header"
-            Response target = scimRequest().get(resolveLocation(location))
+            Response target = getAtLocation(location)
             assert target.statusCode() == 200 : "RFC 7644 3.11: the redirect target of /Me must be the subject's resource but returned ${target.statusCode()}"
             assert target.jsonPath().getString("id") : "RFC 7644 3.11: the redirect target of /Me must be a resource with an id"
         }
@@ -94,7 +95,7 @@ class Rfc7644MeSpec extends ScimBaseSpec {
         if (r.statusCode() == 308) {
             String location = r.header("Location")
             assert location : "RFC 7644 3.11: the 308 redirect for /Me must carry a Location header"
-            Response repeated = scimRequest().get(resolveLocation(location))
+            Response repeated = getAtLocation(location)
             assert repeated.statusCode() == 200 : "RFC 7644 3.11: repeating the request at the 308 Location must succeed but gave ${repeated.statusCode()}"
         }
     }
@@ -111,19 +112,36 @@ class Rfc7644MeSpec extends ScimBaseSpec {
         if (r.statusCode() == 200) {
             Map body = new JsonSlurper().parseText(r.asString()) as Map
             assert body.id && body.schemas : "RFC 7644 3.11: the directly returned /Me resource must be a SCIM resource: ${r.asString()?.take(200)}"
-            Response byId = scimRequest().get(resolveLocation(body.meta?.location as String ?: ""))
+            String metaLocation = body.meta?.location as String
+            assert hasText(metaLocation) : "RFC 7644 3.11: the directly returned /Me resource must carry meta.location"
+            Response byId = scimRequest().baseUri(resolveLocation(metaLocation)).basePath("").get()
             assert byId.statusCode() == 200 && byId.jsonPath().getString("id") == body.id :
                 "RFC 7644 3.11: the /Me resource must be the resource at its own meta.location"
         }
     }
 
-    /** GET <base>/Me without following redirects, so that a 308 stays visible. */
+    /** GET <base>/Me without following alias redirects, allowing at most one same-endpoint http->https transport upgrade. */
     private Response meGet() {
-        return scimRequest().redirects().follow(false).get("/Me")
+        Response r = scimRequest().redirects().follow(false).get("/Me")
+        if (r.statusCode() in [301, 302, 307, 308]) {
+            String upgradedMeUrl = ScimUrlSecurity.resolveSameEndpointHttpsUpgrade(
+                state().scimApiUrl,
+                "${state().baseUrl}/Me",
+                r.header("Location")
+            )
+            if (upgradedMeUrl != null) {
+                return scimRequest().redirects().follow(false).baseUri(upgradedMeUrl).basePath("").get()
+            }
+        }
+        return r
     }
 
-    /** Resolve a Location value (absolute or relative) against the SCIM base URL. */
+    private Response getAtLocation(String location) {
+        return scimRequest().baseUri(resolveLocation(location)).basePath("").get()
+    }
+
+    /** Resolve a Location value (absolute or relative) against the SCIM base URL, enforcing same-origin. */
     private static String resolveLocation(String location) {
-        return new URI("${state().baseUrl}/Me").resolve(location).toString()
+        return ScimUrlSecurity.resolveScimReferenceUrl(state().scimApiUrl, state().baseUrl, state().basePath, location)
     }
 }

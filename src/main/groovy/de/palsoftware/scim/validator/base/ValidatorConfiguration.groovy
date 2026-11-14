@@ -42,6 +42,22 @@ final class ValidatorConfiguration {
         ))
     }
 
+    static void useApiRunOverrides(String apiUrl, String workspaceId, String authToken) {
+        Config base = DEFAULT_CONFIG
+        CURRENT_OVERRIDE.set(new Config(
+            "",
+            apiUrl != null ? apiUrl.trim() : base.apiUrl,
+            workspaceId != null ? workspaceId.trim() : base.workspaceId,
+            authToken != null ? authToken.trim() : base.authToken,
+            base.testcontainersEnabled,
+            base.postgresImage,
+            base.initImage,
+            base.apiImage,
+            base.postgres,
+            base.api
+        ))
+    }
+
     static void clearRunOverrides() {
         CURRENT_OVERRIDE.remove()
     }

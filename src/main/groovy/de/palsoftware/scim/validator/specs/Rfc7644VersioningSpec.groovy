@@ -49,8 +49,9 @@ class Rfc7644VersioningSpec extends ScimBaseSpec {
         }
 
         when: "the identifier v<number> directly precedes each kind of resource endpoint"
+        String userEndpoint = "/Users/" + id
         Map<String, Response> responses = [
-            "/Users/${id}"          : versionedRequest("v2").get("/Users/${id}"),
+            (userEndpoint)          : versionedRequest("v2").get(userEndpoint),
             "/Users"                : versionedRequest("v2").queryParam("count", "1").get("/Users"),
             "/ServiceProviderConfig": versionedRequest("v2").get("/ServiceProviderConfig"),
             "/ResourceTypes"        : versionedRequest("v2").get("/ResourceTypes"),
