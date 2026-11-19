@@ -1,7 +1,6 @@
 package de.palsoftware.scim.validator.base
 
 import io.restassured.RestAssured
-import io.restassured.builder.ResponseBuilder
 import io.restassured.config.EncoderConfig
 import io.restassured.config.HttpClientConfig
 import io.restassured.config.LogConfig
@@ -11,8 +10,8 @@ import io.restassured.filter.Filter
 import io.restassured.filter.FilterContext
 import io.restassured.filter.log.LogDetail
 import io.restassured.filter.log.RequestLoggingFilter
-import io.restassured.internal.RestAssuredResponseImpl
-import io.restassured.internal.print.ResponsePrinter
+import io.restassured.http.Header
+import io.restassured.http.Headers
 import io.restassured.response.Response
 import io.restassured.specification.FilterableRequestSpecification
 import io.restassured.specification.FilterableResponseSpecification
@@ -338,19 +337,42 @@ abstract class ScimBaseSpec extends Specification {
     }
 
     protected static Filter createRedactingResponseLoggingFilter(PrintStream stream = System.out) {
-        Set<String> blacklistedHeaders = SCIM_REST_ASSURED_CONFIG.logConfig.blacklistedHeaders()
         return { FilterableRequestSpecification requestSpec,
                  FilterableResponseSpecification responseSpec,
                  FilterContext context ->
             Response response = context.next(requestSpec, responseSpec)
-            ResponsePrinter.print(response, response, stream, LogDetail.ALL, true, blacklistedHeaders)
-            if (response instanceof RestAssuredResponseImpl && !response.hasExpectations) {
-                Response cloned = new ResponseBuilder().clone(response).setBody(response.asByteArray()).build()
-                ((RestAssuredResponseImpl) cloned).setHasExpectations(true)
-                return cloned
+            StringBuilder out = new StringBuilder()
+            String statusLine = response.statusLine()
+            if (hasText(statusLine)) {
+                out.append(statusLine).append(System.lineSeparator())
             }
+            Headers headers = response.getHeaders()
+            if (headers != null) {
+                for (Header header : headers.asList()) {
+                    String value = ScimExchangeCaptureFilter.isSensitiveHeader(header.name) ?
+                        "[ BLACKLISTED ]" :
+                        (header.value ?: "")
+                    out.append(header.name).append(": ").append(value).append(System.lineSeparator())
+                }
+            }
+            String body = formatResponseBody(response)
+            if (body != null && !body.isEmpty()) {
+                out.append(System.lineSeparator()).append(body).append(System.lineSeparator())
+            }
+            stream.print(out.toString())
             return response
         } as Filter
+    }
+
+    private static String formatResponseBody(Response response) {
+        if (response.getBody() == null) {
+            return null
+        }
+        try {
+            return response.getBody().asPrettyString()
+        } catch (RuntimeException ignored) {
+            return response.getBody().asString()
+        }
     }
 
     /**

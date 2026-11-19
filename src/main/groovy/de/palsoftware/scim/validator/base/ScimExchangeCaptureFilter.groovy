@@ -82,13 +82,17 @@ class ScimExchangeCaptureFilter implements Filter {
         return truncateUtf8(String.valueOf(body), MAX_CAPTURED_BODY_BYTES)
     }
 
+    static boolean isSensitiveHeader(String headerName) {
+        return headerName != null && SENSITIVE_HEADER_NAMES_LOWER.contains(headerName.toLowerCase(Locale.ROOT))
+    }
+
     private static String stringifySanitizedHeaders(Headers headers) {
         if (headers == null) {
             return null
         }
 
         List<Header> sanitizedHeaders = headers.asList().findAll { Header header ->
-            header?.name != null && !SENSITIVE_HEADER_NAMES_LOWER.contains(header.name.toLowerCase(Locale.ROOT))
+            header?.name != null && !isSensitiveHeader(header.name)
         }
         if (sanitizedHeaders.isEmpty()) {
             return null

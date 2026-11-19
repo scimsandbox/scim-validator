@@ -695,7 +695,7 @@ class ScimSecurityHardeningSpec extends Specification {
         prefixedServer.start()
 
         when: "SCIM_API_URL has a path prefix and trailing slash"
-        ValidatorConfiguration.useApiRunOverrides("http://127.0.0.1:${port}/api/", "t1", "prefix-secret")
+        useApiRunOverrides("http://127.0.0.1:${port}/api/", "t1", "prefix-secret")
         TestSecuritySpecHarness.resetRunState()
         TestSecuritySpecHarness.initConfig()
         TestSecuritySpecHarness harness = new TestSecuritySpecHarness()
@@ -709,7 +709,7 @@ class ScimSecurityHardeningSpec extends Specification {
         eventResp.statusCode() == 200
 
         when: "Rfc7644MeSpec executes against /api-prefixed server with basePath-relative and resource-relative 308 Locations"
-        ValidatorConfiguration.useApiRunOverrides("http://127.0.0.1:${port}/api", "t1", "prefix-secret")
+        useApiRunOverrides("http://127.0.0.1:${port}/api", "t1", "prefix-secret")
         meLocationHeader.set("/ws/t1/scim/v2/Users/u-me")
         def meBasePathSummary = executeSpecClass(Rfc7644MeSpec)
         int hitsAfterBasePathLocation = prefixedUserHits.get()
@@ -813,12 +813,17 @@ class ScimSecurityHardeningSpec extends Specification {
         given:
         HttpServer localServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
         localServer.createContext("/ws/t1/scim/v2/Users") { HttpExchange exchange ->
-            byte[] body = '{"Resources":[],"totalResults":0}'.getBytes(StandardCharsets.UTF_8)
+            byte[] body = '{"Resources":[],"totalResults":0,"label":"ok"}'.getBytes(StandardCharsets.UTF_8)
             exchange.responseHeaders.add("Content-Type", "application/scim+json")
             exchange.responseHeaders.add("Set-Cookie", "SID=live-cookie-secret")
             exchange.responseHeaders.add("X-API-Key", "echoed-api-key-secret")
             exchange.sendResponseHeaders(200, body.length)
             exchange.responseBody.withCloseable { it.write(body) }
+        }
+        localServer.createContext("/ws/t1/scim/v2/NoContent") { HttpExchange exchange ->
+            exchange.responseHeaders.add("Set-Cookie", "SID=no-content-secret")
+            exchange.sendResponseHeaders(204, -1)
+            exchange.close()
         }
         localServer.start()
         int port = localServer.address.port
@@ -834,13 +839,28 @@ class ScimSecurityHardeningSpec extends Specification {
         PrintStream originalOut = System.out
         String propKey = "scim.http.testTimeoutOverrideMs"
 
-        Response mockNonRestAssuredResp = Mock(Response) {
-            statusLine() >> "HTTP/1.1 200 OK"
-            headers() >> new Headers(new Header("Set-Cookie", "SID=mock-cookie-secret"))
-            asString() >> "{}"
+        ResponseBody failingPrettyBody = Stub(ResponseBody) {
+            asPrettyString() >> { throw new IllegalStateException("prettify boom") }
+            asString() >> '{"fallback":true}'
         }
-        FilterContext mockFilterCtx = Mock(FilterContext) {
-            next(_, _) >> mockNonRestAssuredResp
+        Response mockFallbackResp = Mock(Response) {
+            statusLine() >> "HTTP/1.1 200 OK"
+            getHeaders() >> new Headers(
+                new Header("Set-Cookie", "SID=mock-cookie-secret"),
+                new Header("X-Empty", null)
+            )
+            getBody() >> failingPrettyBody
+        }
+        Response mockNullResp = Mock(Response) {
+            statusLine() >> null
+            getHeaders() >> null
+            getBody() >> null
+        }
+        FilterContext mockFallbackCtx = Mock(FilterContext) {
+            next(_, _) >> mockFallbackResp
+        }
+        FilterContext mockNullCtx = Mock(FilterContext) {
+            next(_, _) >> mockNullResp
         }
 
         when:
@@ -851,8 +871,13 @@ class ScimSecurityHardeningSpec extends Specification {
             .filter(TestSecuritySpecHarness.redactingLogger(logStream))
             .filter(TestSecuritySpecHarness.redactingResponseLogger(logStream))
             .get("/Users")
+        Response resp204 = TestSecuritySpecHarness.quietRequest()
+            .filter(TestSecuritySpecHarness.redactingResponseLogger(logStream))
+            .get("/NoContent")
         Response mockFiltered = TestSecuritySpecHarness.redactingResponseLogger(logStream)
-            .filter(Mock(FilterableRequestSpecification), Mock(FilterableResponseSpecification), mockFilterCtx)
+            .filter(Mock(FilterableRequestSpecification), Mock(FilterableResponseSpecification), mockFallbackCtx)
+        Response mockNullFiltered = TestSecuritySpecHarness.redactingResponseLogger(logStream)
+            .filter(Mock(FilterableRequestSpecification), Mock(FilterableResponseSpecification), mockNullCtx)
         String logged = logBuffer.toString(StandardCharsets.UTF_8)
 
         ScimRunContext.endRun()
@@ -872,11 +897,32 @@ class ScimSecurityHardeningSpec extends Specification {
         System.setProperty(propKey, "-10")
         int fallbackDefault = ScimBaseSpec.resolveTimeoutMs(propKey, "SCIM_HTTP_TEST_TIMEOUT_MS", 60_000, [SCIM_HTTP_TEST_TIMEOUT_MS: "0"])
 
-        then:
+        then: "downstream jsonPath, asString, and asByteArray all succeed after public-API response logging"
         resp.statusCode() == 200
         resp.jsonPath().getInt("totalResults") == 0
-        mockFiltered.is(mockNonRestAssuredResp)
+        resp.jsonPath().getString("label") == "ok"
+        resp.asString().contains('"label":"ok"')
+        new String(resp.asByteArray(), StandardCharsets.UTF_8).contains('"label":"ok"')
+        resp204.statusCode() == 204
+        resp204.asString() == ""
+        mockFiltered.is(mockFallbackResp)
+        mockNullFiltered.is(mockNullResp)
         scimConsoleResp.statusCode() == 200
+        scimConsoleResp.jsonPath().getString("label") == "ok"
+        scimConsoleResp.asString().contains('"label":"ok"')
+
+        and: "isSensitiveHeader handles null, case-insensitivity, and non-sensitive headers"
+        !ScimExchangeCaptureFilter.isSensitiveHeader(null)
+        !ScimExchangeCaptureFilter.isSensitiveHeader("")
+        !ScimExchangeCaptureFilter.isSensitiveHeader("Content-Type")
+        ScimExchangeCaptureFilter.isSensitiveHeader("Authorization")
+        ScimExchangeCaptureFilter.isSensitiveHeader("authorization")
+        ScimExchangeCaptureFilter.isSensitiveHeader("SET-COOKIE")
+        ScimExchangeCaptureFilter.isSensitiveHeader("x-api-key")
+        ScimExchangeCaptureFilter.isSensitiveHeader("Proxy-Authorization")
+        ScimExchangeCaptureFilter.isSensitiveHeader("cookie")
+
+        and: "REST Assured timeouts, redirects, and header redaction are configured and enforced"
         ScimBaseSpec.SCIM_REST_ASSURED_CONFIG.redirectConfig.followsRedirects()
         ScimBaseSpec.SCIM_REST_ASSURED_CONFIG.redirectConfig.maxRedirects() == 5
         ScimBaseSpec.SCIM_REST_ASSURED_CONFIG.httpClientConfig.params()["http.connection.timeout"] == 10_000
@@ -886,10 +932,17 @@ class ScimSecurityHardeningSpec extends Specification {
         fromProp == 25_000
         fallbackEnv == 45_000
         fallbackDefault == 60_000
+        logged.contains("HTTP/1.1 200 OK")
+        logged.contains("HTTP/1.1 204 No Content")
+        logged.toLowerCase(Locale.ROOT).contains("content-type: application/scim+json")
         logged.contains("BLACKLISTED")
         logged.toLowerCase(Locale.ROOT).contains("set-cookie: [ blacklisted ]")
         logged.toLowerCase(Locale.ROOT).contains("x-api-key: [ blacklisted ]")
+        logged.contains("X-Empty: ")
+        logged.contains('"fallback":true')
+        logged.contains('"label"')
         !logged.contains("live-cookie-secret")
+        !logged.contains("no-content-secret")
         !logged.contains("mock-cookie-secret")
         !logged.contains("echoed-api-key-secret")
         !logged.contains("live-secret-bearer-xyz")
@@ -897,6 +950,7 @@ class ScimSecurityHardeningSpec extends Specification {
         !logged.contains("cHJveHktc2VjcmV0")
         !logged.contains("api-key-live-secret")
         consoleLogged.toLowerCase(Locale.ROOT).contains("set-cookie: [ blacklisted ]")
+        consoleLogged.toLowerCase(Locale.ROOT).contains("content-type: application/scim+json")
         !consoleLogged.contains("live-cookie-secret")
         !consoleLogged.contains("echoed-api-key-secret")
         !consoleLogged.contains("live-secret-bearer-xyz")
@@ -1152,6 +1206,8 @@ class ScimSecurityHardeningSpec extends Specification {
 
         AtomicReference<String> meMode = new AtomicReference<>("308-same-origin")
         AtomicReference<String> refMode = new AtomicReference<>("cross-origin")
+        AtomicInteger groupGetHits = new AtomicInteger(0)
+        AtomicInteger missingGroupHits = new AtomicInteger(0)
         HttpServer scimServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
         int scimPort = scimServer.address.port
         scimServer.createContext("/ws/t1/scim/v2/ServiceProviderConfig") { HttpExchange exchange ->
@@ -1190,15 +1246,37 @@ class ScimSecurityHardeningSpec extends Specification {
                 exchange.sendResponseHeaders(201, body.length)
                 exchange.responseBody.withCloseable { it.write(body) }
             } else {
-                byte[] body = JsonOutput.toJson([
+                String mode = refMode.get()
+                String userGroupRef = null
+                if (mode == "same-origin" || mode == "mixed-valid") {
+                    userGroupRef = "http://127.0.0.1:${scimPort}/ws/t1/scim/v2/Groups/g-ref-1"
+                } else if (mode == "both-cross-origin") {
+                    userGroupRef = "http://127.0.0.1:${foreignPort}/ws/t1/scim/v2/Groups/g-ref-1"
+                } else if (mode == "mixed-404") {
+                    userGroupRef = "http://127.0.0.1:${scimPort}/ws/t1/scim/v2/Groups/g-ref-missing"
+                } else if (mode == "mixed-unsafe") {
+                    userGroupRef = "javascript:alert(1)"
+                }
+                Map payload = [
                     schemas : ["urn:ietf:params:scim:schemas:core:2.0:User"],
                     id      : "u-ref-1",
                     userName: "refuser"
-                ]).getBytes(StandardCharsets.UTF_8)
+                ]
+                if (userGroupRef != null) {
+                    payload.groups = [[value: "g-ref-1", '$ref': userGroupRef]]
+                }
+                byte[] body = JsonOutput.toJson(payload).getBytes(StandardCharsets.UTF_8)
                 exchange.responseHeaders.add("Content-Type", "application/scim+json")
                 exchange.sendResponseHeaders(200, body.length)
                 exchange.responseBody.withCloseable { it.write(body) }
             }
+        }
+        scimServer.createContext("/ws/t1/scim/v2/Groups/g-ref-missing") { HttpExchange exchange ->
+            missingGroupHits.incrementAndGet()
+            byte[] body = '{"schemas":["urn:ietf:params:scim:api:messages:2.0:Error"],"status":"404"}'.getBytes(StandardCharsets.UTF_8)
+            exchange.responseHeaders.add("Content-Type", "application/scim+json")
+            exchange.sendResponseHeaders(404, body.length)
+            exchange.responseBody.withCloseable { it.write(body) }
         }
         scimServer.createContext("/ws/t1/scim/v2/Groups") { HttpExchange exchange ->
             if (exchange.requestMethod == "POST") {
@@ -1211,10 +1289,14 @@ class ScimSecurityHardeningSpec extends Specification {
                 exchange.sendResponseHeaders(201, body.length)
                 exchange.responseBody.withCloseable { it.write(body) }
             } else {
+                if (exchange.requestMethod == "GET") {
+                    groupGetHits.incrementAndGet()
+                }
+                String mode = refMode.get()
                 String memberRef
-                if (refMode.get() == "same-origin") {
+                if (mode == "same-origin") {
                     memberRef = "http://127.0.0.1:${scimPort}/ws/t1/scim/v2/Users/u-ref-1"
-                } else if (refMode.get() == "cross-origin") {
+                } else if (mode in ["cross-origin", "both-cross-origin", "mixed-valid", "mixed-404", "mixed-unsafe"]) {
                     memberRef = "http://127.0.0.1:${foreignPort}/ws/t1/scim/v2/Users/u-ref-1"
                 } else {
                     memberRef = "javascript:alert(1)"
@@ -1327,13 +1409,23 @@ class ScimSecurityHardeningSpec extends Specification {
         summary200Unsafe.testsFailedCount >= 1
         foreignHits.get() == 0
 
-        when: 'RFC7643-2.3.7-1d19d6 and RFC9967-2.5.1.1-84d853 execute against same-origin, cross-origin, and unsafe targets'
+        when: 'RFC7643-2.3.7-1d19d6 and RFC9967-2.5.1.1-84d853 execute against same-origin, mixed-origin, cross-origin, and unsafe targets'
         String refFeatureName = "RFC7643-2.3.7-1d19d6: An HTTP client performing a GET operation on a reference URI MUST receive the target resource or an..."
         String asyncAcceptFeature = "RFC9967-2.5.1.1-84d853: The HTTP 'Accept' header MUST be ignored for purposes of an asynchronous response."
         refMode.set("same-origin")
         def refSameSummary = executeSpecMethod(Rfc7643AttributeModelSpec, refFeatureName)
-        refMode.set("cross-origin")
-        def refCrossSummary = executeSpecMethod(Rfc7643AttributeModelSpec, refFeatureName)
+        refMode.set("both-cross-origin")
+        def refBothCrossSummary = executeSpecMethod(Rfc7643AttributeModelSpec, refFeatureName)
+        groupGetHits.set(0)
+        refMode.set("mixed-valid")
+        def refMixedValidSummary = executeSpecMethod(Rfc7643AttributeModelSpec, refFeatureName)
+        int mixedValidGroupHits = groupGetHits.get()
+        missingGroupHits.set(0)
+        refMode.set("mixed-404")
+        def refMixed404Summary = executeSpecMethod(Rfc7643AttributeModelSpec, refFeatureName)
+        int mixed404Hits = missingGroupHits.get()
+        refMode.set("mixed-unsafe")
+        def refMixedUnsafeSummary = executeSpecMethod(Rfc7643AttributeModelSpec, refFeatureName)
         refMode.set("unsafe")
         def refUnsafeSummary = executeSpecMethod(Rfc7643AttributeModelSpec, refFeatureName)
         def asyncAcceptSummary = executeSpecMethod(Rfc9967AsyncSpec, asyncAcceptFeature)
@@ -1341,8 +1433,17 @@ class ScimSecurityHardeningSpec extends Specification {
         then:
         refSameSummary.testsSucceededCount == 1
         refSameSummary.testsFailedCount == 0
-        refCrossSummary.testsFailedCount == 0
-        refCrossSummary.testsAbortedCount == 1
+        refBothCrossSummary.testsFailedCount == 0
+        refBothCrossSummary.testsAbortedCount == 1
+        refMixedValidSummary.testsSucceededCount == 1
+        refMixedValidSummary.testsFailedCount == 0
+        refMixedValidSummary.testsAbortedCount == 0
+        mixedValidGroupHits == 2
+        refMixed404Summary.testsFailedCount == 1
+        refMixed404Summary.testsAbortedCount == 0
+        mixed404Hits == 1
+        refMixedUnsafeSummary.testsFailedCount == 1
+        refMixedUnsafeSummary.testsAbortedCount == 0
         refUnsafeSummary.testsFailedCount == 1
         asyncAcceptSummary.testsSucceededCount == 1
         asyncAcceptSummary.testsFailedCount == 0
@@ -1352,6 +1453,27 @@ class ScimSecurityHardeningSpec extends Specification {
         TestSecuritySpecHarness.resetRunState()
         scimServer?.stop(0)
         foreignServer?.stop(0)
+    }
+
+    private static void useApiRunOverrides(String apiUrl, String workspaceId, String authToken) {
+        ValidatorConfiguration.clearRunOverrides()
+        ValidatorConfiguration.Config base = ValidatorConfiguration.current()
+        def field = ValidatorConfiguration.class.getDeclaredField("CURRENT_OVERRIDE")
+        field.setAccessible(true)
+        InheritableThreadLocal<ValidatorConfiguration.Config> currentOverride =
+            (InheritableThreadLocal<ValidatorConfiguration.Config>) field.get(null)
+        currentOverride.set(new ValidatorConfiguration.Config(
+            "",
+            apiUrl != null ? apiUrl.trim() : base.apiUrl,
+            workspaceId != null ? workspaceId.trim() : base.workspaceId,
+            authToken != null ? authToken.trim() : base.authToken,
+            base.testcontainersEnabled,
+            base.postgresImage,
+            base.initImage,
+            base.apiImage,
+            base.postgres,
+            base.api
+        ))
     }
 
     private static def executeSpecClass(Class<?> specClass) {

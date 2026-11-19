@@ -1,6 +1,7 @@
 package de.palsoftware.scim.validator.specs
 
 import de.palsoftware.scim.validator.base.ScimBaseSpec
+import de.palsoftware.scim.validator.base.ScimOutput
 import de.palsoftware.scim.validator.base.ScimUrlSecurity
 import de.palsoftware.scim.validator.base.spec.RequiresCapability
 import de.palsoftware.scim.validator.base.spec.SpecRef
@@ -505,8 +506,16 @@ class Rfc7643AttributeModelSpec extends ScimBaseSpec {
     def "RFC7643-2.3.7-1d19d6: An HTTP client performing a GET operation on a reference URI MUST receive the target resource or an..."() {
         expect:
         String baseWithSlash = scimBaseUrl() + "/"
-        def pass11 = sampleReferences().each { Map r ->
-            String target = ScimUrlSecurity.resolveSameOriginUrl(state().scimApiUrl, baseWithSlash, (String) r.ref)
+        int checked = 0
+        List<String> skippedMessages = []
+        for (Map r : sampleReferences()) {
+            String target
+            try {
+                target = ScimUrlSecurity.resolveSameOriginUrl(state().scimApiUrl, baseWithSlash, (String) r.ref)
+            } catch (TestAbortedException e) {
+                skippedMessages.add("${r.label}: ${e.message}")
+                continue
+            }
             Response response = scimRequest().baseUri(target).basePath("").get()
             assert response.statusCode() == 200 :
                 "RFC 7643 2.3.7: GET on ${r.label} '${target}' must return the target resource (200) but was ${response.statusCode()}"
@@ -515,6 +524,12 @@ class Rfc7643AttributeModelSpec extends ScimBaseSpec {
             String expectedId = tail.substring(slashIdx + 1)
             assert response.jsonPath().getString("id") == expectedId :
                 "RFC 7643 2.3.7: GET on ${r.label} '${target}' returned id ${response.jsonPath().getString('id')} instead of ${expectedId}"
+            checked++
+        }
+        if (checked == 0) {
+            throw new TestAbortedException(skippedMessages.join("; "))
+        } else if (!skippedMessages.isEmpty()) {
+            ScimOutput.note("Skipped cross-origin reference(s): ${skippedMessages.join('; ')}")
         }
     }
 
