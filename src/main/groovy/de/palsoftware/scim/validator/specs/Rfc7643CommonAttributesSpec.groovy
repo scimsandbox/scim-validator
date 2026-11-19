@@ -137,8 +137,8 @@ class Rfc7643CommonAttributesSpec extends ScimBaseSpec {
             "ResourceType"         : rt,
             "ResourceType list"    : rtList
         ]
-        (rtList.Resources as List).eachWithIndex { Map r, int i -> reps["ResourceTypes[${i}]"] = r }
-        (schemaList.Resources as List).eachWithIndex { Map r, int i -> reps["Schemas[${i}]"] = r }
+        (rtList.Resources as List).eachWithIndex { Map r, int i -> reps.put("ResourceTypes[" + i + "]", r) }
+        (schemaList.Resources as List).eachWithIndex { Map r, int i -> reps.put("Schemas[" + i + "]", r) }
         reps.each { String label, Map rep ->
             assert rep.schemas instanceof List && !rep.schemas.isEmpty() : "RFC 7643 3: ${label} must include a non-empty 'schemas' array but had ${rep.schemas}"
             assert rep.schemas.every { it instanceof String && it } : "RFC 7643 3: ${label} 'schemas' must hold URI strings"
