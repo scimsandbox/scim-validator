@@ -26,9 +26,6 @@ class Rfc9967SecuritySpec extends Rfc9967BaseSpec {
         }
         Map created = createAsyncUser()
         String url = resolveUrl((created.response as Response).header("Location"))
-        if (URI.create(url).authority != URI.create(state().scimApiUrl).authority) {
-            throw new TestAbortedException("Location points to another origin")
-        }
 
         when: "the event is requested without credentials and with a wrong token"
         Response authorized = getUrl(url)
@@ -53,9 +50,6 @@ class Rfc9967SecuritySpec extends Rfc9967BaseSpec {
         Map created = createAsyncUser()
         String loc = (created.response as Response).header("Location")
         String url = resolveUrl(loc)
-        if (URI.create(url).authority != URI.create(state().scimApiUrl).authority) {
-            throw new TestAbortedException("Location points to another origin")
-        }
 
         when: "the returned URI is requested without an Authorization header"
         Response anonymous = scimRequestAnonymous().accept("*/*").baseUri(url).basePath("").get()
